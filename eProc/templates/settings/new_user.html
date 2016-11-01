@@ -1,0 +1,40 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}New User{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}New User<small></small>{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+	{% if messages %}
+	    {% for message in messages %}
+	        <p>{{ message }}</p>
+	    {% endfor %}
+	{% endif %}
+
+    <form method="POST" action="new_requisition">
+	   {% csrf_token %}
+        {{form}}
+    	<input type="submit" value="ADD USER" class="button basic pull-right"/>
+    </form>
+
+</section>
+{% endblock content %}
+
+
+{% block js %}
+{% endblock js %}
+
+
+
+
+
+
+
+
+

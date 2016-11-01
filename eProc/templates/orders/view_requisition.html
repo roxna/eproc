@@ -1,0 +1,104 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Requests{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}{% endblock header %}
+
+
+{% block content %}
+    <section class="invoice">
+      <div class="row">
+        <div class="col-xs-12">
+          <h2 class="page-header">
+            <i class="fa fa-globe"></i> {{ requisition.buyerCo }}
+            <small class="pull-right">Date Requested: {{ requisition.date_issued }}</small>
+          </h2>
+        </div>
+      </div>
+
+      <!-- Request Details -->
+      <div class="row invoice-info">
+      	<p class="lead">Requisition Details</p>
+        <div class="col-sm-6 invoice-col">
+          	<b>Department:</b> {{ requisition.department }}
+          	<br>
+			<b>Preparer:</b> {{ requisition.preparer }}<br>
+          	<b>Next Approver:</b> {{ requisition.next_approver }}<br>
+        </div>
+        <div class="col-sm-6 invoice-col">
+          <b>Request Number:</b> {{ requisition.number }}<br>
+          <br>
+          <b>Currency:</b> {{ requisition.currency }}<br>
+          <b>Date Due:</b> {{ requisition.date_due }}<br>
+          <b>Approved?</b> {{ requisition.is_approved }}<br>
+        </div>
+      </div>
+
+      <!-- Order Item in Request -->
+      <div class="row">
+      	<p class="lead">Order Details</p>
+        <div class="col-xs-12 table-responsive">
+          <table class="table table-striped">
+            <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Cost</th>
+              <th>Comments</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for order_item in requisition.order_items %}
+            <tr>
+              <td>{{ order_item.name }}</td>
+              <td>{{ order_item.quantity }}</td>
+              <td>{{ order_item.sub_total }}</td>
+              <td>{{ order_item.comments }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+	  <!-- Comments & Total -->
+      <div class="row">      
+        <div class="col-xs-6">
+          <p class="lead">Comments</p>
+          <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;"> {{ requisition.comments }}</p>
+        </div>
+
+        <div class="col-xs-6">
+          <div class="table-responsive">
+            <table class="table">
+              <tr>
+                <th>Total Estimated Cost:</th>
+                <td>{{ requisition.sub_total }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- /.row -->
+
+      <!-- This row to show on if Approver of PO -->
+      <div class="row no-print">
+        <div class="col-xs-12">
+          <button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Approve Request</button>
+          <button type="button" class="btn btn-success pull-right"><i class="fa fa-cross"></i> Deny Request</button>
+        </div>
+      </div>
+    </section>
+   
+    <div class="clearfix"></div>
+{% endblock content %}
+
+
+{% block js %}
+<script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+{% endblock js %}

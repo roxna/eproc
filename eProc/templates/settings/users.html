@@ -1,0 +1,47 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Users{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Users<small></small>{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+           <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Full Name</th>                        
+                  <th>Email Address</th>                        
+                  <th>Role</th>
+                  <th>Last Activity</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for user in users %}           
+              <tr>
+                <td>{{ user.user.username }}</td>
+                <td>{{ user.user.email }}</td>                      
+                <td>{{ user.get_role_display }}</td>
+                <td></td>
+                <td><a href=""><i class="fa fa-trash"></i></a></td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+        </div>
+       </div>
+    </div>
+  </section>
+{% endblock content %}
+
+
+
+{% block js %}
+{% endblock js %}

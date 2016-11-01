@@ -1,0 +1,7 @@
+{% extends '_layouts/base_landing.html' %}
+
+{% block title %} eProcurement Home {% endblock %}
+
+{% block content %}
+<p>Howdy{% if user.is_authenticated %} {{ user.username }}{% endif %}!</p>
+{% endblock %}
