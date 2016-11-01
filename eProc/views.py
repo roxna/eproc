@@ -1,21 +1,22 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Max
 from django.http import HttpResponseRedirect, HttpResponse
-from django.forms.formsets import formset_factory, BaseFormSet
+from django.forms import modelformset_factory,BaseModelFormSet
 from django.shortcuts import render, redirect, resolve_url
 from django.template.response import TemplateResponse
 from django.views import generic
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.utils import timezone
 from django.utils.http import is_safe_url
 from eProc.models import *
 from eProc.forms import *
-# from eProc import settings
-from django.conf import settings
+
 
 
 def home(request):
@@ -50,6 +51,9 @@ def login(request, template_name='settings/login.html',
         context.update(extra_context)
     return TemplateResponse(request, template_name, context)
 
+@login_required()
+def dashboard(request):
+    return render(request, "dashboard.html")
 
 # to register & activate: https://github.com/JunyiJ/django-register-activate/blob/master/register_activate/views.py
 @login_required()
@@ -59,12 +63,13 @@ def new_user(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.company = request.user.buyerCo
+            user.save()
             text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
             html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
             msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
             msg.attach_alternative(html_content, "text/html")
-            msg.send()
-            return redirect("welcome")
+            # msg.send()
+            return redirect('home')
     else:
         form = NewUserForm()
     data = {'form': form}
@@ -77,42 +82,53 @@ def users(request):
     data = {'users': users}
     return render(request, "settings/users.html", data)
 
-@login_required()
-def dashboard(request):
-    return render(request, "dashboard.html")
+@login_required
+def departments(request):
+	user = request.user
+	DepartmentFormSet = modelformset_factory(model=Department, form=DepartmentForm, formset=BaseModelFormSet)
+	department_formset = DepartmentFormSet(request.POST or None, queryset = Department.objects.all())
+	if request.method == "POST":
+		if department_formset.is_valid():
+			for department_form in department_formset:
+				try:
+					instance = Department.objects.get(pk=request.POST['pk'])
+					department_form.save(instance=instance)
+				except:
+					department = department_form.save(commit=False)
+					department.company = user.buyer_profile.company
+					department.save()
+				messages.success(request, "Departments saved successfully")
+			return redirect('/departments')
+	data = {'department_formset': department_formset}
+	return render(request, "settings/departments.html", data)
 
 @login_required
 def new_requisition(request):
     user = request.user
-    OrderItemFormSet = formset_factory(OrderItemForm, formset=BaseFormSet)
+    OrderItemFormSet = modelformset_factory(model=OrderItem, form=OrderItemForm, formset=BaseModelFormSet, extra=1)
+    requisition_form = RequisitionForm(request.POST or None)
+    orderitem_formset = OrderItemFormSet(request.POST or None)
     if request.method == "POST":
-    	requisition_form = RequisitionForm(request.POST)
-    	orderitem_formset = OrderItemFormSet(request.POST)
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = requisition_form.save(commit=False)
             requisition.preparer = user
             requisition.date_issued = datetime.now()
-            requisition.buyerCo = user.company            
-
+            requisition.buyerCo = user.buyer_profile.company            
             # Save the data for each form in the order_items formset
             for orderitem_form in orderitem_formset:
                 order_item = orderitem_form.save(commit=False)
-             #    if user.buyer_profile.role == 'SUPERUSER' or user.buyer_profile.role == 'APPROVER':
-             #    	status = models.Status(value=APPROVED, date=datetime.now(), author=user, document=requisition)
-            	# else:
-            	# 	status = models.Status(value=DRAFT, date=datetime.now(), author=user, document=requisition)
-            	# status.save()
+                if user.buyer_profile.role == 1 or user.buyer_profile.role == 3:
+                	status = Status.objects.create(value=3, date=timezone.now, author=user, document=requisition)
+            	else:
+            		status = Status.objects.create(value=2, date=timezone.now, author=user, document=requisition)
+            	status.save()
                 order_item.requisition = requisition
                 order_item.sub_total = order_item.product.unit_price * order_item.quantity
                 requisition.sub_total += order_item.sub_total
                 order_item.save()
-
             requisition.save()
-            messages.success(request, 'Requisition saved!')
-            return redirect("/requisitions/{}/".format(requisition.id))
-    else:
-        requisition_form = RequisitionForm()
-        orderitem_formset = OrderItemFormSet()
+            messages.success(request, 'Requisition submitted successfully')
+            return redirect('/requisitions')
     data = {
 	    'requisition_form': requisition_form,
 	    'orderitem_formset': orderitem_formset
@@ -122,11 +138,12 @@ def new_requisition(request):
 
 @login_required()
 def requisitions(request):
-    requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date'))
+    # requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company).annotate(latest_update=Max('status_updates__date'))
+    requisitions = Requisition.objects.get(pk=1)
+    # requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company).annotate(latest_update=Max('status_updates__date'))
     pending_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates=2)
     approved_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates=3)
     denied_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates=4)
-    # requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company)
     data = {
     	'requistions': requisitions,
     	'pending_requisitions': pending_requisitions,
@@ -138,7 +155,7 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     requisition = Requisition.objects.get(pk=requisition_id)
-    data = {'requistion': requistion}
-    return render(request, "orders/view_requisition.html", requisition)
+    data = {'requisition': requisition}
+    return render(request, "orders/view_requisition.html", data)
 
 

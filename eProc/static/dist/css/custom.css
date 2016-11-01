@@ -1,4 +1,10 @@
-.basic{
+.basic-teal{
 	background: #007777;
 	color: white;
+	margin: 5px;
+}
+.basic-grey{
+	background: #d4d8dc;
+	color: black;
+	margin: 5px;
 }

@@ -11,7 +11,11 @@ class UserAdmin(admin.ModelAdmin):
     # list_filter = ['driver', 'departure_date']
     list_display = ['username', 'email']
 
+class RequisitionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'department', 'buyerCo']
 
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
 
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile)
@@ -23,9 +27,10 @@ admin.site.register(OrderItem)
 admin.site.register(Company)
 admin.site.register(BuyerCo)
 admin.site.register(VendorCo)
-admin.site.register(Department)
+admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Location)
-admin.site.register(Requisition)
+admin.site.register(Document)
+admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder)
 admin.site.register(Invoice)
 admin.site.register(Rating)

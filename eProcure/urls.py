@@ -18,7 +18,7 @@ urlpatterns=[
     url(r'^dashboard/$', views.dashboard, name='dashboard'),
     url(r'^requisition/new/$', views.new_requisition, name='new_requisition'),
     url(r'^requisitions/$', views.requisitions, name='requisitions'),
-    # url(r'^requisitions/(?P<requisition_id>\w+)/$', views.view_requisition, name='view_requisition'),
+    url(r'^requisitions/(?P<requisition_id>\w+)/$', views.view_requisition, name='view_requisition'),
     
     # url(r'^po/new/$', views.create, name='create_po'),
     # url(r'^po/receive/$', views.receive, name='receive_po'),
@@ -31,11 +31,9 @@ urlpatterns=[
     # url(r'^settings/user-profile/$', views.user_profile, name='user_profile'),
     # url(r'^settings/company-profile/$', views.company_profile, name='company_profile'),
     url(r'^settings/users/$', views.users, name='users'),   
-    url(r'^settings/user/new/$', views.new_user, name='new_user'),
+    url(r'^settings/user/new/$', views.new_user, name='new_user'),    
+    url(r'^settings/departments/$', views.departments, name='departments'),
     # url(r'^settings/taxes/$', views.taxes, name='taxes'),
-    # url(r'^settings/tax/new$', views.new_tax, name='new_tax'),
-    # url(r'^settings/departments/$', views.departments, name='departments'),
-    # url(r'^settings/departments/new/$', views.new_department, name='new_department'),
 
 
 ]

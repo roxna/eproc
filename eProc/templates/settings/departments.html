@@ -1,0 +1,63 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Departments{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Departments
+<!-- <input type=><a href="{% url 'departments' %}"" class="button btn basic pull-right"/><i class="fa fa-plus"></i> ADD DEPARTMENT</div> -->
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+           <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Department Name</th>                        
+                </tr>
+              </thead>
+              <tbody>
+              <form method="POST" action="">
+                {% csrf_token %}
+                {{ department_formset.management_form }}
+
+                {% for department_form in department_formset %}  
+                         
+                  {% for hidden in department_form.hidden_fields %}
+                      {{ hidden }}
+                  {% endfor %}
+                  <tr class="department_formset">
+                    <td>{{ department_form.name }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>  
+            <input type="submit" value="Save Changes" name="submit" class="button btn basic-teal pull-right"/>          
+        </div>
+       </div>
+    </div>
+  </section>
+{% endblock content %}
+
+
+
+{% block js %}
+<script src="{% static 'plugins/django-dynamic-formset/jquery.formset.js' %}"></script>
+<script type="text/javascript">
+    $('.department_formset').formset({
+        addText: '<i class="fa fa-plus"></i> Add Dept',
+        deleteText: ' <span class="pull-right"><i class="fa fa-trash"></i></span>',
+        added: '',
+        removed: ''
+    });
+</script>
+{% endblock js %}

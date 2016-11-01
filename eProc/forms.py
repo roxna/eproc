@@ -44,6 +44,14 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': 'Username','class': 'form-control'}))
     password = forms.CharField(required=True, widget=forms.PasswordInput(attrs={'placeholder': 'Password','class': 'form-control'}))
 
+
+class DepartmentForm(ModelForm):
+    name = forms.CharField(required=True)
+
+    class Meta:
+        model = Department
+        fields = ("name", )
+
 class RequisitionForm(ModelForm):    
     # req_count = Requisition.objects.filter(buyerCo=user.buyer_profile.company).count()
     req_count = Requisition.objects.count()+1
@@ -63,15 +71,12 @@ class RequisitionForm(ModelForm):
         model = Requisition
         fields = ("number", "date_created", "date_due", "currency", "comments", "department", "next_approver")
 
-    # helper = FormHelper()
-    # helper.add_input(Submit('Submit', 'Submit', css_class="btn-success"))
-
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all())
     unit_price = forms.IntegerField()
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all())
-    quantity = forms.IntegerField(initial=1)
+    quantity = forms.IntegerField()
     comments = forms.CharField(help_text="Additional comments")
 
     class Meta:

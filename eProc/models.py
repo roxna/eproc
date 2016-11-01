@@ -11,7 +11,7 @@ class Company (models.Model):
 
 class BuyerCo(Company):
 	def __unicode__(self):
-		return "Buyer: {}".format(self.name)
+		return "{}".format(self.name)
 
 class VendorCo(Company):
 	bank_name = models.CharField(max_length=50, null=True, blank=True)
@@ -21,7 +21,7 @@ class VendorCo(Company):
 	buyer_cos = models.ManyToManyField(BuyerCo, related_name="vendor_cos")	
 	
 	def __unicode__(self):
-		return "Vendor: {}".format(self.name)
+		return "{}".format(self.name)
 
 class Location(models.Model):
 	name = models.CharField(max_length=20)
@@ -49,11 +49,11 @@ class Department(models.Model):
 
 class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
-	category = models.CharField(max_length=20, null=True, blank=True)
-	description = models.CharField(max_length=50)
+	category = models.CharField(max_length=20)
+	description = models.CharField(max_length=50, null=True, blank=True)
 	
 	def __unicode__(self):
-		return "{}".format(self.code)
+		return "[{}] {}".format(self.code, self.category)
 
 class Tax(models.Model):
 	name = models.CharField(max_length=15)
@@ -86,14 +86,14 @@ class BuyerProfile(models.Model):
 	company = models.ForeignKey(BuyerCo, related_name="users")
 
 	def __unicode__(self):
-		return "Buyer: {} [{}] [{}]".format(self.user.username, self.get_role_display(), self.company.name)
+		return "{}".format(self.user.username)
 
 class VendorProfile(models.Model):
 	user = models.OneToOneField(User, related_name="vendor_profile")
 	company = models.ForeignKey(VendorCo, related_name="users")
 
 	def __unicode__(self):
-		return "Vendor: {} [{}]".format(self.user.username, self.company.name)
+		return "{}".format(self.user.username)
 
 
 ########## ORDERS - REQUISITION, PO, INVOICE  #########
@@ -130,18 +130,18 @@ class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
 	def __unicode__(self):
-		return "Requisition No. {} [{}]".format(self.number, self.date_issued)
+		return "Requisition No. {}".format(self.number)
 
 class PurchaseOrder(Document, SalesOrder):	
 	def __unicode__(self):
-		return "PO No. {} [{}]".format(self.number, self.date_issued)	
+		return "PO No. {}".format(self.number)
 
 class Invoice(Document, SalesOrder):
 	is_paid = models.BooleanField(default=False)
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
 	def __unicode__(self):
-		return "Invoice No. {} [{}]".format(self.number, self.date_issued)	
+		return "Invoice No. {}".format(self.number)	
 
 
 ######### PRODUCT & ORDER LINE ITEMS #########
@@ -178,7 +178,7 @@ class OrderItem(models.Model):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
 
 	def __unicode__(self):
-		return "{} of {} at {}{}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
+		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency.upper(), self.unit_price)
 
 ######### OTHER DETAILS #########
 class Status(models.Model):

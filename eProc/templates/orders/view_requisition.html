@@ -15,23 +15,23 @@
         <div class="col-xs-12">
           <h2 class="page-header">
             <i class="fa fa-globe"></i> {{ requisition.buyerCo }}
-            <small class="pull-right">Date Requested: {{ requisition.date_issued }}</small>
+            <small class="pull-right">Date Requested: <em>{{ requisition.date_issued }}</em></small>
           </h2>
         </div>
       </div>
 
       <!-- Request Details -->
       <div class="row invoice-info">
-      	<p class="lead">Requisition Details</p>
+      	<div class="col-xs-12">
+          <p class="lead">Requisition Details</p>
+        </div>
         <div class="col-sm-6 invoice-col">
-          	<b>Department:</b> {{ requisition.department }}
-          	<br>
-			<b>Preparer:</b> {{ requisition.preparer }}<br>
+          	<b>Department:</b> {{ requisition.department }}<br>
+			      <b>Preparer:</b> {{ requisition.preparer }}<br>
           	<b>Next Approver:</b> {{ requisition.next_approver }}<br>
         </div>
         <div class="col-sm-6 invoice-col">
           <b>Request Number:</b> {{ requisition.number }}<br>
-          <br>
           <b>Currency:</b> {{ requisition.currency }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
           <b>Approved?</b> {{ requisition.is_approved }}<br>
@@ -40,23 +40,27 @@
 
       <!-- Order Item in Request -->
       <div class="row">
-      	<p class="lead">Order Details</p>
+        <div class="col-xs-12">
+      	 <p class="lead">Order Details</p>
+        </div>
         <div class="col-xs-12 table-responsive">
           <table class="table table-striped">
             <thead>
             <tr>
               <th>Product</th>
               <th>Quantity</th>
-              <th>Cost</th>
+              <th>Cost Per Unit</th>
+              <th>Sub-total</th>
               <th>Comments</th>
             </tr>
             </thead>
 
             <tbody>
-            {% for order_item in requisition.order_items %}
+            {% for order_item in requisition.order_items.all %}
             <tr>
-              <td>{{ order_item.name }}</td>
+              <td>{{ order_item.product.name }}</td>
               <td>{{ order_item.quantity }}</td>
+              <td>{{ order_item.unit_price }}</td>
               <td>{{ order_item.sub_total }}</td>
               <td>{{ order_item.comments }}</td>
             </tr>
@@ -64,33 +68,27 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </div><br>
 
 	  <!-- Comments & Total -->
       <div class="row">      
-        <div class="col-xs-6">
+        <div class="col-lg-6">
+        {% if requisition.comments %}
           <p class="lead">Comments</p>
           <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;"> {{ requisition.comments }}</p>
         </div>
+        {% endif %}
 
-        <div class="col-xs-6">
-          <div class="table-responsive">
-            <table class="table">
-              <tr>
-                <th>Total Estimated Cost:</th>
-                <td>{{ requisition.sub_total }}</td>
-              </tr>
-            </table>
-          </div>
+        <div class="col-lg-6 pull-right">
+          <p class="lead">Total Cost: {{ requisition.sub_total }}</p>
         </div>
-      </div>
-      <!-- /.row -->
+      </div><br>
 
-      <!-- This row to show on if Approver of PO -->
+      <!-- This row to show only if Approver of PO -->
       <div class="row no-print">
         <div class="col-xs-12">
-          <button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Approve Request</button>
-          <button type="button" class="btn btn-success pull-right"><i class="fa fa-cross"></i> Deny Request</button>
+          <button type="button" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Request</button>
+          <button type="button" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Request</button>
         </div>
       </div>
     </section>

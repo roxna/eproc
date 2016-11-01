@@ -6,10 +6,16 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Users<small></small>{% endblock header %}
+{% block header %}Users
+<div><a href="{% url 'new_user' %}"" class="button btn basic pull-right"/><i class="fa fa-plus"></i> ADD USER</div>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
+  <div class="row">
+
+  </div>
+
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
