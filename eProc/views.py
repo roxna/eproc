@@ -53,53 +53,50 @@ def login(request, template_name='settings/login.html',
 
 @login_required()
 def dashboard(request):
-    return render(request, "dashboard.html")
+	data = {
+
+	}
+	return render(request, "dashboard.html", data)
 
 # to register & activate: https://github.com/JunyiJ/django-register-activate/blob/master/register_activate/views.py
-@login_required()
-def new_user(request):
-    if request.method == "POST":
-        form = NewUserForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.company = request.user.buyerCo
-            user.save()
-            text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
-            html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
-            msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
-            msg.attach_alternative(html_content, "text/html")
-            # msg.send()
-            return redirect('home')
-    else:
-        form = NewUserForm()
-    data = {'form': form}
-    return render(request, 'settings/new_user.html', data)
-
-@login_required()
+@login_required
 def users(request):
-    # users = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
-    users = BuyerProfile.objects.all()
-    data = {'users': users}
-    return render(request, "settings/users.html", data)
+	# users = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
+	users = BuyerProfile.objects.all()
+	user_form = NewUserForm(request.POST or None)
+	if request.method == "POST":
+		if user_form.is_valid():
+			user = user_form.save(commit=False)
+			user.company = request.user.buyerCo
+			user.save()
+			text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
+			html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
+			msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+			msg.attach_alternative(html_content, "text/html")
+			# msg.send()
+			return redirect('home')
+	data = {
+		'users': users,
+		'user_form': user_form
+	}
+	return render(request, "settings/users.html", data)
 
 @login_required
 def departments(request):
-	user = request.user
-	DepartmentFormSet = modelformset_factory(model=Department, form=DepartmentForm, formset=BaseModelFormSet)
-	department_formset = DepartmentFormSet(request.POST or None, queryset = Department.objects.all())
+	# departments = Department.objects.filter(company=request.user.buyer_profile.company)
+	departments = Department.objects.all()
+	department_form = DepartmentForm(request.POST or None)
 	if request.method == "POST":
-		if department_formset.is_valid():
-			for department_form in department_formset:
-				try:
-					instance = Department.objects.get(pk=request.POST['pk'])
-					department_form.save(instance=instance)
-				except:
-					department = department_form.save(commit=False)
-					department.company = user.buyer_profile.company
-					department.save()
-				messages.success(request, "Departments saved successfully")
-			return redirect('/departments')
-	data = {'department_formset': department_formset}
+		if department_form.is_valid():
+			department = department_form.save(commit=False)
+			department.company = request.user.buyer_profile.company
+			department.save()
+			messages.success(request, "Department saved successfully")
+			return redirect('/settings/departments')
+	data = {
+		'departments': departments,
+		'department_form': department_form
+	}
 	return render(request, "settings/departments.html", data)
 
 @login_required

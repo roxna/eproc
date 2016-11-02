@@ -21,7 +21,8 @@ class NewUserForm(UserCreationForm):
     last_name = forms.CharField(required=True)    
     email = forms.EmailField(required=True)
     role = forms.ChoiceField(ROLES, required=True)
-    department = forms.ModelChoiceField(Department)
+    department = forms.CharField()
+    # department = forms.ModelChoiceField(Department)
     profile_pic = forms.ImageField(label="Profile Picture", required=False)
 
     class Meta:

@@ -43,6 +43,8 @@
     					<td>{{ requisition_form.number }}</td>
     					<td>{{ requisition_form.department }}<br><br>
                             <a href="{% url 'departments' %}"><i class="fa fa-plus"></i> Add Dept</a>
+                            <!-- <a href="#addModal"><i class="fa fa-plus"></i> Add Dept</a>
+                            {% include "_includes/add_modal.html" with target="Department" form=department_form %} -->
                         </td>
     					<td>{{ requisition_form.date_due }}</td>    					
     					<td>{{ requisition_form.comments }}</td>

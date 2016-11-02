@@ -31,7 +31,6 @@ urlpatterns=[
     # url(r'^settings/user-profile/$', views.user_profile, name='user_profile'),
     # url(r'^settings/company-profile/$', views.company_profile, name='company_profile'),
     url(r'^settings/users/$', views.users, name='users'),   
-    url(r'^settings/user/new/$', views.new_user, name='new_user'),    
     url(r'^settings/departments/$', views.departments, name='departments'),
     # url(r'^settings/taxes/$', views.taxes, name='taxes'),
 

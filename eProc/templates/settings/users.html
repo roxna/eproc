@@ -6,9 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Users
-<div><a href="{% url 'new_user' %}"" class="button btn basic pull-right"/><i class="fa fa-plus"></i> ADD USER</div>
-{% endblock header %}
+{% block header %}Users{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -20,6 +18,7 @@
     <div class="col-xs-12">
         <div class="box">
            <table class="table table-striped">
+              
               <thead>
                 <tr>
                   <th>Full Name</th>                        
@@ -29,19 +28,27 @@
                   <th></th>
                 </tr>
               </thead>
+
               <tbody>
-              {% for user in users %}           
-              <tr>
-                <td>{{ user.user.username }}</td>
-                <td>{{ user.user.email }}</td>                      
-                <td>{{ user.get_role_display }}</td>
-                <td></td>
-                <td><a href=""><i class="fa fa-trash"></i></a></td>
-              </tr>
-              {% endfor %}
+                  {% for user in users %}           
+                  <tr>
+                    <td>{{ user.user.username }}</td>
+                    <td>{{ user.user.email }}</td>                      
+                    <td>{{ user.get_role_display }}</td>
+                    <td></td>
+                    <td><a href=""><i class="fa fa-trash"></i></a></td>
+                  </tr>
+                  {% endfor %}
               </tbody>
+            
             </table>
-        </div>
+
+            <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>
+            {% include "_includes/add_modal.html" with target="User" form=user_form action="users"%}
+              
+              {% for user in users %}    
+
+          </div>
        </div>
     </div>
   </section>
