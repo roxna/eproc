@@ -1,0 +1,47 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Departments{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Vendors</h1>{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+           <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Vendor Name</th>
+                </tr>
+              </thead>
+              
+                <tbody>              
+                  {% for vendor in vendors %}                           
+                    <tr>
+                      <td>{{ vendor.name }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>  
+
+              <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Vendor</button>
+              {% include "_includes/multiform_modal.html" with target="Vendor" form1=vendor_form form2=location_form %}
+              <button type="button" class="btn basic-grey pull-right">Upload Vendor List</button>
+        </div>
+       </div>
+    </div>
+  </section>
+{% endblock content %}
+
+
+{% block js %}
+{% endblock js %}

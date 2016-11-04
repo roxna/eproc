@@ -1,18 +1,14 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 
-{% block title %}Users{% endblock title %}
+{% block title %} Users {% endblock title %}
 
-{% block css %}
-{% endblock css %}
+{% block css %}{% endblock css %}
 
-{% block header %}Users{% endblock header %}
+{% block header %} <h1>Users</h1> {% endblock header %}
 
 {% block content %}
 <section class="content">
-  <div class="row">
-
-  </div>
 
   <div class="row">
     <div class="col-xs-12">
@@ -44,16 +40,14 @@
             </table>
 
             <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>
-            {% include "_includes/add_modal.html" with target="User" form=user_form action="users"%}
-              
-              {% for user in users %}    
 
+            {% include "_includes/multiform_modal.html" with target="User" form1=user_form  form2=buyer_profile_form %}
+              
           </div>
        </div>
     </div>
   </section>
 {% endblock content %}
-
 
 
 {% block js %}

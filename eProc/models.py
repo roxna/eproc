@@ -161,6 +161,7 @@ class CatalogItem(models.Model):
 	currency = models.CharField(max_length=20)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendorCo = models.ForeignKey(VendorCo, related_name="catalog_items")
+	buyerCo = models.ForeignKey(BuyerCo, related_name="catalog_items")
 
 	def __unicode__(self):
 		return "{}".format(self.name)

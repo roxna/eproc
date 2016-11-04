@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
 {% endblock css %}
 
-{% block header %}Request an Order <small></small>{% endblock header %}
+{% block header %}<h1>Request an Order</h1> <small></small>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -44,7 +44,7 @@
     					<td>{{ requisition_form.department }}<br><br>
                             <a href="{% url 'departments' %}"><i class="fa fa-plus"></i> Add Dept</a>
                             <!-- <a href="#addModal"><i class="fa fa-plus"></i> Add Dept</a>
-                            {% include "_includes/add_modal.html" with target="Department" form=department_form %} -->
+                            {% include "_includes/singleform_modal.html" with target="Department" form=department_form %} -->
                         </td>
     					<td>{{ requisition_form.date_due }}</td>    					
     					<td>{{ requisition_form.comments }}</td>

@@ -4,9 +4,10 @@
 {% block title %}Departments{% endblock title %}
 
 {% block css %}
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
 {% endblock css %}
 
-{% block header %}Departments{% endblock header %}
+{% block header %}<h1>Departments</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -17,24 +18,29 @@
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
-           <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Department Name</th>
-                </tr>
-              </thead>
-              
-                <tbody>              
-                  {% for department in departments %}                           
-                    <tr class="department_formset">
-                      <td>{{ department.name }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
+            <!-- <div class="box-header">
+              <h3 class="box-title">List of Products</h3>
+            </div> -->
+            <div class="box-body">
+              <table id="departmentTable" class="table table-striped">
+                <thead class="basic-teal">
+                  <tr>
+                    <th>Department Name</th>
+                  </tr>
+                </thead>
+                
+                  <tbody>              
+                    {% for department in departments %}                           
+                      <tr class="department_formset">
+                        <td>{{ department.name }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
               </table>  
 
               <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Department</button>
-              {% include "_includes/add_modal.html" with target="Department" form=department_form action="departments"%}
+
+              {% include "_includes/singleform_modal.html" with target="Department" form=department_form %}
         </div>
        </div>
     </div>
@@ -42,8 +48,19 @@
 {% endblock content %}
 
 
-
-
-
 {% block js %}
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<script>
+  $(function () {
+    $('#departmentTable').DataTable({
+      // "paging": true,
+      // "lengthChange": false,
+      // "searching": true,
+      // "ordering": true,
+      // "info": true,
+      // "autoWidth": false
+    });
+  });
+</script>
 {% endblock js %}

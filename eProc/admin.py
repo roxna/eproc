@@ -7,26 +7,49 @@ class UserAdmin(admin.ModelAdmin):
     #              ('Ride Details', {'fields': ['departure_city', 'arrival_city', 'departure_date', 'departure_time',
     #                                           'price_per_seat', 'num_seats_available']}),
     #              ('Ride restrictions', {'fields': ['no_smoking', 'no_pets', 'ladies_only']})]
-    # search_fields = ['departure_city', 'arrival_city']
-    # list_filter = ['driver', 'departure_date']
     list_display = ['username', 'email']
 
-class RequisitionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'department', 'buyerCo']
+class BuyerProfileAdmin(admin.ModelAdmin):
+    list_display = ['id', 'role', 'department', 'company']
+    search_fields = ['company']
 
+class VendorProfileAdmin(admin.ModelAdmin):
+    list_display = ['id', 'company']
+    list_filter = ['company']
+
+class RequisitionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'department', 'buyerCo', 'sub_total']
+    search_fields = ['number', 'department']
+    list_filter = ['number', 'sub_total']
+
+class CatalogItemAdmin(admin.ModelAdmin):
+	list_display = ['name', 'unit_price', 'category']
+
+class CategoryAdmin(admin.ModelAdmin):
+	list_display = ['code', 'name']	
+
+class OrderItemAdmin(admin.ModelAdmin):
+	list_display = ['product', 'quantity', 'unit_price']	
+
+class CompanyAdmin(admin.ModelAdmin):
+	list_display = ['name']
+    
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'company']
+
+class AccountCodeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'code', 'category', 'description']    
 
 admin.site.register(User, UserAdmin)
-admin.site.register(BuyerProfile)
-admin.site.register(VendorProfile)
-admin.site.register(AccountCode)
-admin.site.register(CatalogItem)
-admin.site.register(Category)
-admin.site.register(OrderItem)
-admin.site.register(Company)
-admin.site.register(BuyerCo)
-admin.site.register(VendorCo)
+admin.site.register(BuyerProfile, BuyerProfileAdmin)
+admin.site.register(VendorProfile, VendorProfileAdmin)
+admin.site.register(AccountCode, AccountCodeAdmin)
+admin.site.register(CatalogItem, CatalogItemAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(Company, CompanyAdmin)
+admin.site.register(BuyerCo, CompanyAdmin)
+admin.site.register(VendorCo, CompanyAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Location)
 admin.site.register(Document)

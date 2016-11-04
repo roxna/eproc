@@ -79,13 +79,13 @@
               </span>
             </a>
             <ul class="treeview-menu">
-              <li><a href="{%url 'dashboard' %}"><i class="fa fa-id-card-o"></i> Profile</a></li>
-              <li><a href="{%url 'dashboard' %}"><i class="fa fa-building"></i> Company</a></li>
+              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
+              <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company</a></li>
               <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>
               <li><a href="{%url 'dashboard' %}"><i class="fa fa-money"></i> Taxes</a></li>
-              <li><a href="{%url 'departments' %}"><i class="fa fa-circle-o"></i> Departments</a></li>
-              <li><a href="{%url 'dashboard' %}"><i class="fa fa-circle-o"></i> Vendors</a></li>
-              <li><a href="{%url 'dashboard' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>            
+              <li><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></li>
+              <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
+              <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>            
             </ul>
           </li>     
         </ul>
@@ -96,7 +96,7 @@
     <!-- Page Content -->
     <div class="content-wrapper">
       <section class="content-header">
-        <h1>{% block header %}{% endblock header %}</h1>
+        {% block header %}<h1></h1>{% endblock header %}
       </section>    
       {% block content %}{% endblock content %}
     </div>

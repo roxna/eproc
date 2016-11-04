@@ -4,30 +4,18 @@ from django.db.models import Count
 from django.forms import ModelForm
 from eProc.models import *
 from django.utils import timezone
-# from crispy_forms.helper import FormHelper, FormSetHelper
-# from crispy_forms.layout import Submit
+# from crispy_forms.helper import FormHelper
 
 
 class NewUserForm(UserCreationForm):
-    ROLES = (
-        (1, 'SuperUser'),
-        (2, 'Requester'),
-        (3, 'Approver'),
-        (4, 'Purchaser'),
-        (5, 'Receiver'),
-        (6, 'Payer'),
-    )
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)    
     email = forms.EmailField(required=True)
-    role = forms.ChoiceField(ROLES, required=True)
-    department = forms.CharField()
-    # department = forms.ModelChoiceField(Department)
-    profile_pic = forms.ImageField(label="Profile Picture", required=False)
+    # profile_pic = forms.ImageField(label="Profile Picture", required=False)
 
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "email", "role", "department", "password1", "password2", "profile_pic")
+        fields = ("first_name", "last_name", "email")
 
     def clean_username(self):
         username = self.cleaned_data["username"]
@@ -40,6 +28,40 @@ class NewUserForm(UserCreationForm):
             code='duplicate_username',
         )
 
+class BuyerProfileForm(ModelForm):
+    ROLES = (
+        (1, 'SuperUser'),
+        (2, 'Requester'),
+        (3, 'Approver'),
+        (4, 'Purchaser'),
+        (5, 'Receiver'),
+        (6, 'Payer'),
+    )
+    role = forms.ChoiceField(ROLES, required=True)
+    department = forms.ModelChoiceField(queryset=Department.objects.all())
+
+    class Meta:
+        model = BuyerProfile
+        fields = ("role", "department")    
+
+        
+class UserProfileForm(forms.ModelForm):
+    username = forms.CharField(required=True)
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True) 
+    email = forms.EmailField(widget = forms.TextInput(attrs={'readonly':'readonly'}))   
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name')
+
+class CompanyProfileForm(forms.ModelForm):
+    name = forms.CharField(required=True)
+    logo = forms.ImageField()
+
+    class Meta:
+        model = BuyerCo
+        fields = ('name', 'logo')
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': 'Username','class': 'form-control'}))
@@ -52,6 +74,52 @@ class DepartmentForm(ModelForm):
     class Meta:
         model = Department
         fields = ("name", )
+
+
+class CatalogItemForm(ModelForm):
+    name = forms.CharField(required=True)
+    desc = forms.CharField()
+    sku = forms.CharField(required=True)
+    unit_price = forms.DecimalField(required=True)
+    unit_type = forms.CharField(required=True)
+    currency = forms.CharField(required=True, initial="USD")
+    category = forms.ModelChoiceField(queryset=Category.objects.all())
+    vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all())
+
+    class Meta:
+        model = CatalogItem
+        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'currency', 'category', 'vendorCo')
+
+class VendorForm(ModelForm):
+    name = forms.CharField(required=True)
+
+    class Meta:
+        model = VendorCo
+        fields = ("name", )
+
+class LocationForm(ModelForm):
+    name = forms.CharField()
+    address1 = forms.CharField()
+    address2 = forms.CharField()
+    city = forms.CharField()
+    state = forms.CharField()
+    zipcode = forms.IntegerField()
+    country = forms.CharField()
+    phone = forms.IntegerField()
+    email = forms.CharField()
+    
+    class Meta:
+        model = Location
+        fields = ('address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
+
+class VendorProfileForm(ModelForm):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+
+    class Meta:
+        model = VendorCo
+        fields = ('first_name', 'last_name', 'email')
 
 class RequisitionForm(ModelForm):    
     # req_count = Requisition.objects.filter(buyerCo=user.buyer_profile.company).count()
@@ -83,7 +151,3 @@ class OrderItemForm(ModelForm):
     class Meta:
         model = OrderItem
         fields = ("product", "account_code", "quantity", "comments")
-
-    # helper = FormSetHelper()
-    # helper.add_input(Submit('Submit', 'Submit', css_class="btn-success")) 
-

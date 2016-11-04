@@ -6,11 +6,17 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}{% endblock header %}
+{% block header %}<h1>Requisition</h1>{% endblock header %}
 
 
 {% block content %}
     <section class="invoice">
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{% url 'requisitions' %}"><i class="fa fa-angle-left"></i> Back</a>
+      </div>
+    </div>
+
       <div class="row">
         <div class="col-xs-12">
           <h2 class="page-header">

@@ -23,13 +23,12 @@ urlpatterns=[
     # url(r'^po/new/$', views.create, name='create_po'),
     # url(r'^po/receive/$', views.receive, name='receive_po'),
     
-    # url(r'^vendors/$', views.documents, name='vendors'),
+    url(r'^vendors/$', views.vendors, name='vendors'),
     # url(r'^vendors/new/$', views.documents, name='new_vendor'),
-    # url(r'^products/$', views.documents, name='products'),
-    # url(r'^products/new/$', views.documents, name='new_product'),
+    url(r'^products/$', views.products, name='products'),
 
-    # url(r'^settings/user-profile/$', views.user_profile, name='user_profile'),
-    # url(r'^settings/company-profile/$', views.company_profile, name='company_profile'),
+    url(r'^settings/profile/$', views.user_profile, name='user_profile'),
+    url(r'^settings/company/$', views.company_profile, name='company_profile'),
     url(r'^settings/users/$', views.users, name='users'),   
     url(r'^settings/departments/$', views.departments, name='departments'),
     # url(r'^settings/taxes/$', views.taxes, name='taxes'),

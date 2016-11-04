@@ -6,7 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Approve an Order <small></small>{% endblock header %}
+{% block header %}<h1>Approve an Order</h1> <small></small>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -15,6 +15,8 @@
         <div class="box">
 
           <div class="nav-tabs-custom">
+
+            <!-- TABS -->
             <ul class="nav nav-tabs">
               <li class="active"><a href="#all" data-toggle="tab">All</a></li>
               <li><a href="#pending" data-toggle="tab">Pending</a></li>
@@ -22,144 +24,46 @@
               <li><a href="#denied" data-toggle="tab">Denied</a></li>
             </ul>
 
-            <!-- REQUISITIONS -->
+            <!-- TABLES -->
             <div class="tab-content">
-              <!-- ALL -->
-              <div class="tab-pane active" id="all">
-                 <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Request Order</th>                        
-                        <th>Date Due</th>                        
-                        <th>Department</th>
-                        <th>Request Details</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {% for requisition in requisitions %}           
-                    <tr>
-                      <td><a href="{%url 'view_requisition' requisition_id=requisition.id %}"><span class="btn btn-info">{{ requisition.id }}</span>
-                        <small><b>Requested by:</b> {{ requisition.preparer }}</small>
-                        <small><b>Num. items:</b> {{ requisition.id }}</small>
-                      </td>
-                      <td>{{ requisition.date_due }} 
-                        <small><b>Date due:</b> {{ requisition.date_created }}</small>
-                      </td>                      
-                      <td> {{ requisition.department }}</td>
-                      <td> {{ requisition.comments }}</td>
-                      <td>{{requisition.currency }} {{ requisition.sub_total }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
+              <div class="tab-pane" id="all">
+                 <table id="allTable" class="table table-striped">
+                 {% include "_includes/requisitions_table.html" with requisitions=all_requisitions %}
                   </table>
               </div>
-              
-              <!-- PENDING -->
               <div class="tab-pane" id="pending">
-                 <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Request Order</th>                        
-                        <th>Date Due</th>                        
-                        <th>Department</th>
-                        <th>Request Details</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {% for requisition in pending_requisitions %}           
-                    <tr>
-                      <td><a href="{%url 'view_requisition' requisition_id=requisition.id %}"><span class="btn btn-info">{{ requisition.id }}</span>
-                        <small><b>Requested by:</b> {{ requisition.preparer }}</small>
-                        <small><b>Num. items:</b> {{ requisition.id }}</small>
-                      </td>
-                      <td>{{ requisition.date_due }} 
-                        <small><b>Date due:</b> {{ requisition.date_created }}</small>
-                      </td>                      
-                      <td> {{ requisition.department }}</td>
-                      <td> {{ requisition.comments }}</td>
-                      <td>{{requisition.currency }} {{ requisition.sub_total }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
+                 <table id="pendingTable" class="table table-striped">
+                 {% include "_includes/requisitions_table.html" with requisitions=pending_requisitions %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="approved">
+                 <table id="approvedTable" class="table table-striped">
+                 {% include "_includes/requisitions_table.html" with requisitions=approved_requisitions %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="denied">
+                 <table id="deniedTable" class="table table-striped">
+                 {% include "_includes/requisitions_table.html" with requisitions=denied_requisitions %}
                   </table>
               </div>
 
-              <!-- APPROVED -->
-              <div class="tab-pane" id="approved">
-              <div class="tab-pane" id="pending">
-                 <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Request Order</th>                        
-                        <th>Date Due</th>                        
-                        <th>Department</th>
-                        <th>Request Details</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {% for requisition in approved_requisitions %}           
-                    <tr>
-                      <td><a href="{%url 'view_requisition' requisition_id=requisition.id %}"><span class="btn btn-info">{{ requisition.id }}</span>
-                        <small><b>Requested by:</b> {{ requisition.preparer }}</small>
-                        <small><b>Num. items:</b> {{ requisition.id }}</small>
-                      </td>
-                      <td>{{ requisition.date_due }} 
-                        <small><b>Date due:</b> {{ requisition.date_created }}</small>
-                      </td>                      
-                      <td> {{ requisition.department }}</td>
-                      <td> {{ requisition.comments }}</td>
-                      <td>{{requisition.currency }} {{ requisition.sub_total }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                  </table>
-              </div>
-              </div>
-              
-              <!-- DENIED -->
-              <div class="tab-pane" id="approved">
-              <div class="tab-pane" id="pending">
-                 <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Request Order</th>                        
-                        <th>Date Due</th>                        
-                        <th>Department</th>
-                        <th>Request Details</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {% for requisition in denied_requisitions %}           
-                    <tr>
-                      <td><a href="{%url 'view_requisition' requisition_id=requisition.id %}"><span class="btn btn-info">{{ requisition.id }}</span>
-                        <small><b>Requested by:</b> {{ requisition.preparer }}</small>
-                        <small><b>Num. items:</b> {{ requisition.id }}</small>
-                      </td>
-                      <td>{{ requisition.date_due }} 
-                        <small><b>Date due:</b> {{ requisition.date_created }}</small>
-                      </td>                      
-                      <td> {{ requisition.department }}</td>
-                      <td> {{ requisition.comments }}</td>
-                      <td>{{requisition.currency }} {{ requisition.sub_total }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                  </table>
-              </div>
-              </div>              
             </div>
-
+          </div>
         </div>
-       </div>
+      </div>
     </div>
   </section>
 {% endblock content %}
 
-
-
 {% block js %}
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<script type="text/javascript">
+  $(function () {
+    $('#allTable').DataTable();
+    $("#pendingTable").DataTable();
+    $("#approvedTable").DataTable();
+    $("#deniedTable").DataTable();
+  });
+</script>
 {% endblock js %}

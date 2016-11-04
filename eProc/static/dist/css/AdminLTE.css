@@ -331,7 +331,7 @@ a:focus {
   font-size: 12px;
   padding: 7px 5px;
   position: absolute;
-  top: 15px;
+  top: 0px;
   right: 10px;
   border-radius: 2px;
 }

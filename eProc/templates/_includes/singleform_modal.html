@@ -1,3 +1,5 @@
+  {% load crispy_forms_tags %}
+
   <!-- Modal for Department, Taxes, Users -->
     <div class="modal" id="addModal">
       <div class="modal-dialog">
@@ -9,10 +11,10 @@
             <h4 class="modal-title">Add {{target}}</h4>
           </div>
 
-          <form method="POST" action={{action}}>
+          <form method="POST" >
             <div class="modal-body">                      
                {% csrf_token %}
-                  {{form}}
+                {{form | crispy}}
             </div>
 
             <div class="modal-footer">
