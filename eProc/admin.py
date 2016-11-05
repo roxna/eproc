@@ -7,7 +7,7 @@ class UserAdmin(admin.ModelAdmin):
     #              ('Ride Details', {'fields': ['departure_city', 'arrival_city', 'departure_date', 'departure_time',
     #                                           'price_per_seat', 'num_seats_available']}),
     #              ('Ride restrictions', {'fields': ['no_smoking', 'no_pets', 'ladies_only']})]
-    list_display = ['username', 'email']
+    list_display = ['id', 'username', 'first_name', 'last_name', 'email']
 
 class BuyerProfileAdmin(admin.ModelAdmin):
     list_display = ['id', 'role', 'department', 'company']
@@ -40,6 +40,9 @@ class DepartmentAdmin(admin.ModelAdmin):
 class AccountCodeAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'category', 'description']    
 
+class StatusAdmin(admin.ModelAdmin):
+    list_display = ['id', 'value', 'date', 'author', 'document']    
+
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
 admin.site.register(VendorProfile, VendorProfileAdmin)
@@ -57,5 +60,5 @@ admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder)
 admin.site.register(Invoice)
 admin.site.register(Rating)
-admin.site.register(Status)
+admin.site.register(Status, StatusAdmin)
 admin.site.register(Tax)

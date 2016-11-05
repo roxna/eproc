@@ -1,0 +1,18 @@
+{% load staticfiles %}
+<!-- DataTables -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<script>
+  $(function () {
+    $('#{{tableID}}').DataTable();
+  });
+</script>
+
+<!-- Error/Success Message Notifications -->
+<script>
+  $(function() {
+      setTimeout(function() {
+          $("#messageNotification").hide('fade', 500)
+      }, 2000);
+  });
+</script>

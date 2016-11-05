@@ -6,7 +6,10 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Company Settings</h1>{% endblock header %}
+{% block header %}
+    <h1>Company Settings</h1>
+    {% include "_includes/messages.html" with messages=messages %}
+{% endblock header %}
 
 
 {% block content %}
@@ -26,4 +29,11 @@
 
 
 {% block js %}
-{% endblock js %}  
+<script type="text/javascript">
+$(function() {
+    setTimeout(function() {
+        $("#messageNotification").hide('fade', 500)
+    }, 2000);
+});
+</script>
+{% endblock js %} 

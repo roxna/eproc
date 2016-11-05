@@ -4,25 +4,25 @@
 {% block title %}Departments{% endblock title %}
 
 {% block css %}
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
 {% endblock css %}
 
-{% block header %}<h1>Vendors</h1>{% endblock header %}
+{% block header %}
+    <h1>Vendors</h1>
+      <ol class="breadcrumb">
+        <li id="messageNotification">
+          {% include "_includes/messages.html" with messages=messages %}
+        </li>
+      </ol>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
   <div class="row">
-
-  </div>
-
-  <div class="row">
     <div class="col-xs-12">
         <div class="box">
-           <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Vendor Name</th>
-                </tr>
-              </thead>
+          <div class="box-body">
+            {% include "_includes/table_header.html" with tableID="vendorTable" header=table_headers %}
               
                 <tbody>              
                   {% for vendor in vendors %}                           
@@ -36,6 +36,7 @@
               <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Vendor</button>
               {% include "_includes/multiform_modal.html" with target="Vendor" form1=vendor_form form2=location_form %}
               <button type="button" class="btn basic-grey pull-right">Upload Vendor List</button>
+              </div>
         </div>
        </div>
     </div>
@@ -44,4 +45,5 @@
 
 
 {% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="vendorTable" %}
 {% endblock js %}

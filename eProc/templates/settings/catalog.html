@@ -7,31 +7,21 @@
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
 {% endblock css %}
 
-{% block header %}<h1>Product Catalog</h1>{% endblock header %}
+{% block header %}
+    <h1>Product Catalog</h1>
+    {% include "_includes/messages.html" with messages=messages %}
+{% endblock header %}
 
 {% block content %}
 <section class="content">
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
-            <!-- <div class="box-header">
-              <h3 class="box-title">List of Products</h3>
-            </div> -->
+
             <div class="box-body">
-              <table id="catalogTable" class="table table-striped">
-                <thead class="basic-teal">
-                  <tr>
-                    <th>Name</th>
-                    <th>SKU</th>
-                    <th>Description</th>
-                    <th>Price</th>
-                    <th>Category</th>
-                    <th>Vendor</th>
-                  </tr>
-                </thead>
-                
+                {% include "_includes/table_header.html" with tableID="catalogTable" header=table_headers %}     
                 <tbody>              
-                  {% for product in products %}                           
+                    {% for product in products %}                           
                     <tr>
                       <td>{{ product.name }}</td>
                       <td>{{ product.sku }}</td>
@@ -47,8 +37,7 @@
               <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Product</button>
               {% include "_includes/singleform_modal.html" with target="Product" form=product_form %}
               <button type="button" class="btn basic-grey pull-right">Upload Product Catalog</button>
-
-              </div>
+          </div>
 
         </div>
        </div>
@@ -58,12 +47,5 @@
 
 
 {% block js %}
-<!-- DataTables -->
-<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
-<script>
-  $(function () {
-    $('#catalogTable').DataTable();
-  });
-</script>
+  {% include "_includes/dataTablesNotifications.html" with tableID="catalogTable" %}
 {% endblock js %}

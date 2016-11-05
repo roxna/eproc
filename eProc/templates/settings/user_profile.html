@@ -8,18 +8,11 @@
 
 {% block header %}
     <h1>Profile Settings</h1>
-      <ol class="breadcrumb">
-        <li id="messageNotification">
-          {% include "_includes/messages.html" with messages=messages %}
-        </li>
-      </ol>
+    {% include "_includes/messages.html" with messages=messages %}
 {% endblock header %}
 
 
 {% block content %}
-
-
-
   <section class="content">
       <div class="box box-primary">
         <div class="box-body box-profile">

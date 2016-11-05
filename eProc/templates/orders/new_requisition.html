@@ -4,19 +4,16 @@
 {% block title %}New Requisition{% endblock title %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
 {% endblock css %}
 
-{% block header %}<h1>Request an Order</h1> <small></small>{% endblock header %}
+{% block header %}
+    <h1>Request an Order</h1>
+    {% include "_includes/messages.html" with messages=messages %}
+{% endblock header %}
 
 {% block content %}
 <section class="content">
-
-	{% if messages %}
-	    {% for message in messages %}
-	        <p>{{ message }}</p>
-	    {% endfor %}
-	{% endif %}
 
     <form method="POST">
 	{% csrf_token %}
@@ -43,8 +40,6 @@
     					<td>{{ requisition_form.number }}</td>
     					<td>{{ requisition_form.department }}<br><br>
                             <a href="{% url 'departments' %}"><i class="fa fa-plus"></i> Add Dept</a>
-                            <!-- <a href="#addModal"><i class="fa fa-plus"></i> Add Dept</a>
-                            {% include "_includes/singleform_modal.html" with target="Department" form=department_form %} -->
                         </td>
     					<td>{{ requisition_form.date_due }}</td>    					
     					<td>{{ requisition_form.comments }}</td>
@@ -64,26 +59,22 @@
           <div class="row">
         	<div class="col-xs-12">
 				<div class="box-body table-responsive no-padding">
-	              <table class="table">
-	                <tr class="basic-teal">
-	                  <th class="col-xs-4">PRODUCT</th>	                  
-	                  <th class="col-xs-1">QUANTITY</th>	                  
-                      <th class="col-xs-3">ACCOUNT CODE</th>
-                      <th class="col-xs-4">COMMENTS</th>
-	                </tr>
 
-		        	{{ orderitem_formset.management_form }}
-		        	{% for orderitem_form in orderitem_formset %}    				
-                        {% for hidden in orderitem_form.hidden_fields %}
-                            {{ hidden }}
-                        {% endfor %}                    
-        				<tr class="orderitem_formset">
-        					<td>{{ orderitem_form.product }}</td>    					
-        					<td>{{ orderitem_form.quantity }}</td>    					
-                            <td>{{ orderitem_form.account_code }}</td>
-                            <td>{{ orderitem_form.comments }}</td>
-        				</tr>
-    				{% endfor %}
+                    {% include "_includes/table_header.html" with tableID="orderItemTable" header=table_headers %}  
+                        <tbody> 
+        		        	{{ orderitem_formset.management_form }}
+        		        	{% for orderitem_form in orderitem_formset %}    				
+                                {% for hidden in orderitem_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}                    
+                				<tr class="orderitem_formset">
+                					<td>{{ orderitem_form.product }}</td>    					
+                					<td>{{ orderitem_form.quantity }}</td>    					
+                                    <td>{{ orderitem_form.account_code }}</td>
+                                    <td>{{ orderitem_form.comments }}</td>
+                				</tr>
+            				{% endfor %}
+                        </tbody>
     				</table>
 	            </div>
 	        </div>
@@ -100,14 +91,25 @@
 
 
 {% block js %}
-<script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
-<script src="{% static 'plugins/django-dynamic-formset/jquery.formset.js' %}"></script>
-<script type="text/javascript">
-    $('.orderitem_formset').formset({
-        addText: '<i class="fa fa-plus"></i> Add Line Item',
-        deleteText: ' <span class="pull-right"><i class="fa fa-trash"></i></span>'
-    });
-</script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+
+    <!-- Formsets -->
+    <script src="{% static 'plugins/django-dynamic-formset/jquery.formset.js' %}"></script>
+    <script type="text/javascript">
+        $('.orderitem_formset').formset({
+            addText: '<i class="fa fa-plus"></i> Add Line Item',
+            deleteText: ' <span class="pull-right"><i class="fa fa-trash"></i></span>'
+        });
+    </script>
+
+    <!-- Notifications -->
+    <script>
+      $(function() {
+          setTimeout(function() {
+              $("#messageNotification").hide('fade', 500)
+          }, 2000);
+      });
+    </script>
 {% endblock js %}
 
 

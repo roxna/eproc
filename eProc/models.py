@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from eProc.managers import *
 
 
 ######### COMPANY DETAILS #########
@@ -9,19 +10,18 @@ class Company (models.Model):
 	name = models.CharField(max_length=30)
 	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
 
-class BuyerCo(Company):
 	def __unicode__(self):
 		return "{}".format(self.name)
+
+class BuyerCo(Company):
+	pass
 
 class VendorCo(Company):
 	bank_name = models.CharField(max_length=50, null=True, blank=True)
 	branch_details = models.CharField(max_length=50, null=True, blank=True)
 	ac_number = models.BigIntegerField(null=True, blank=True)
 	company_number = models.CharField(max_length=20, null=True, blank=True)
-	buyer_cos = models.ManyToManyField(BuyerCo, related_name="vendor_cos")	
-	
-	def __unicode__(self):
-		return "{}".format(self.name)
+	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)	
 
 class Location(models.Model):
 	name = models.CharField(max_length=20)
@@ -51,6 +51,7 @@ class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
 	category = models.CharField(max_length=20)
 	description = models.CharField(max_length=50, null=True, blank=True)
+	company = models.ForeignKey(BuyerCo, related_name='account_codes')
 	
 	def __unicode__(self):
 		return "[{}] {}".format(self.code, self.category)
@@ -109,6 +110,7 @@ class Document(models.Model):
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyerCo = models.ForeignKey(BuyerCo, related_name="%(class)s")
+	objects = DocumentManager()
 
 class SalesOrder(models.Model):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2)
@@ -148,6 +150,7 @@ class Invoice(Document, SalesOrder):
 class Category(models.Model):
 	code = models.IntegerField()
 	name = models.CharField(max_length=50)
+	buyerCo = models.ForeignKey(BuyerCo, related_name="categories")
 
 	def __unicode__(self):
 		return "[{}] {}".format(self.code, self.name)
@@ -168,9 +171,9 @@ class CatalogItem(models.Model):
 
 class OrderItem(models.Model):
 	quantity = models.IntegerField(default=1)
-	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
-	comments = models.CharField(max_length=150)		
+	comments = models.CharField(max_length=150, blank=True, null=True)		
 	is_approved = models.BooleanField(default=False)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")
@@ -180,6 +183,9 @@ class OrderItem(models.Model):
 
 	def __unicode__(self):
 		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency.upper(), self.unit_price)
+
+	def get_unit_price(self):
+		return self.unit_price
 
 ######### OTHER DETAILS #########
 class Status(models.Model):
@@ -193,7 +199,7 @@ class Status(models.Model):
 	)
 	value = models.IntegerField(choices=STATUS)
 	date = models.DateTimeField(editable=False, default=timezone.now)
-	author = models.ForeignKey(User, related_name="status_updates")
+	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
 	document = models.ForeignKey(Document, related_name="status_updates")
 	# purchase_order = models.ForeignKey(PurchaseOrder, related_name="status_updates", blank=True, null=True)
 	# invoice = models.ForeignKey(Invoice, related_name="status_updates", blank=True, null=True)

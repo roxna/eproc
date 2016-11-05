@@ -3,52 +3,45 @@
 
 {% block title %} Users {% endblock title %}
 
-{% block css %}{% endblock css %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+{% endblock css %}
 
-{% block header %} <h1>Users</h1> {% endblock header %}
+{% block header %}
+    <h1>Users</h1>
+    {% include "_includes/messages.html" with messages=messages %}
+{% endblock header %}
 
 {% block content %}
 <section class="content">
-
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
-           <table class="table table-striped">
-              
-              <thead>
-                <tr>
-                  <th>Full Name</th>                        
-                  <th>Email Address</th>                        
-                  <th>Role</th>
-                  <th>Last Activity</th>
-                  <th></th>
-                </tr>
-              </thead>
 
-              <tbody>
-                  {% for user in users %}           
-                  <tr>
-                    <td>{{ user.user.username }}</td>
-                    <td>{{ user.user.email }}</td>                      
-                    <td>{{ user.get_role_display }}</td>
-                    <td></td>
-                    <td><a href=""><i class="fa fa-trash"></i></a></td>
-                  </tr>
-                  {% endfor %}
-              </tbody>
-            
-            </table>
+            <div class="box-body">
+              {% include "_includes/table_header.html" with tableID="userTable" header=table_headers %}            
+                <tbody>
+                    {% for user in users %}           
+                    <tr>
+                      <td>{{ user.user.username }}</td>
+                      <td>{{ user.user.email }}</td>                      
+                      <td>{{ user.get_role_display }}</td>
+                      <td><a href=""><i class="fa fa-trash"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+              </table><br>
 
-            <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>
+              <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>  
+              {% include "_includes/multiform_modal.html" with target="User" form1=user_form  form2=buyer_profile_form %}            
+            </div>
 
-            {% include "_includes/multiform_modal.html" with target="User" form1=user_form  form2=buyer_profile_form %}
-              
           </div>
-       </div>
+        </div>
     </div>
-  </section>
+</section>
 {% endblock content %}
 
-
 {% block js %}
-{% endblock js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="userTable" %}
+{% endblock js %}  

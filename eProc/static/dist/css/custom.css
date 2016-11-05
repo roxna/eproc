@@ -8,3 +8,6 @@
 	color: black;
 	margin: 5px;
 }
+.alert{
+	padding: 4px 6px 4px 10px !important;
+}

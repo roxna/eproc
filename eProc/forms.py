@@ -9,13 +9,14 @@ from django.utils import timezone
 
 class NewUserForm(UserCreationForm):
     first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True)    
+    last_name = forms.CharField(required=True) 
+    username = forms.CharField(required=True)    
     email = forms.EmailField(required=True)
     # profile_pic = forms.ImageField(label="Profile Picture", required=False)
 
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "email")
+        fields = ("first_name", "last_name", "username", "email")
 
     def clean_username(self):
         username = self.cleaned_data["username"]
@@ -83,6 +84,7 @@ class CatalogItemForm(ModelForm):
     unit_price = forms.DecimalField(required=True)
     unit_type = forms.CharField(required=True)
     currency = forms.CharField(required=True, initial="USD")
+    # Category, VendorCo queryset SPECIFIC to BuyerCo updated in views.py
     category = forms.ModelChoiceField(queryset=Category.objects.all())
     vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all())
 
@@ -105,12 +107,12 @@ class LocationForm(ModelForm):
     state = forms.CharField()
     zipcode = forms.IntegerField()
     country = forms.CharField()
-    phone = forms.IntegerField()
-    email = forms.CharField()
+    phone = forms.IntegerField(required=False)
+    email = forms.CharField(required=False)
     
     class Meta:
         model = Location
-        fields = ('address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
+        fields = ('name', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
 
 class VendorProfileForm(ModelForm):
     first_name = forms.CharField()
@@ -122,31 +124,26 @@ class VendorProfileForm(ModelForm):
         fields = ('first_name', 'last_name', 'email')
 
 class RequisitionForm(ModelForm):    
-    # req_count = Requisition.objects.filter(buyerCo=user.buyer_profile.company).count()
-    req_count = Requisition.objects.count()+1
-    number = forms.CharField(initial="RO"+str(req_count))
-    date_created = forms.DateTimeField(initial=timezone.now, widget = forms.TextInput(attrs={'readonly':'readonly'}))
+    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+    # date_created = forms.DateTimeField(initial=timezone.now, widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
-    CURRENCY_LIST = [('USD', 'USD'), ('INR', 'INR')]
-    currency = forms.ChoiceField(CURRENCY_LIST, initial='USD')
-    comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")  
+    # CURRENCY_LIST = [('USD', 'USD'), ('INR', 'INR')]
+    # currency = forms.ChoiceField(CURRENCY_LIST, initial='USD')
+    comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")      
+    # Department, Next_approver queryset SPECIFIC to BuyerCo updated in views.py
     department = forms.ModelChoiceField(queryset=Department.objects.all())
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all())
-    # TO DOOOOOOOO FILTER FOR DEPT AND NEXT_APPROVER IN THE USER'S CO ONLY
-    # department = forms.ModelChoiceField(queryset=Department.objects.filter(company=user.buyerCo))
-    # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.filter(company=user.buyerCo).order_by('name'))
 
     class Meta:
         model = Requisition
-        fields = ("number", "date_created", "date_due", "currency", "comments", "department", "next_approver")
+        fields = ("number", "date_due", "comments", "department", "next_approver")
 
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all())
-    unit_price = forms.IntegerField()
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all())
     quantity = forms.IntegerField()
-    comments = forms.CharField(help_text="Additional comments")
+    comments = forms.CharField(required=False, help_text="Additional comments")
 
     class Meta:
         model = OrderItem
