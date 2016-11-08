@@ -219,13 +219,16 @@ def new_requisition(request):
             requisition.save()
 
             # Save the data for each form in the order_items formset 
-            for orderitem_form in orderitem_formset.forms:
+            for index, orderitem_form in enumerate(orderitem_formset.forms):
                 if orderitem_form.is_valid():
                     order_item = orderitem_form.save(commit=False)
-                    order_item.requisition = requisition
+                    order_item.number = requisition.number + "-" + str(index+1)
+                    order_item.requisition = requisition                    
+                    order_item.date_due = requisition.date_due
                     order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
                     requisition.sub_total += order_item.sub_total            
                     order_item.save()            
+            requisition.save()
 
             if request.user.buyer_profile.role == 1 or request.user.buyer_profile.role == 3:
                 status = Status.objects.create(value=3, author=request.user.buyer_profile, document=requisition)
@@ -247,13 +250,9 @@ def new_requisition(request):
 @login_required()
 def requisitions(request):
     all_requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company)
-    pending_requisitions = all_requisitions.objects.get_latest_status=2
-    # pending_requisitions = Requisition.objects.order_by('-status_updates__date').filter(status_updates=2)
-    approved_requisitions = Requisition.objects.order_by('-status_updates__date').filter(status_updates=3)
-    denied_requisitions = Requisition.objects.order_by('-status_updates__date').filter(status_updates=4)
-    # pending_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates__date__gte='latest_update').filter(status_updates=2)
-    # approved_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates=3)
-    # denied_requisitions = Requisition.objects.annotate(latest_update=Max('status_updates__date')).filter(status_updates=4)
+    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=2)
+    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=3)
+    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=4)
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -265,5 +264,71 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     requisition = Requisition.objects.get(pk=requisition_id)
-    data = {'requisition': requisition}
+    latest_status = requisition.status_updates.latest('date').get_value_display
+
+    # Manage approving/denying requisitions
+    if request.method == 'POST':
+        if request.POST.get('approve'):
+            Status.objects.create(value=3, author=request.user.buyer_profile, document=requisition)
+            for order_item in requisition.order_items:
+                order_item.is_approved = True
+            messages.success(request, 'Requisition approved')
+        if request.POST.get('deny'):
+            Status.objects.create(value=4, author=request.user.buyer_profile, document=requisition)
+            messages.success(request, 'Requisition denied')
+        else:
+            messages.error(request, 'Error. Requisition not updated')
+        return redirect('requisitions')
+    data = {
+    'requisition': requisition,
+    'latest_status': latest_status,
+    'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
+    }
     return render(request, "orders/view_requisition.html", data)
+
+@login_required
+def new_purchaseorder(request):
+    approved_order_items = OrderItem.objects.filter(requisition__buyerCo=request.user.buyer_profile.company).filter(is_approved=True).exclude(purchase_order__isnull=False)
+    po_form = PurchaseOrderForm(request.POST or None,
+                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyerCo=request.user.buyer_profile.company).count()+1)})
+    po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
+    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
+    po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
+    if request.method == 'POST':
+        if request.POST.get('cancel'):
+            return redirect('new_purchaseorder')
+        elif request.POST.get('createPO') and po_form.is_valid():
+            purchase_order = po_form.save(commit=False)
+            purchase_order.preparer = request.user.buyer_profile
+            purchase_order.date_issued = timezone.now()
+            purchase_order.buyerCo = request.user.buyer_profile.company
+            purchase_order.sub_total = 0
+            purchase_order.save()
+            for item in request.POST.getlist('order_items'):
+                item.purchase_order = purchase_order
+                purchase_order.subtotal += item.subtotal
+            purchase_order.grandtotal = purchase_order.subtotal + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
+            messages.success(request, 'PO created successfully')
+            return redirect('new_po_confirm')
+        else:
+            messages.error(request, 'Error. Purchase order not created')
+            return redirect('new_purchaseorder')
+    data = {
+        'approved_order_items': approved_order_items,
+        'po_form': po_form,
+        'currency': request.user.buyer_profile.company.currency,
+    }
+    return render(request, "pos/new_purchaseorder.html", data)
+
+
+@login_required
+def purchaseorders(request):
+    pass
+
+@login_required
+def view_purchaseorder(request, po_id):
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    data = {
+    'purchase_order': purchase_order,
+    }
+    return render(request, "pos/view_purchaseorder.html", data)

@@ -6,23 +6,24 @@
       <th>Request Order</th>                        
       <th>Date Due</th>                        
       <th>Department</th>
-      <th>Details</th>
+      <th>Comments</th>
       <th>Total</th>
     </tr>
   </thead>
+  
   <tbody>
   {% for requisition in requisitions %}           
   <tr>
     <td><a href="{% url 'view_requisition' requisition_id=requisition.id %}"><span class="btn basic-teal">{{ requisition.number }}</span></a><br>
       <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>          
     </td>
-    <td> {{ requisition.date_due }}<br>
+    <td><b> {{ requisition.date_due }} </b><br>
       <em><small><b>Created:</b> {{ requisition.date_created }}</small></em>
     </td>                      
     <td> {{ requisition.department }}</td>
     <td> {{ requisition.comments }}</td>
     <td> {{ requisition.currency }} {{ requisition.sub_total }}<br>
-      <em><small><b>Num. items:</b> {{ requisition.order_items | length }}</small></em>
+      <em><small><b>Num. items:</b> {{ requisition.order_items.count }}</small></em>
     </td>
   </tr>
   {% endfor %}

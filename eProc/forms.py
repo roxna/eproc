@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db.models import Count
-from django.forms import ModelForm
+from django.forms import ModelForm, Textarea
 from eProc.models import *
 from django.utils import timezone
 # from crispy_forms.helper import FormHelper
@@ -58,11 +58,12 @@ class UserProfileForm(forms.ModelForm):
 
 class CompanyProfileForm(forms.ModelForm):
     name = forms.CharField(required=True)
+    currency = forms.CharField()
     logo = forms.ImageField()
 
     class Meta:
         model = BuyerCo
-        fields = ('name', 'logo')
+        fields = ('name', 'currency', 'logo')
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': 'Username','class': 'form-control'}))
@@ -125,19 +126,39 @@ class VendorProfileForm(ModelForm):
 
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
-    # date_created = forms.DateTimeField(initial=timezone.now, widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
     # CURRENCY_LIST = [('USD', 'USD'), ('INR', 'INR')]
     # currency = forms.ChoiceField(CURRENCY_LIST, initial='USD')
-    comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")      
-    # Department, Next_approver queryset SPECIFIC to BuyerCo updated in views.py
+    comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")
     department = forms.ModelChoiceField(queryset=Department.objects.all())
-    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all())
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
 
     class Meta:
         model = Requisition
         fields = ("number", "date_due", "comments", "department", "next_approver")
 
+
+class PurchaseOrderForm(ModelForm):    
+    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+    date_due = forms.DateField(initial=timezone.now, required=True)
+    comments = forms.CharField(required=False, max_length=500, help_text="PO Notes")
+    # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
+
+    cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2)
+    cost_other = forms.DecimalField(max_digits=10, decimal_places=2)
+    # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = forms.DecimalField(max_digits=10, decimal_places=2)
+    # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2)
+    terms = forms.CharField(max_length=5000)
+    vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
+    billing_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
+    shipping_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
+
+    class Meta:
+        model = PurchaseOrder
+        fields = ("number", "date_due", "comments", "cost_shipping", "cost_other", 
+                  "discount_amount", "tax_amount", "terms", "vendorCo", "billing_add", "shipping_add")
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all())
@@ -148,3 +169,12 @@ class OrderItemForm(ModelForm):
     class Meta:
         model = OrderItem
         fields = ("product", "account_code", "quantity", "comments")
+
+# class PendingOrderItemForm(forms.Form):
+#     choices = forms.ModelMultipleChoiceField(
+#         queryset = OrderItem.objects.all(),
+#         widget  = forms.CheckboxSelectMultiple,
+#     )
+
+
+

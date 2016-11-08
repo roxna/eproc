@@ -8,6 +8,7 @@ from eProc.managers import *
 ######### COMPANY DETAILS #########
 class Company (models.Model):
 	name = models.CharField(max_length=30)
+	currency = models.CharField(max_length=30, default="USD")
 	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
 
 	def __unicode__(self):
@@ -36,7 +37,7 @@ class Location(models.Model):
 	company = models.ForeignKey(Company, related_name="locations")
 
 	def __unicode__(self):
-		return "{} - {}".format(self.company.name, self.name)
+		return "{}".format(self.name)
 
 
 ######### ACCOUNTING DETAILS #########
@@ -104,7 +105,7 @@ class Document(models.Model):
 	date_created = models.DateTimeField(default=timezone.now)
 	date_issued = models.DateTimeField(default=timezone.now, null=True, blank=True)
 	date_due = models.DateField(default=timezone.now)
-	currency = models.CharField(max_length=3, default="USD")
+	currency = models.CharField(max_length=3, null=True, blank=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
@@ -113,14 +114,14 @@ class Document(models.Model):
 	objects = DocumentManager()
 
 class SalesOrder(models.Model):
-	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2)
-	cost_other = models.DecimalField(max_digits=10, decimal_places=2)
-	discount_percent = models.DecimalField(max_digits=10, decimal_places=2)
-	discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
-	tax_percent = models.DecimalField(max_digits=10, decimal_places=2)
-	tax_amount = models.DecimalField(max_digits=10, decimal_places=2)
+	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	cost_other = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	discount_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	grand_total = models.DecimalField(max_digits=10, decimal_places=2)
-	terms = models.CharField(max_length=5000, null=True)	
+	terms = models.CharField(max_length=5000, blank=True, null=True)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
 	vendorCo = models.ForeignKey(VendorCo, related_name="%(class)s_orders")
@@ -170,16 +171,18 @@ class CatalogItem(models.Model):
 		return "{}".format(self.name)
 
 class OrderItem(models.Model):
+	number = models.CharField(max_length=20)
 	quantity = models.IntegerField(default=1)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
 	comments = models.CharField(max_length=150, blank=True, null=True)		
 	is_approved = models.BooleanField(default=False)
+	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")
 	product = models.ForeignKey(CatalogItem, related_name='order_items')
-	requisition = models.ForeignKey(Requisition, related_name='order_items', null=True, blank=True)
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
+	requisition = models.ForeignKey(Requisition, related_name='order_items')
+	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True) # If order_item is part of a PO, no longer 'pending'
 
 	def __unicode__(self):
 		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency.upper(), self.unit_price)
@@ -201,8 +204,6 @@ class Status(models.Model):
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
 	document = models.ForeignKey(Document, related_name="status_updates")
-	# purchase_order = models.ForeignKey(PurchaseOrder, related_name="status_updates", blank=True, null=True)
-	# invoice = models.ForeignKey(Invoice, related_name="status_updates", blank=True, null=True)
 
 	def __unicode__(self):
 		return "Document {} [{}]".format(self.author, self.date)

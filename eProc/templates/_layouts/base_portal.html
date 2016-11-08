@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">    <!-- Bootstrap 3.3.6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+  <link rel="stylesheet" href="{% static 'dist/css/_all-skins.min.css' %}">
   <link rel="stylesheet" href="{% static 'dist/css/skin-teal.css' %}">
   <link rel="stylesheet" href="{% static 'dist/css/custom.css' %}">
   {% block css %}{% endblock css %}
@@ -71,7 +72,7 @@
             <li><a href="{%url 'requisitions' %}"><i class="fa fa-check"></i> <span>Approve an Order</span></a></li>
           {% endif %}
           {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 4 %}
-            <li><a href="{%url 'dashboard' %}"><i class="fa fa-shopping-cart"></i> <span>Create a PO</span></a></li>
+            <li><a href="{%url 'new_purchaseorder' %}"><i class="fa fa-shopping-cart"></i> <span>Create a PO</span></a></li>
           {% endif %}
           {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 5 %}
             <li><a href="{%url 'dashboard' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
@@ -105,7 +106,7 @@
     <!-- Page Content -->
     <div class="content-wrapper">
       <section class="content-header">
-        {% block header %}<h1></h1>{% endblock header %}
+        {% block header %}{% endblock header %}
       </section>    
       {% block content %}{% endblock content %}
     </div>

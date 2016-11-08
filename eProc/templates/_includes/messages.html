@@ -1,6 +1,7 @@
+
+{% if messages %}
 <ol class="breadcrumb">
 	<li id="messageNotification">
-	 	{% if messages %}
 
 		  	{% for message in messages %}
 				{% if 'success' in message.tags %}
@@ -22,6 +23,6 @@
 				{% endif %}
 			{% endfor %}
 
-	  	{% endif %}
    </li>
 </ol>
+{% endif %}

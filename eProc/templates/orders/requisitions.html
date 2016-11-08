@@ -7,7 +7,14 @@
   <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
 {% endblock css %}
 
-{% block header %}<h1>Approve an Order</h1> <small></small>{% endblock header %}
+{% block header %}
+    <h1>Approve an Order</h1>
+      <ol class="breadcrumb">
+        <li id="messageNotification">
+          {% include "_includes/messages.html" with messages=messages %}
+        </li>
+      </ol>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -19,8 +26,8 @@
 
             <!-- TABS -->
             <ul class="nav nav-tabs">
-              <li class="active"><a href="#all" data-toggle="tab">All</a></li>
-              <li><a href="#pending" data-toggle="tab">Pending</a></li>
+              <li><a href="#all" data-toggle="tab">All</a></li>
+              <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
               <li><a href="#approved" data-toggle="tab">Approved</a></li>
               <li><a href="#denied" data-toggle="tab">Denied</a></li>
             </ul>
@@ -32,7 +39,7 @@
                  {% include "_includes/requisitions_table.html" with requisitions=all_requisitions %}
                   </table>
               </div>
-              <div class="tab-pane" id="pending">
+              <div class="tab-pane active" id="pending">
                  <table id="pendingTable" class="table table-striped">
                  {% include "_includes/requisitions_table.html" with requisitions=pending_requisitions %}
                   </table>
@@ -57,8 +64,7 @@
 {% endblock content %}
 
 {% block js %}
-<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+  {% include "_includes/dataTablesNotifications.html" with tableID="catalogTable" %}
 <script type="text/javascript">
   $(function () {
     $('#allTable').DataTable();

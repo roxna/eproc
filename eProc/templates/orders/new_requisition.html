@@ -60,7 +60,7 @@
         	<div class="col-xs-12">
 				<div class="box-body table-responsive no-padding">
 
-                    {% include "_includes/table_header.html" with tableID="orderItemTable" header=table_headers %}  
+                    {% include "_includes/table_header.html" with tableID="orderItemTable" header_class="basic-teal" header=table_headers %}  
                         <tbody> 
         		        	{{ orderitem_formset.management_form }}
         		        	{% for orderitem_form in orderitem_formset %}    				
