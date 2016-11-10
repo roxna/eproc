@@ -193,14 +193,28 @@ class OrderItem(models.Model):
 ######### OTHER DETAILS #########
 class Status(models.Model):
 	STATUS = (
+		# Requisitions
 		(1, 'Draft'),
 		(2, 'Pending'),
 		(3, 'Approved'),
 		(4, 'Denied'),
-		(5, 'Paid'),
-		(6, 'Archived'),
+		# POs
+		(5, 'Open'),
+		(6, 'Closed'),
+		(7, 'Cancelled'),
+		(8, 'Paid'),
+		# All 
+		(9, 'Archived'),
 	)
+	COLORS = (
+		('grey', 'grey'),
+		('yellow', 'yellow'),
+		('green', 'green'),
+		('red', 'red')
+	)
+
 	value = models.IntegerField(choices=STATUS)
+	color = models.TextField(choices=COLORS, default='grey')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
 	document = models.ForeignKey(Document, related_name="status_updates")

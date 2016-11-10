@@ -296,6 +296,7 @@ def new_purchaseorder(request):
     po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
         if request.POST.get('cancel'):
+            messages.success(request, 'No PO created')
             return redirect('new_purchaseorder')
         elif request.POST.get('createPO') and po_form.is_valid():
             purchase_order = po_form.save(commit=False)
@@ -304,31 +305,48 @@ def new_purchaseorder(request):
             purchase_order.buyerCo = request.user.buyer_profile.company
             purchase_order.sub_total = 0
             purchase_order.save()
-            for item in request.POST.getlist('order_items'):
+
+            item_ids = request.POST.getlist('order_items')
+            items = OrderItem.objects.filter(id__in=item_ids)
+            for item in items:
                 item.purchase_order = purchase_order
                 purchase_order.subtotal += item.subtotal
             purchase_order.grandtotal = purchase_order.subtotal + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             messages.success(request, 'PO created successfully')
-            return redirect('new_po_confirm')
+            return redirect('purchaseorders')
         else:
             messages.error(request, 'Error. Purchase order not created')
-            return redirect('new_purchaseorder')
+            # return redirect('new_purchaseorder')
     data = {
         'approved_order_items': approved_order_items,
         'po_form': po_form,
         'currency': request.user.buyer_profile.company.currency,
+        'item_header': ['', 'Order No.', 'Item', 'Vendor', 'Date Required', 'Total Cost'],
+        'po_header': ['Item', 'Vendor', 'Total Cost'],
     }
     return render(request, "pos/new_purchaseorder.html", data)
 
 
 @login_required
 def purchaseorders(request):
-    pass
+    all_pos = PurchaseOrder.objects.filter(buyerCo=request.user.buyer_profile.company)
+    open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=5)
+    closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=6)
+    cancelled_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=7)
+    paid_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=8)
+    data = {
+        'all_pos': all_pos,
+        'open_pos': open_pos,
+        'closed_pos': closed_pos,
+        'cancelled_pos': cancelled_pos,
+        'paid_pos': paid_pos,
+    }
+    return render(request, "pos/purchaseorders.html", data)
 
 @login_required
 def view_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
     data = {
-    'purchase_order': purchase_order,
+        'purchase_order': purchase_order,
     }
     return render(request, "pos/view_purchaseorder.html", data)

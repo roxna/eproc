@@ -14,7 +14,7 @@
   <tbody>
   {% for requisition in requisitions %}           
   <tr>
-    <td><a href="{% url 'view_requisition' requisition_id=requisition.id %}"><span class="btn basic-teal">{{ requisition.number }}</span></a><br>
+    <td><a href="{% url 'view_requisition' requisition_id=requisition.id %}"><span class="btn basic-grey">{{ requisition.number }}</span></a><br>
       <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>          
     </td>
     <td><b> {{ requisition.date_due }} </b><br>

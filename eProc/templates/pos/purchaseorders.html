@@ -1,0 +1,82 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Purchase Orders{% endblock title %}
+
+{% block css %}
+  <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+{% endblock css %}
+
+{% block header %}
+    <h1>Purchase Order History</h1>
+      <ol class="breadcrumb">
+        <li id="messageNotification">
+          {% include "_includes/messages.html" with messages=messages %}
+        </li>
+      </ol>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+          <div class="nav-tabs-custom">
+
+            <!-- TABS -->
+            <ul class="nav nav-tabs">
+              <li><a href="#all" data-toggle="tab">All</a></li>
+              <li class="active"><a href="#open" data-toggle="tab">Open</a></li>
+              <li><a href="#closed" data-toggle="tab">Closed</a></li>
+              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
+              <li><a href="#paid" data-toggle="tab">Paid</a></li>
+            </ul>
+
+            <!-- TABLES -->
+            <div class="tab-content">
+              <div class="tab-pane" id="all">
+                 <table id="allTable" class="table table-striped">
+                 {% include "_includes/purchaseorders_table.html" with purchaseorders=all_pos %}
+                  </table>
+              </div>
+              <div class="tab-pane active" id="open"> 
+                 <table id="openTable" class="table table-striped">
+                 {% include "_includes/purchaseorders_table.html" with purchaseorders=open_pos %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="closed">
+                 <table id="closedTable" class="table table-striped">
+                 {% include "_includes/purchaseorders_table.html" with purchaseorders=closed_pos %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="cancelled">
+                 <table id="cancelledTable" class="table table-striped">
+                 {% include "_includes/purchaseorders_table.html" with purchaseorders=cancelled_pos %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="paid">
+                 <table id="paidTable" class="table table-striped">
+                 {% include "_includes/purchaseorders_table.html" with purchaseorders=paid_pos %}
+                  </table>
+              </div>              
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" %}
+<script type="text/javascript">
+  $(function () {
+    $('#allTable').DataTable();
+    $("#openTable").DataTable();
+    $("#closedTable").DataTable();
+    $("#paidTable").DataTable();
+  });
+</script>
+{% endblock js %}

@@ -1,0 +1,30 @@
+{% load staticfiles %}
+
+<!-- REQUISITIONS: All / Pending / Approved / Denied -->
+  <thead class="basic-teal">
+    <tr>
+      <th>Request Order</th>                        
+      <th>Date Due</th>                        
+      <th>Vendor</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  
+  <tbody>
+  {% for po in purchaseorders %}           
+  <tr>
+    <td><a href="{% url 'view_purchaseorder' po_id=po.id %}"><span class="btn basic-grey">{{ po.number }}</span></a><br>
+      <small><b>Prepared by:</b> {{ po.preparer.user.username }}</small>          
+    </td>
+    <td><b> {{ po.date_due }} </b><br>
+      <em><small><b>Submitted:</b> {{ po.date_created }}</small></em>      
+    </td>                      
+    <td><b> {{ po.vendorCo }} </b><br>
+      <em><small><b>Comments:</b> {{ po.comments }}</small></em>
+    </td>
+    <td> {{ po.currency|upper }} {{ po.grand_total }}<br>
+      <em><small><b>Num. items:</b> {{ po.order_items.count }}</small></em>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>

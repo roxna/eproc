@@ -144,12 +144,12 @@ class PurchaseOrderForm(ModelForm):
     comments = forms.CharField(required=False, max_length=500, help_text="PO Notes")
     # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
 
-    cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2)
-    cost_other = forms.DecimalField(max_digits=10, decimal_places=2)
+    cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
+    cost_other = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
     # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2)
-    discount_amount = forms.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
-    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
     terms = forms.CharField(max_length=5000)
     vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
@@ -170,11 +170,11 @@ class OrderItemForm(ModelForm):
         model = OrderItem
         fields = ("product", "account_code", "quantity", "comments")
 
-# class PendingOrderItemForm(forms.Form):
-#     choices = forms.ModelMultipleChoiceField(
-#         queryset = OrderItem.objects.all(),
-#         widget  = forms.CheckboxSelectMultiple,
-#     )
+class POOrderItemForm(forms.Form):
+    choices = forms.ModelMultipleChoiceField(
+        queryset = OrderItem.objects.all(),
+        widget  = forms.CheckboxSelectMultiple,
+    )
 
 
 

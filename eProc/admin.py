@@ -22,6 +22,11 @@ class RequisitionAdmin(admin.ModelAdmin):
     search_fields = ['number', 'department']
     list_filter = ['number', 'sub_total']
 
+class POAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'buyerCo', 'vendorCo', 'grand_total']
+    # search_fields = ['number', 'department']
+    # list_filter = ['number', 'sub_total']
+
 class CatalogItemAdmin(admin.ModelAdmin):
 	list_display = ['name', 'unit_price', 'category']
 
@@ -57,7 +62,7 @@ admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Location)
 admin.site.register(Document)
 admin.site.register(Requisition, RequisitionAdmin)
-admin.site.register(PurchaseOrder)
+admin.site.register(PurchaseOrder, POAdmin)
 admin.site.register(Invoice)
 admin.site.register(Rating)
 admin.site.register(Status, StatusAdmin)

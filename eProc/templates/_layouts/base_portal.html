@@ -65,15 +65,42 @@
         <ul class="sidebar-menu">
           <li class="active treeview">
             <a href="{%url 'dashboard' %}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a>
-          </li>
-          <li><a href="{%url 'new_requisition' %}"><i class="fa fa-book"></i> <span>Request an Order</span></a></li>
-          <!-- Only if have Approver/Purchaser/SuperAdmin authority -->
+          </li>        
+          
+          <!-- REQUISITIONS -->
+          {% if user.buyer_profile.role == 2 %}
+            <li><a href="{%url 'new_requisition' %}"><i class="fa fa-book"></i> <span>Request an Order</span></a></li>
+          {% elif user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-book"></i> <span>Requests</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                <li><a href="{%url 'new_requisition' %}"><i class="fa fa-pencil-square-o"></i> New Request Order</a></li>
+                <li><a href="{%url 'requisitions' %}"><i class="fa fa-check"></i> Approve an Order</a></li>
+              </ul>
+            </li>          
+          {% endif %}
+
+          <!-- POs -->
           {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
-            <li><a href="{%url 'requisitions' %}"><i class="fa fa-check"></i> <span>Approve an Order</span></a></li>
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                <li><a href="{%url 'new_purchaseorder' %}"><i class="fa fa-pencil-square-o"></i> New PO</a></li>
+                <li><a href="{%url 'purchaseorders' %}"><i class="fa fa-file-pdf-o"></i> Purchase Orders</a></li>
+              </ul>
+            </li>   
           {% endif %}
-          {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 4 %}
-            <li><a href="{%url 'new_purchaseorder' %}"><i class="fa fa-shopping-cart"></i> <span>Create a PO</span></a></li>
-          {% endif %}
+
           {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 5 %}
             <li><a href="{%url 'dashboard' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
             <li><a href="{%url 'dashboard' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
