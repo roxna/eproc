@@ -3,124 +3,37 @@
 
 {% block title %}Purchase Orders{% endblock title %}
 
-{% block css %}
-{% endblock css %}
-
 {% block header %}
-    <h1>Purchase Orders</h1>
+    <h1>Purchase Order Details</h1>
     {% include "_includes/messages.html" with messages=messages %}
 {% endblock header %}
 
 
 {% block content %}
-    <section class="invoice">
+
+  <section class="invoice">
+
     <div class="row">
       <div class="col-xs-12">
         <a href="{% url 'purchaseorders' %}"><i class="fa fa-angle-left"></i> Back</a>
       </div>
     </div>
 
-      <div class="row">
-        <div class="col-xs-12">
-          <h2 class="page-header">
-            <i class="fa fa-globe"></i> {{ purchase_order.buyerCo }}
-            <small class="pull-right">Date Requested: <em>{{ purchase_order.date_issued }}</em></small>
-          </h2>
-        </div>
+    {% include "_includes/po_template.html" with purchase_order=purchase_order %}
+
+    <div class="row no-print">
+      <div class="col-xs-12">                      
+            <a href="{% url 'print_purchaseorder' purchase_order.id %}"><button type="input" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Print PO</button></a>
+            <a href="mailto:{{user.email}}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email PO</button></a>
       </div>
+    </div>
 
-      <!-- Request Details -->
-      <div class="row invoice-info">
-      	<div class="col-xs-12">
-          <p class="lead">Requisition Details</p>
-        </div>
-        <div class="col-sm-6 invoice-col">
-          	<b>Department:</b> {{ purchase_order.department }}<br>
-			      <b>Preparer:</b> {{ purchase_order.preparer }}<br>
-          	<b>Next Approver:</b> {{ purchase_order.next_approver }}<br>
-        </div>
-        <div class="col-sm-6 invoice-col">
-          <b>Request Number:</b> {{ purchase_order.number }}<br>
-          <b>Currency:</b> {{ purchase_order.currency }}<br>
-          <b>Date Due:</b> {{ purchase_order.date_due }}<br>
-          <b>Status:</b> {{ latest_status }} 
-            {% if latest_status == 'Approved' %}
-            <i class="fa fa-check" style="color: green" aria-hidden="true"> </i>
-            {% elif latest_status == 'Pending' %}
-            <i class="fa fa-question" style="color: orange" aria-hidden="true"> </i>
-            {% elif latest_status == 'Denied' %}
-            <i class="fa fa-close" style="color: red" aria-hidden="true"> </i>
-            {% endif %}
-          <br>
-        </div>
-      </div>
-
-      <!-- Order Item in Request -->
-      <div class="row">
-        <div class="col-xs-12">
-      	 <p class="lead">Order Details</p>
-        </div>
-        <div class="col-xs-12 table-responsive">
-          <table class="table table-striped">
-            <thead>
-            <tr>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Cost Per Unit</th>
-              <th>Sub-total</th>
-              <th>Comments</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for order_item in purchase_order.order_items.all %}
-            <tr>
-              <td>{{ order_item.product.name }}</td>
-              <td>{{ order_item.quantity }}</td>
-              <td>{{ order_item.product.unit_price }}</td>
-              <td>{{ order_item.sub_total }}</td>
-              <td>{{ order_item.comments }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div><br>
-
-	  <!-- Comments & Total -->
-      <div class="row">      
-        <div class="col-xs-12">
-        {% if purchase_order.comments %}
-          <p class="lead">Comments</p>
-          <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;"> {{ purchase_order.comments }}</p>
-        </div>
-        {% endif %}
-
-        <div class="col-xs-12">
-          <p class="lead pull-right">Total Cost: {{ purchase_order.buyer_co.currency }} {{ purchase_order.sub_total }}</p>
-        </div>
-      </div><br>
-
-      <!-- This row to show only if Approver of PO -->
-      <div class="row no-print">
-        <div class="col-xs-12">          
-          {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
-            {% if latest_status == 'Pending' %}
-              <form method="post">
-                {% csrf_token %}
-                <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
-                <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
-              </form>
-            {% endif %}
-          {% endif %}          
-        </div>
-      </div>
-    </section>
+  </section>
+  <div class="clearfix"></div>
    
-    <div class="clearfix"></div>
 {% endblock content %}
 
 
 {% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID="catalogTable" %}
+  {% include "_includes/dataTablesNotifications.html" %}
 {% endblock js %}

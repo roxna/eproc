@@ -23,6 +23,7 @@ urlpatterns=[
     url(r'^purchaseorders$', views.purchaseorders, name='purchaseorders'),
     url(r'^purchaseorder/new/$', views.new_purchaseorder, name='new_purchaseorder'),
     url(r'^purchaseorder/(?P<po_id>\w+)/$', views.view_purchaseorder, name='view_purchaseorder'),
+    url(r'^purchaseorder/print/(?P<po_id>\w+)$', views.print_purchaseorder, name='print_purchaseorder'),
     # url(r'^po/receive/$', views.receive, name='receive_po'),
     
     url(r'^vendors/$', views.vendors, name='vendors'),
@@ -37,3 +38,5 @@ urlpatterns=[
 
 
 ]
+
+

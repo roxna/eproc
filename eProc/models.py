@@ -14,6 +14,7 @@ class Company (models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
+
 class BuyerCo(Company):
 	pass
 
@@ -26,6 +27,7 @@ class VendorCo(Company):
 
 class Location(models.Model):
 	name = models.CharField(max_length=20)
+	is_primary = models.BooleanField(default=True)
 	address1 = models.CharField(max_length=40)
 	address2 = models.CharField(max_length=40)
 	city = models.CharField(max_length=20)
@@ -37,7 +39,12 @@ class Location(models.Model):
 	company = models.ForeignKey(Company, related_name="locations")
 
 	def __unicode__(self):
-		return "{}".format(self.name)
+		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
+
+	def get_primary_location(self):
+		locations = Location.objects.filter(is_primary=True)[0]
+		if locations:
+			return locations
 
 
 ######### ACCOUNTING DETAILS #########
@@ -111,7 +118,13 @@ class Document(models.Model):
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyerCo = models.ForeignKey(BuyerCo, related_name="%(class)s")
-	objects = DocumentManager()
+	
+	def get_latest_status(self):	    
+	    latest_status = None
+	    for status in self.status_updates.all():
+	        if latest_status is None or latest_status.date < status.date:
+	            latest_status = status
+	    return latest_status
 
 class SalesOrder(models.Model):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -120,7 +133,7 @@ class SalesOrder(models.Model):
 	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-	grand_total = models.DecimalField(max_digits=10, decimal_places=2)
+	grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	terms = models.CharField(max_length=5000, blank=True, null=True)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")

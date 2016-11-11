@@ -104,10 +104,10 @@
           <p class="lead pull-right">Total Cost: {{ requisition.buyer_co.currency }} {{ requisition.sub_total }}</p>
         </div>
       </div><br>
-
-      <!-- This row to show only if Approver of PO -->
+      
       <div class="row no-print">
         <div class="col-xs-12">          
+        <!-- Show only if Approver Role -->
           {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
             {% if latest_status == 'Pending' %}
               <form method="post">

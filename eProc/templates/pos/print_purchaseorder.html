@@ -1,0 +1,16 @@
+{% load staticfiles %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}"> 
+<link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+{% endblock css %}
+
+<body onload="window.print();">
+<div class="wrapper">
+ 
+    <section class="invoice">
+      {% include "_includes/po_template.html" with messages=messages %}
+    </section>
+    <div class="clearfix"></div>
+
+</div>

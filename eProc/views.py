@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from eProc.models import *
 from eProc.forms import *
-
+import pdb
 
 
 def home(request):
@@ -298,25 +298,32 @@ def new_purchaseorder(request):
         if request.POST.get('cancel'):
             messages.success(request, 'No PO created')
             return redirect('new_purchaseorder')
-        elif request.POST.get('createPO') and po_form.is_valid():
-            purchase_order = po_form.save(commit=False)
-            purchase_order.preparer = request.user.buyer_profile
-            purchase_order.date_issued = timezone.now()
-            purchase_order.buyerCo = request.user.buyer_profile.company
-            purchase_order.sub_total = 0
-            purchase_order.save()
+        elif request.POST.get('createPO'):
+            # pdb.set_trace()
+            if po_form.is_valid():
+                purchase_order = po_form.save(commit=False)
+                purchase_order.preparer = request.user.buyer_profile
+                purchase_order.date_issued = timezone.now()
+                purchase_order.buyerCo = request.user.buyer_profile.company
+                purchase_order.sub_total = 0
+                purchase_order.save()
+                status = Status.objects.create(value=5, author=request.user.buyer_profile, document=purchase_order)
 
-            item_ids = request.POST.getlist('order_items')
-            items = OrderItem.objects.filter(id__in=item_ids)
-            for item in items:
-                item.purchase_order = purchase_order
-                purchase_order.subtotal += item.subtotal
-            purchase_order.grandtotal = purchase_order.subtotal + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
-            messages.success(request, 'PO created successfully')
-            return redirect('purchaseorders')
+                item_ids = request.POST.getlist('order_items[]')
+                items = OrderItem.objects.filter(id__in=item_ids)
+                for item in items:
+                    item.purchase_order = purchase_order
+                    purchase_order.sub_total += item.sub_total
+                purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
+                purchase_order.save()
+                messages.success(request, 'PO created successfully')
+                return redirect('purchaseorders')
+            else:
+                messages.error(request, 'Error. Purchase order not created')
+                # return redirect('new_purchaseorder')    
         else:
             messages.error(request, 'Error. Purchase order not created')
-            # return redirect('new_purchaseorder')
+            return redirect('new_purchaseorder')
     data = {
         'approved_order_items': approved_order_items,
         'po_form': po_form,
@@ -344,9 +351,20 @@ def purchaseorders(request):
     return render(request, "pos/purchaseorders.html", data)
 
 @login_required
-def view_purchaseorder(request, po_id):
+def print_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
     data = {
+        'purchase_order': purchase_order,        
+    }
+    return render(request, "pos/print_purchaseorder.html", data)
+
+@login_required
+def view_purchaseorder(request, po_id):
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    # latest_status = purchase_order.status_updates.latest('date').get_value_display
+    # pdb.set_trace()
+    data = {
         'purchase_order': purchase_order,
+        # 'latest_status': latest_status
     }
     return render(request, "pos/view_purchaseorder.html", data)

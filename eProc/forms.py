@@ -169,12 +169,7 @@ class OrderItemForm(ModelForm):
     class Meta:
         model = OrderItem
         fields = ("product", "account_code", "quantity", "comments")
-
-class POOrderItemForm(forms.Form):
-    choices = forms.ModelMultipleChoiceField(
-        queryset = OrderItem.objects.all(),
-        widget  = forms.CheckboxSelectMultiple,
-    )
+        
 
 
 

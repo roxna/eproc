@@ -1,0 +1,101 @@
+
+<!--     <section class="invoice">
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{% url 'purchaseorders' %}"><i class="fa fa-angle-left"></i> Back</a>
+      </div>
+    </div> -->
+
+      <div class="row">
+        <div class="col-xs-12">
+          <h2 class="page-header">
+            <i class="fa fa-globe"></i> {{ purchase_order.number }}
+            <small class="pull-right">Date Issued: <em>{{ purchase_order.date_issued }}</em></small>
+          </h2>
+        </div>
+      </div>
+
+      <!-- Request Details -->
+      <div class="row invoice-info">
+      	<!-- <div class="col-xs-12">
+          <p class="lead">Billing Details</p>
+        </div> -->
+        <div class="col-sm-4 invoice-col">
+          	<p class="lead">Vendor</p>
+            <b>{{ purchase_order.vendorCo }}</b><br>
+            {#<!-- {{ purchase_order.vendorCo.locations.get_primary_location() }}<br> -->#}
+        </div>
+         <div class="col-sm-4 invoice-col">
+            <p class="lead">Bill to:</p>
+            <b> {{purchase_order.billing_add.name }}</b><br>
+            {{ purchase_order.billing_add }}<br><br>
+            <p class="lead">Ship to:</p>
+            <b> {{purchase_order.shipping_add.name }}</b><br>
+            {{ purchase_order.shipping_add }}<br>
+        </div>
+        <div class="col-sm-4 invoice-col">
+            <p class="lead">Additional Details</p>
+            <b>Preparer: </b><br>
+            {{ purchase_order.preparer }}<br><br>
+
+            <b>Promise Date: </b><br>
+            {{ purchase_order.date_due }}<br><br>
+
+          <!-- <b>Status:</b> {{ latest_status }} 
+            {% if latest_status == 'Closed' %}
+            <i class="fa fa-check" style="color: green" aria-hidden="true"> </i>
+            {% elif latest_status == 'Open' %}
+            <i class="fa fa-question" style="color: orange" aria-hidden="true"> </i>
+            {% elif latest_status == 'Cancelled' %}
+            <i class="fa fa-close" style="color: red" aria-hidden="true"> </i>
+            {% endif %} -->
+          <br>
+        </div>
+      </div><br><br>
+
+      <!-- Order Item in Request -->
+      <div class="row">
+        <div class="col-xs-12">
+      	 <p class="lead">Order Details</p>
+        </div>
+        <div class="col-xs-12 table-responsive">
+          <table class="table table-striped">
+            <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Cost Per Unit</th>
+              <th>Sub-total</th>
+              <th>Comments</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for order_item in purchase_order.order_items.all %}
+            <tr>
+              <td>{{ order_item.product.name }}</td>
+              <td>{{ order_item.quantity }}</td>
+              <td>{{ order_item.product.unit_price }}</td>
+              <td>{{ order_item.sub_total }}</td>
+              <td>{{ order_item.comments }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div><br>
+
+	  <!-- Comments & Total -->
+      <div class="row">      
+        <div class="col-xs-12">
+        {% if purchase_order.comments %}
+          <p class="lead">Comments</p>
+          <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;"> {{ purchase_order.comments }}</p>
+        </div>
+        {% endif %}
+
+        <div class="col-xs-12">
+          <p class="lead pull-right">Total Cost: {{ purchase_order.buyer_co.currency }} {{ purchase_order.sub_total }}</p>
+        </div>
+      </div><br>
+
