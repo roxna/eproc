@@ -151,6 +151,14 @@
   <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
   <script src="{% static 'dist/js/app.min.js' %}"></script>
   <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
+  <!-- Success/Error Notifications -->
+  <script>
+    $(function() {
+        setTimeout(function() {
+            $("#messageNotification").hide('fade', 500)
+        }, 2000);
+    });
+  </script>
   {% block js %}{% endblock js %}
 </body>
 </html>

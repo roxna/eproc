@@ -162,20 +162,20 @@ class Invoice(Document, SalesOrder):
 
 ######### PRODUCT & ORDER LINE ITEMS #########
 class Category(models.Model):
-	code = models.IntegerField()
+	code = models.IntegerField(null=True, blank=True)
 	name = models.CharField(max_length=50)
 	buyerCo = models.ForeignKey(BuyerCo, related_name="categories")
 
 	def __unicode__(self):
-		return "[{}] {}".format(self.code, self.name)
+		return "{}".format(self.name)
 
 class CatalogItem(models.Model):
 	name = models.CharField(max_length=50)
 	desc = models.CharField(max_length=150, null=True, blank=True)
 	sku = models.CharField(max_length=20)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	unit_type = models.CharField(max_length=20)	
-	currency = models.CharField(max_length=20)
+	unit_type = models.CharField(max_length=20, default="each")	
+	currency = models.CharField(max_length=20, default="USD")
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendorCo = models.ForeignKey(VendorCo, related_name="catalog_items")
 	buyerCo = models.ForeignKey(BuyerCo, related_name="catalog_items")

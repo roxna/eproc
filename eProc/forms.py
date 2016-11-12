@@ -149,7 +149,7 @@ class PurchaseOrderForm(ModelForm):
     # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2)
     discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
-    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
+    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, widget=forms.NumberInput(attrs={ "placeholder": 0}))
     terms = forms.CharField(max_length=5000)
     vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
@@ -171,5 +171,7 @@ class OrderItemForm(ModelForm):
         fields = ("product", "account_code", "quantity", "comments")
         
 
+class UploadCSVForm(forms.Form):
+    file = forms.FileField(required=True)
 
 

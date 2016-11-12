@@ -34,8 +34,8 @@
               </table>  
 
               <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Vendor</button>
-              {% include "_includes/multiform_modal.html" with target="Vendor" form1=vendor_form form2=location_form %}
-              <button type="button" class="btn basic-grey pull-right">Upload Vendor List</button>
+              {% include "_includes/modal_multiform.html" with target="Vendor" form1=vendor_form form2=location_form %}
+              <a href="{% url 'upload_vendor_csv' %}"><button type="button" class="btn basic-grey pull-right">Upload Vendors CSV</button></a>
               </div>
         </div>
        </div>

@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from eProc.models import *
 from eProc.forms import *
+import csv
 import pdb
 
 
@@ -62,29 +63,35 @@ def dashboard(request):
 @login_required
 def users(request):    
     user_form = NewUserForm(request.POST or None)
-    buyer_profile_form = BuyerProfileForm(request.POST or None)
+    buyer_profile_form = BuyerProfileForm(request.POST or None)                
     if request.method == "POST":
-        # user_form = NewUserForm(request.POST)
-        # buyer_profile_form = BuyerProfileForm(request.POST)
-        if user_form.is_valid() and buyer_profile_form.is_valid():
-            user = user_form.save()
-            buyer_profile = buyer_profile_form.save(commit=False)
-            buyer_profile.user = user
-            buyer_profile.company = request.user.buyer_profile.company
-            buyer_profile.save()
-            messages.success(request, 'User successfully invited')
+        # pdb.set_trace()
+        if request.POST.get('add'):
+            if user_form.is_valid() and buyer_profile_form.is_valid():
+                user = user_form.save()
+                buyer_profile = buyer_profile_form.save(commit=False)
+                buyer_profile.user = user
+                buyer_profile.company = request.user.buyer_profile.company
+                buyer_profile.save()
+                messages.success(request, 'User successfully invited')
 
-            # text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
-            # html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
-            # msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
-            # msg.attach_alternative(html_content, "text/html")
-            # msg.send()
-            return redirect('users')
+                # text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
+                # html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
+                # msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+                # msg.attach_alternative(html_content, "text/html")
+                # msg.send()
+                return redirect('users')
+        elif request.POST.get('delete'):
+            for key in request.POST:
+                if key == 'delete':
+                    user_id = int(request.POST[key])
+                    deleted_user = BuyerProfile.objects.get(pk=user_id)
+                    deleted_user.delete()
+                    messages.success(request, 'User ' + deleted_user.user.username + ' successfully deleted')
+                    return redirect('users')
         else:            
-            messages.error(request, 'Error. Try again')
-    # else:
-    #     user_form = NewUserForm()
-    #     buyer_profile_form = BuyerProfileForm()
+            messages.error(request, 'Error. Please try again')
+            return redirect('users')
     users = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
     data = {
         'users': users,
@@ -93,6 +100,7 @@ def users(request):
         'table_headers': ['Username', 'Email Address', 'Role', ' ',]
     }
     return render(request, "settings/users.html", data)
+
 
 @login_required
 def departments(request):
@@ -119,7 +127,7 @@ def products(request):
     products = CatalogItem.objects.filter(buyerCo=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
     product_form.fields['category'].queryset = Category.objects.filter(buyerCo=request.user.buyer_profile.company)
-    product_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyerCo=request.user.buyer_profile.company)
+    product_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
@@ -135,6 +143,36 @@ def products(request):
         'table_headers': ['Name', 'SKU', 'Description', 'Price', 'Category', 'Vendor'],
     }
     return render(request, "settings/catalog.html", data)
+
+@login_required
+def upload_product_csv(request):
+    csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
+    if request.method == "POST":
+        if csv_form.is_valid():
+            csv_file = request.FILES['file'].read()
+            reader = csv.reader(csv_file, delimiter=',')
+            header = next(reader) #Ignore header row
+            if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
+                messages.error(request, 'Error. Please make sure you have data correctly entered.')
+            try:
+                buyerCo = request.user.buyer_profile.company
+                for row in reader: 
+                    name = row[0]
+                    desc = row[1]
+                    sku = row[2]
+                    unit_price = float(row[3])
+                    unit_type = row[4]
+                    currency = row[5]
+                    category, categ_created = Category.objects.get_or_create(name=row[6], buyerCo=buyerCo)
+                    vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyerCo)
+                    CatalogItem.objects.create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=currency, vendorCo=vendorCo, buyerCo=buyerCo)
+                messages.success(request, 'Products successfully uploaded.')
+            except:
+                messages.error(request, 'Error in uploading the file. Please try again.')
+    data = {
+    'csv_form': csv_form,
+    }
+    return render(request, "settings/catalog_import.html", data)
 
 # DONE
 @login_required
@@ -163,6 +201,37 @@ def vendors(request):
         'table_headers': ['Vendor Name']
     }
     return render(request, "settings/vendors.html", data)    
+
+@login_required
+def upload_vendor_csv(request):
+    csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
+    if request.method == "POST":
+        if csv_form.is_valid():
+            csv_file = request.FILES['file'].read()
+            reader = csv.reader(csv_file, delimiter=',')
+            header = next(reader) #Ignore header row
+            if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
+                messages.error(request, 'Error. Please make sure you have data correctly entered.')
+            try:
+                buyerCo = request.user.buyer_profile.company
+                for row in reader: 
+                    # name = row[0]
+                    # desc = row[1]
+                    # sku = row[2]
+                    # unit_price = float(row[3])
+                    # unit_type = row[4]
+                    # currency = row[5]
+                    # category, categ_created = Category.objects.get_or_create(name=row[6], buyerCo=buyerCo)
+                    # vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyerCo)
+                    VendorCo.objects.create()
+                    VendorProfile.objects.create()
+                messages.success(request, 'Vendor list successfully uploaded.')
+            except:
+                messages.error(request, 'Error in uploading the file. Please try again.')
+    data = {
+    'csv_form': csv_form,
+    }
+    return render(request, "settings/vendor_import.html", data)
 
 # DONE
 @login_required
@@ -295,32 +364,25 @@ def new_purchaseorder(request):
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
     po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
-        if request.POST.get('cancel'):
-            messages.success(request, 'No PO created')
-            return redirect('new_purchaseorder')
-        elif request.POST.get('createPO'):
-            # pdb.set_trace()
-            if po_form.is_valid():
-                purchase_order = po_form.save(commit=False)
-                purchase_order.preparer = request.user.buyer_profile
-                purchase_order.date_issued = timezone.now()
-                purchase_order.buyerCo = request.user.buyer_profile.company
-                purchase_order.sub_total = 0
-                purchase_order.save()
-                status = Status.objects.create(value=5, author=request.user.buyer_profile, document=purchase_order)
+        if po_form.is_valid():
+            purchase_order = po_form.save(commit=False)
+            purchase_order.preparer = request.user.buyer_profile
+            purchase_order.currency = request.user.buyer_profile.company.currency
+            purchase_order.date_issued = timezone.now()
+            purchase_order.buyerCo = request.user.buyer_profile.company
+            purchase_order.sub_total = 0
+            purchase_order.save()
+            status = Status.objects.create(value=5, author=request.user.buyer_profile, document=purchase_order)
 
-                item_ids = request.POST.getlist('order_items[]')
-                items = OrderItem.objects.filter(id__in=item_ids)
-                for item in items:
-                    item.purchase_order = purchase_order
-                    purchase_order.sub_total += item.sub_total
-                purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
-                purchase_order.save()
-                messages.success(request, 'PO created successfully')
-                return redirect('purchaseorders')
-            else:
-                messages.error(request, 'Error. Purchase order not created')
-                # return redirect('new_purchaseorder')    
+            item_ids = request.POST.getlist('order_items[]')
+            items = OrderItem.objects.filter(id__in=item_ids)
+            for item in items:
+                item.purchase_order = purchase_order
+                purchase_order.sub_total += item.sub_total
+            purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
+            purchase_order.save()
+            messages.success(request, 'PO created successfully')
+            return redirect('purchaseorders')  
         else:
             messages.error(request, 'Error. Purchase order not created')
             return redirect('new_purchaseorder')
@@ -361,10 +423,10 @@ def print_purchaseorder(request, po_id):
 @login_required
 def view_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
-    # latest_status = purchase_order.status_updates.latest('date').get_value_display
+    latest_status = purchase_order.status_updates.latest('date').get_value_display
     # pdb.set_trace()
     data = {
         'purchase_order': purchase_order,
-        # 'latest_status': latest_status
+        'latest_status': latest_status
     }
     return render(request, "pos/view_purchaseorder.html", data)

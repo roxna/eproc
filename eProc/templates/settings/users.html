@@ -25,15 +25,25 @@
                     <tr>
                       <td>{{ user.user.username }}</td>
                       <td>{{ user.user.email }}</td>                      
-                      <td>{{ user.get_role_display }}</td>
-                      <td><a href=""><i class="fa fa-trash"></i></a></td>
+                      <td>{{ user.get_role_display }}</td>                      
+                      
+                        <form method="POST">
+                          {% csrf_token %}
+                          <td>
+                          {% if user.buyer_profile.role == 1 %}
+                          <button type="submit" name="delete" value="{{user.id}}"><i class="fa fa-trash"></i></button>
+                          {% endif %}
+                          </td>
+                        </form>
                     </tr>
                     {% endfor %}
                 </tbody>
-              </table><br>
+              </table>
+            <br>
 
-              <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>  
-              {% include "_includes/multiform_modal.html" with target="User" form1=user_form  form2=buyer_profile_form %}            
+            <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>  
+            {% include "_includes/modal_multiform.html" with target="User" form1=user_form  form2=buyer_profile_form %}            
+            
             </div>
 
           </div>

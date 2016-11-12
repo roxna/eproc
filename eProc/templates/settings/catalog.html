@@ -35,8 +35,8 @@
               </table><br>
 
               <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Product</button>
-              {% include "_includes/singleform_modal.html" with target="Product" form=product_form %}
-              <button type="button" class="btn basic-grey pull-right">Upload Product Catalog</button>
+              {% include "_includes/modal_singleform.html" with target="Product" form=product_form %}
+              <a href="{% url 'upload_product_csv' %}"><button type="button" class="btn basic-grey pull-right">Upload Product Catalog CSV</button></a>
           </div>
 
         </div>

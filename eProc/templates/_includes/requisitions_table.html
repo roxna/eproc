@@ -17,7 +17,7 @@
     <td><a href="{% url 'view_requisition' requisition_id=requisition.id %}"><span class="btn basic-grey">{{ requisition.number }}</span></a><br>
       <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>          
     </td>
-    <td><b> {{ requisition.date_due }} </b><br>
+    <td><b> {{ requisition.date_due | date:"M d, Y" }} </b><br>
       <em><small><b>Created:</b> {{ requisition.date_created }}</small></em>
     </td>                      
     <td> {{ requisition.department }}</td>

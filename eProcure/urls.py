@@ -20,15 +20,16 @@ urlpatterns=[
     url(r'^requisitions/$', views.requisitions, name='requisitions'),
     url(r'^requisitions/(?P<requisition_id>\w+)/$', views.view_requisition, name='view_requisition'),
     
-    url(r'^purchaseorders$', views.purchaseorders, name='purchaseorders'),
-    url(r'^purchaseorder/new/$', views.new_purchaseorder, name='new_purchaseorder'),
-    url(r'^purchaseorder/(?P<po_id>\w+)/$', views.view_purchaseorder, name='view_purchaseorder'),
-    url(r'^purchaseorder/print/(?P<po_id>\w+)$', views.print_purchaseorder, name='print_purchaseorder'),
+    url(r'^purchase-orders$', views.purchaseorders, name='purchaseorders'),
+    url(r'^purchase-order/new/$', views.new_purchaseorder, name='new_purchaseorder'),
+    url(r'^purchase-order/(?P<po_id>\w+)/$', views.view_purchaseorder, name='view_purchaseorder'),
+    url(r'^purchase-order/print/(?P<po_id>\w+)$', views.print_purchaseorder, name='print_purchaseorder'),
     # url(r'^po/receive/$', views.receive, name='receive_po'),
     
     url(r'^vendors/$', views.vendors, name='vendors'),
-    # url(r'^vendors/new/$', views.documents, name='new_vendor'),
+    url(r'^vendors/import-csv$', views.upload_vendor_csv, name='upload_vendor_csv'),
     url(r'^products/$', views.products, name='products'),
+    url(r'^products/import-csv$', views.upload_product_csv, name='upload_product_csv'),
 
     url(r'^settings/profile/$', views.user_profile, name='user_profile'),
     url(r'^settings/company/$', views.company_profile, name='company_profile'),

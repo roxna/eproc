@@ -1,0 +1,30 @@
+{% load staticfiles %}
+  <section class="content col-md-6">
+      <div class="box box-default">
+        <div class="box-header with-border">
+          <h3 class="box-title">Step 1: Download the Template</h3>
+        </div>
+        <div class="box-body">                            
+          Download the {{source}} Importer template and fill in your product information according to the file. After that, proceed to Step 2<br><br>
+          <a href="{% static 'templates/{{template_file}}' %}">
+            <button type="button" class="btn btn-block">Download</button>
+          </a>
+        </div>
+      </div>
+  </section>
+
+  <section class="content col-md-6">
+      <div class="box box-default">
+        <div class="box-header with-border">
+          <h3 class="box-title">Step 2: Upload CSV</h3>
+        </div>
+        <div class="box-body">                            
+          If all your columns are filled in and you're ready to go, upload your csv file here. Make sure there are numbers in the right columns and all the mandatory fields are filled in.<br><br>
+          <form enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            {{ csv_form.as_p }}
+            <button type="submit" class="btn btn-block basic-teal">Upload CSV</button>
+          </form>
+        </div>
+      </div>
+  </section>  

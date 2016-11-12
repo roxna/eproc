@@ -1,0 +1,46 @@
+  <div class="row">
+      <div class="col-xs-6">
+        <p class="lead">Other</p>
+        <p class="text-muted well well-sm no-shadow">Comments: {{comments}}</p>
+        <p class="text-muted well well-sm no-shadow">Terms: {{terms}}</p>
+      </div>
+      <div class="col-xs-6 pull-right">
+        <p class="lead">Totals</p>
+        <div class="table-responsive">
+          <table class="table" id="{{tableID}}">
+            <tbody>
+                <tr>
+                  <th style="width:50%">Subtotal:</th>
+                  <td id="POSubTotal">{{sub_total}}</td>
+                  <td>{{currency}}</td>
+                </tr>
+                <tr>
+                  <th>Tax:</th>
+                  <td class="amount">{{tax}}</td>
+                  <td>{{currency}}</td>
+                </tr>
+                <tr>
+                  <th>Shipping:</th>
+                  <td class="amount">{{shipping}}</td>
+                  <td>{{currency}}</td>
+                </tr>
+                <tr>
+                  <th>Discount:</th>
+                  <td class="amount discount">{{discount}}</td>
+                  <td>{{currency}}</td>
+                </tr>
+                <tr>
+                  <th>Other costs:</th>
+                  <td class="amount">{{other}}</td>
+                  <td>{{currency}}</td>
+                </tr>    
+                <tr>
+                  <th>Total:</th>
+                  <td id="POTotal">{{grand_total}}</td>
+                  <td>{{currency}}</td>
+                </tr>	
+              </tbody>
+          </table>
+        </div>
+      </div>
+  </div
