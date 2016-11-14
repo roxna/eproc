@@ -7,10 +7,7 @@
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
 {% endblock css %}
 
-{% block header %}
-    <h1>Users</h1>
-    {% include "_includes/messages.html" with messages=messages %}
-{% endblock header %}
+{% block header %}Users{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -30,7 +27,7 @@
                         <form method="POST">
                           {% csrf_token %}
                           <td>
-                          {% if user.buyer_profile.role == 1 %}
+                          {% if user.buyer_profile.role == 'SuperUser' %}
                           <button type="submit" name="delete" value="{{user.id}}"><i class="fa fa-trash"></i></button>
                           {% endif %}
                           </td>

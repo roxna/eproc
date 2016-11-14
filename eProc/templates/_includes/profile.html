@@ -1,13 +1,25 @@
 {% load staticfiles %}
+  <section class="content">
+      <div class="box box-primary">
+        <div class="box-body box-profile">
+			<img class="profile-user-img img-responsive img-circle" src="{% static '' %}{{image}}" alt="Profile Image"><br>        
 
-<a href=""><img class="profile-user-img img-responsive img-circle" src="{% static '{{image}}' %}" alt="Profile Image"></a><br>        
-
-<form method="POST" >
-	{% csrf_token %}
-    <h3 class="profile-username text-center">Name: {{fname}} {{lname}} </h3>
-    <p class="text-muted text-center">{{role}}</p>
-    <p class="text-muted text-center">{{email}}</p>
-    <p class="text-muted text-center">{{currency}}</p>
-
-    <button type="submit" class="btn basic-teal pull-right">Update Profile</button>
-</form>
+			<form method="POST" >
+				{% csrf_token %}
+			  	<table class="table">
+    				<tbody>
+	        				<tr><td>Name: </td><td>{{fname}} {{lname}}</td></tr>
+					    {% if profile == 'user' %}
+						    <tr><td>Role: </td> <td>{{role}}</td></tr>
+						    <tr><td>Department: </td> <td>{{department}}</td></tr>
+						    <tr><td>Email: </td> <td>{{email}}</td></tr>
+					    {% elif profile == 'company' %}
+					    	<tr><td>Currency: </td> <td>{{currency}}</td></tr>
+					    {% endif %}
+				    </tbody>
+				</table>
+			    <button type="submit" class="btn basic-teal pull-right">Update Profile</button>
+			</form>
+        </div>
+      </div>
+  </section>

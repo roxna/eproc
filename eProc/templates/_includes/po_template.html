@@ -31,13 +31,13 @@
             Preparer: <b>{{ purchase_order.preparer }}</b><br>
             Promise Date: <b>{{ purchase_order.date_due }}</b><br>
 
-          <b>Status:</b> {{ latest_status }} 
+            Status: <b>{{ latest_status }}</b>
             {% if latest_status == 'Closed' %}
-            <i class="fa fa-check" style="color: green" aria-hidden="true"> </i>
-            {% elif latest_status == 'Open' %}
-            <i class="fa fa-question" style="color: orange" aria-hidden="true"> </i>
-            {% elif latest_status == 'Cancelled' %}
-            <i class="fa fa-close" style="color: red" aria-hidden="true"> </i>
+              <i class="fa fa-check" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
+              {% elif latest_status == 'Open' %}
+              <i class="fa fa-question" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
+              {% elif latest_status == 'Cancelled' %}
+              <i class="fa fa-close" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
             {% endif %}
           <br>
         </div>

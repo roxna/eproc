@@ -62,7 +62,7 @@ def dashboard(request):
 # to register & activate: https://github.com/JunyiJ/django-register-activate/blob/master/register_activate/views.py
 @login_required
 def users(request):    
-    user_form = NewUserForm(request.POST or None)
+    user_form = UserForm(request.POST or None)
     buyer_profile_form = BuyerProfileForm(request.POST or None)                
     if request.method == "POST":
         # pdb.set_trace()
@@ -215,15 +215,20 @@ def upload_vendor_csv(request):
             try:
                 buyerCo = request.user.buyer_profile.company
                 for row in reader: 
-                    # name = row[0]
-                    # desc = row[1]
-                    # sku = row[2]
-                    # unit_price = float(row[3])
-                    # unit_type = row[4]
-                    # currency = row[5]
-                    # category, categ_created = Category.objects.get_or_create(name=row[6], buyerCo=buyerCo)
+                    # co_name = row[0]
+                    # co_currency = row[1]
+                    # address1 = row[2]
+                    # address2 = row[3]
+                    # city = row[4]
+                    # co_state = row[5]
+                    # co_zipcode = row[6]
+                    # co_phone = row[7]
+                    # co_email = row[8]
+                    # username = row[9]
+                    # email = row[9]
                     # vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyerCo)
-                    VendorCo.objects.create()
+                    company = VendorCo.objects.create()
+                    Location.objects.create(name="Headquarters", is_primary=True, address1=address1, address2=address2, city=city, state=state, country=country, zipcode=zipcode, phone=phone, email=email, company=company)
                     VendorProfile.objects.create()
                 messages.success(request, 'Vendor list successfully uploaded.')
             except:
@@ -236,16 +241,18 @@ def upload_vendor_csv(request):
 # DONE
 @login_required
 def user_profile(request):
-    profile_form = UserProfileForm(request.POST or None, instance=request.user)
+    user_form = UserForm(request.POST or None, instance=request.user)
+    buyer_profile = request.user.buyer_profile
     if request.method == "POST":
-        if profile_form.is_valid():
-            user = profile_form.save()
+        if user_form.is_valid():
+            user = user_form.save()
             messages.success(request, "Profile updated successfully")
             return redirect('user_profile')
         else:
             messages.error(request, 'Error. Profile not updated')
     data = {
-        'profile_form': profile_form
+        'user_form': user_form,
+        'buyer_profile': buyer_profile
     }
     return render(request, "settings/user_profile.html", data)    
 
@@ -282,6 +289,7 @@ def new_requisition(request):
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = requisition_form.save(commit=False)
             requisition.preparer = request.user.buyer_profile
+            requisition.currency = request.user.buyer_profile.company.currency
             requisition.date_issued = timezone.now()
             requisition.buyerCo = request.user.buyer_profile.company
             requisition.sub_total = 0
@@ -299,10 +307,10 @@ def new_requisition(request):
                     order_item.save()            
             requisition.save()
 
-            if request.user.buyer_profile.role == 1 or request.user.buyer_profile.role == 3:
-                status = Status.objects.create(value=3, author=request.user.buyer_profile, document=requisition)
+            if request.user.buyer_profile.role == 'SuperUser' or request.user.buyer_profile.role == 'Approver':
+                status = Status.objects.create(value='Approved', color="green", author=request.user.buyer_profile, document=requisition)
             else:
-                status = Status.objects.create(value=2, author=request.user.buyer_profile, document=requisition)
+                status = Status.objects.create(value='Pending', color="yellow", author=request.user.buyer_profile, document=requisition)
 
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
@@ -333,17 +341,17 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     requisition = Requisition.objects.get(pk=requisition_id)
-    latest_status = requisition.status_updates.latest('date').get_value_display
+    latest_status = requisition.status_updates.latest('date')
 
     # Manage approving/denying requisitions
     if request.method == 'POST':
         if request.POST.get('approve'):
-            Status.objects.create(value=3, author=request.user.buyer_profile, document=requisition)
+            Status.objects.create(value='Approved', color="Approved", author=request.user.buyer_profile, document=requisition)
             for order_item in requisition.order_items:
                 order_item.is_approved = True
             messages.success(request, 'Requisition approved')
         if request.POST.get('deny'):
-            Status.objects.create(value=4, author=request.user.buyer_profile, document=requisition)
+            Status.objects.create(value='Denied', color="Denied", author=request.user.buyer_profile, document=requisition)
             messages.success(request, 'Requisition denied')
         else:
             messages.error(request, 'Error. Requisition not updated')
@@ -372,7 +380,7 @@ def new_purchaseorder(request):
             purchase_order.buyerCo = request.user.buyer_profile.company
             purchase_order.sub_total = 0
             purchase_order.save()
-            status = Status.objects.create(value=5, author=request.user.buyer_profile, document=purchase_order)
+            status = Status.objects.create(value='Open', color="Pending", author=request.user.buyer_profile, document=purchase_order)
 
             item_ids = request.POST.getlist('order_items[]')
             items = OrderItem.objects.filter(id__in=item_ids)
@@ -423,7 +431,7 @@ def print_purchaseorder(request, po_id):
 @login_required
 def view_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
-    latest_status = purchase_order.status_updates.latest('date').get_value_display
+    latest_status = purchase_order.status_updates.latest('date')
     # pdb.set_trace()
     data = {
         'purchase_order': purchase_order,

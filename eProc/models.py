@@ -5,10 +5,12 @@ from django.utils import timezone
 from eProc.managers import *
 
 
+CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
+
 ######### COMPANY DETAILS #########
 class Company (models.Model):
-	name = models.CharField(max_length=30)
-	currency = models.CharField(max_length=30, default="USD")
+	name = models.CharField(max_length=30)	
+	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
 	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
 
 	def __unicode__(self):
@@ -82,14 +84,14 @@ class User(AbstractUser):
 
 class BuyerProfile(models.Model):
 	ROLES = (
-		(1, 'SuperUser'),
-		(2, 'Requester'),
-		(3, 'Approver'),
-		(4, 'Purchaser'),
-		(5, 'Receiver'),
-		(6, 'Payer'),
+		('SuperUser', 'SuperUser'),
+		('Requester', 'Requester'),
+		('Approver', 'Approver'),
+		('Purchaser', 'Purchaser'),
+		('Receiver', 'Receiver'),
+		('Payer', 'Payer'),
 	)
-	role = models.IntegerField(choices=ROLES)
+	role = models.CharField(choices=ROLES, max_length=15)
 	user = models.OneToOneField(User, related_name="buyer_profile")	
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
@@ -112,7 +114,7 @@ class Document(models.Model):
 	date_created = models.DateTimeField(default=timezone.now)
 	date_issued = models.DateTimeField(default=timezone.now, null=True, blank=True)
 	date_due = models.DateField(default=timezone.now)
-	currency = models.CharField(max_length=3, null=True, blank=True)
+	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
@@ -174,8 +176,8 @@ class CatalogItem(models.Model):
 	desc = models.CharField(max_length=150, null=True, blank=True)
 	sku = models.CharField(max_length=20)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	unit_type = models.CharField(max_length=20, default="each")	
-	currency = models.CharField(max_length=20, default="USD")
+	unit_type = models.CharField(max_length=20, default="each")
+	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendorCo = models.ForeignKey(VendorCo, related_name="catalog_items")
 	buyerCo = models.ForeignKey(BuyerCo, related_name="catalog_items")
@@ -198,7 +200,7 @@ class OrderItem(models.Model):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True) # If order_item is part of a PO, no longer 'pending'
 
 	def __unicode__(self):
-		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency.upper(), self.unit_price)
+		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
 
 	def get_unit_price(self):
 		return self.unit_price
@@ -207,33 +209,32 @@ class OrderItem(models.Model):
 class Status(models.Model):
 	STATUS = (
 		# Requisitions
-		(1, 'Draft'),
-		(2, 'Pending'),
-		(3, 'Approved'),
-		(4, 'Denied'),
+		('Draft', 'Draft'),
+		('Pending', 'Pending'),
+		('Approved', 'Approved'),
+		('Denied', 'Denied'),
 		# POs
-		(5, 'Open'),
-		(6, 'Closed'),
-		(7, 'Cancelled'),
-		(8, 'Paid'),
+		('Open', 'Open'),
+		('Closed', 'Closed'),
+		('Cancelled', 'Cancelled'),
+		('Paid', 'Paid'),
 		# All 
-		(9, 'Archived'),
+		('Archived', 'Archived'),
 	)
 	COLORS = (
-		('grey', 'grey'),
-		('yellow', 'yellow'),
-		('green', 'green'),
-		('red', 'red')
+		('Pending', 'yellow'),
+		('Approved', 'green'),
+		('Denied', 'red'),
+		('Other', 'grey')
 	)
-
-	value = models.IntegerField(choices=STATUS)
-	color = models.TextField(choices=COLORS, default='grey')
+	value = models.CharField(max_length=10, choices=STATUS, default='Draft')
+	color = models.CharField(max_length=10, choices=COLORS, default='Other')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
 	document = models.ForeignKey(Document, related_name="status_updates")
 
 	def __unicode__(self):
-		return "Document {} [{}]".format(self.author, self.date)
+		return "{}".format(self.value)
 
 class Rating(models.Model):
 	SCORES = (

@@ -6,14 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}
-    <h1>Requisition</h1>
-      <ol class="breadcrumb">
-        <li id="messageNotification">
-          {% include "_includes/messages.html" with messages=messages %}
-        </li>
-      </ol>
-{% endblock header %}
+{% block header %}Requisition{% endblock header %}
 
 
 {% block content %}
@@ -72,21 +65,23 @@
         {% endif %}
 
         <div class="col-xs-12">
-          <p class="lead pull-right">Total Cost: {{ requisition.buyer_co.currency }} {{ requisition.sub_total }}</p>
+          <p class="lead pull-right">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
         </div>
       </div><br>
       
       <div class="row no-print">
-        <div class="col-xs-12">          
-        <!-- Show only if Approver Role -->
-          {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
-            {% if latest_status == 'Pending' %}
+        <div class="col-xs-12">                  
+          {% if latest_status == 'Pending' %}
+            <!-- Show only if Approver Role -->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
               <form method="post">
                 {% csrf_token %}
                 <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
                 <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
               </form>
             {% endif %}
+          {% else %}
+            <div class="btn basic-grey pull-right">Status: <em><b>{{latest_status}}</b> [{{latest_status.author}} on {{latest_status.date}}]</div></em>
           {% endif %}          
         </div>
       </div>

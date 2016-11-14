@@ -68,9 +68,9 @@
           </li>        
           
           <!-- REQUISITIONS -->
-          {% if user.buyer_profile.role == 2 %}
+          {% if user.buyer_profile.role == 'Requester' %}
             <li><a href="{%url 'new_requisition' %}"><i class="fa fa-book"></i> <span>Request an Order</span></a></li>
-          {% elif user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
+          {% elif user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-book"></i> <span>Requests</span>
@@ -86,7 +86,7 @@
           {% endif %}
 
           <!-- POs -->
-          {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 3 %}
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
@@ -101,7 +101,7 @@
             </li>   
           {% endif %}
 
-          {% if user.buyer_profile.role == 1 or user.buyer_profile.role == 5 %}
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
             <li><a href="{%url 'dashboard' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
             <li><a href="{%url 'dashboard' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
           {% endif %}
@@ -117,7 +117,7 @@
               <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
               <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
               <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>
-            {% if user.buyer_profile.role == 1 %}
+            {% if user.buyer_profile.role == 'SuperUser' %}
               <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company</a></li>
               <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>
               <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-money"></i> Taxes</a></li> -->
@@ -133,7 +133,8 @@
     <!-- Page Content -->
     <div class="content-wrapper">
       <section class="content-header">
-        {% block header %}{% endblock header %}
+        <h1>{% block header %}{% endblock header %}</h1>
+        {% include "_includes/messages.html" with messages=messages %}
       </section>    
       {% block content %}{% endblock content %}
     </div>

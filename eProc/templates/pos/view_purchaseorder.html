@@ -3,9 +3,7 @@
 
 {% block title %}Purchase Orders{% endblock title %}
 
-{% block header %}
-    <h1>Purchase Order Details</h1>
-    {% include "_includes/messages.html" with messages=messages %}
+{% block header %}Purchase Order Details
 {% endblock header %}
 
 
@@ -21,10 +19,12 @@
 
     {% include "_includes/po_template.html" with purchase_order=purchase_order %}
 
-    <div class="row no-print">
-      <div class="col-xs-12">                      
+    <div class="row">
+      <div class="row">
+        <div class="col-xs-12">                      
             <a href="{% url 'print_purchaseorder' purchase_order.id %}"><button type="input" class="btn basic-teal pull-right"><i class="fa fa-print"></i> Print PO</button></a>
             <a href="mailto:{{user.email}}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email PO</button></a>
+        </div>
       </div>
     </div>
 

@@ -6,8 +6,10 @@ from eProc.models import *
 from django.utils import timezone
 # from crispy_forms.helper import FormHelper
 
+ROLES = ((1, 'SuperUser'),(2, 'Requester'),(3, 'Approver'),(4, 'Purchaser'),(5, 'Receiver'),(6, 'Payer'))  
+CURRENCIES = (('USD', 'USD'),('INR', 'INR'))  
 
-class NewUserForm(UserCreationForm):
+class UserForm(UserCreationForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True) 
     username = forms.CharField(required=True)    
@@ -29,36 +31,26 @@ class NewUserForm(UserCreationForm):
             code='duplicate_username',
         )
 
-class BuyerProfileForm(ModelForm):
-    ROLES = (
-        (1, 'SuperUser'),
-        (2, 'Requester'),
-        (3, 'Approver'),
-        (4, 'Purchaser'),
-        (5, 'Receiver'),
-        (6, 'Payer'),
-    )
+class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(ROLES, required=True)
     department = forms.ModelChoiceField(queryset=Department.objects.all())
+
+    # READONLY_FIELDS = ('role', 'department')
 
     class Meta:
         model = BuyerProfile
         fields = ("role", "department")    
 
+    # def __init__(self, read_only=False, *args, **kwargs):
+    #     super(BuyerProfileForm, self).__init__(*args, **kwargs)
+    #     if read_only:
+    #         for field in self.READONLY_FIELDS:
+    #             self.fields[field].widget.attrs['readonly'] = True
         
-class UserProfileForm(forms.ModelForm):
-    username = forms.CharField(required=True)
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True) 
-    email = forms.EmailField(widget = forms.TextInput(attrs={'readonly':'readonly'}))   
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
 
 class CompanyProfileForm(forms.ModelForm):
     name = forms.CharField(required=True)
-    currency = forms.CharField()
+    currency = forms.ChoiceField(CURRENCIES, required=True)
     logo = forms.ImageField()
 
     class Meta:
@@ -84,7 +76,7 @@ class CatalogItemForm(ModelForm):
     sku = forms.CharField(required=True)
     unit_price = forms.DecimalField(required=True)
     unit_type = forms.CharField(required=True)
-    currency = forms.CharField(required=True, initial="USD")
+    currency = forms.ChoiceField(CURRENCIES, required=True, initial='USD')
     # Category, VendorCo queryset SPECIFIC to BuyerCo updated in views.py
     category = forms.ModelChoiceField(queryset=Category.objects.all())
     vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all())
@@ -127,11 +119,10 @@ class VendorProfileForm(ModelForm):
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
-    # CURRENCY_LIST = [('USD', 'USD'), ('INR', 'INR')]
-    # currency = forms.ChoiceField(CURRENCY_LIST, initial='USD')
+    # currency = forms.ChoiceField(CURRENCIES, initial='USD')
     comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")
     department = forms.ModelChoiceField(queryset=Department.objects.all())
-    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all())
 
     class Meta:
         model = Requisition

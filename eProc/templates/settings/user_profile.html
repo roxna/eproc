@@ -6,32 +6,15 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}
-    <h1>Profile Settings</h1>
-    {% include "_includes/messages.html" with messages=messages %}
-{% endblock header %}
+{% block header %}Profile Settings{% endblock header %}
 
 
 {% block content %}
-  <section class="content">
-      <div class="box box-primary">
-        <div class="box-body box-profile">
-
-        {% include "_includes/profile.html" with image="dist/img/user4-128x128.jpg" fname=profile_form.first_name lname=profile_form.last_name role=profile_form.buyer_profile.role.get_display_value email=profile_form.email %}
-
-        </div>
-      </div>
-  </section>
+    
+    {% include "_includes/profile.html" with profile="user" image="dist/img/photo4.jpg" fname=user_form.first_name lname=user_form.last_name role=buyer_profile.role department=buyer_profile.department email=user_form.email %}
 
 {% endblock content %}
 
 
 {% block js %}
-<script type="text/javascript">
-$(function() {
-    setTimeout(function() {
-        $("#messageNotification").hide('fade', 500)
-    }, 2000);
-});
-</script>
 {% endblock js %}    
