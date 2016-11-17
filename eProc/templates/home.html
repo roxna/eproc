@@ -1,7 +1,41 @@
-{% extends '_layouts/base_landing.html' %}
-
-{% block title %} eProcurement Home {% endblock %}
+{% extends 'landing/_layouts/base_landing.html' %}
+{% load staticfiles %}
 
 {% block content %}
-<p>Howdy{% if user.is_authenticated %} {{ user.username }}{% endif %}!</p>
+	<div id="home">
+		<div id="hero">
+			<div class="container">
+				<h1 class="hero-text animated fadeInDown">
+					Streamline purchasing <br />				
+					in minutes.
+				</h1>
+				<p class="sub-text animated fadeInDown">
+					Request. Approve. Purchase. Track
+				</p>
+				<div class="cta animated fadeInDown">				
+					<a href="{% url 'register' %}" class="button">Sign up now</a>
+				</div>
+				<div class="img"></div>
+			</div>
+		</div>
+	</div>
+
+	{% include "landing/_includes/features.html" %}		
+
+	<div id="home">
+
+		{% block header %}
+			{% include "landing/_includes/header.html" with background_color="hero" signin_class="button-outline" ul_class="visible-md visible-lg" %}
+		{% endblock header %}		
+	
+		{% include "landing/_includes/pricing.html" %}
+		{% include "landing/_includes/get_started.html" %}	
+		
+	</div>
+
 {% endblock %}
+
+{% block footer %}
+	{% include "landing/_includes/footer_light.html" %}	
+{% endblock footer %}
+

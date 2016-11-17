@@ -1,0 +1,52 @@
+<div id="footer-white">
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-3 menu">
+				<h3>Overview</h3>
+				<ul>
+      				<li><a href="{% url 'features' %}">Features</a></li>
+      				<li><a href="{% url 'pricing' %}">Pricing</a></li>
+      				<li><a href="{% url 'contact' %}">Contact</a></li>
+      				<li><a href="{% url 'blog' %}">Blog</a></li>
+      			</ul>
+			</div>
+			<div class="col-sm-3 menu">
+				<h3>Menu</h3>
+				<ul>
+      				<li><a href="{% url 'contact' %}">Contact Us</a></li>
+        			<li>
+        				<a href="{% url 'register' %}">Get started</a>
+        				<a href="{% url 'register' %}" class="hiring">Sign up!</a>
+        			</li>
+      			</ul>
+			</div>
+			<div class="col-sm-2 menu">
+				<h3>Contact</h3>
+				<ul>
+      				<li><a href="">
+	      				<b>eProcu</b><br>
+	      				Address Line 1<br>
+	        			Address Line <br>
+	        			City<br>
+	        			Zip<br>
+	        			Country</a>
+	        		</li>
+      			</ul>
+			</div>
+			<div class="col-sm-4 newsletter">
+				<div class="signup clearfix">
+					<p>
+						Sign up for the newsletter and we'll inform you of updates, offers and more.
+					</p>
+					<form method="POST">
+						<input type="text" name="email" class="form-control" placeholder="Your email address" />
+						<input type="submit" value="Sign up" />
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="row credits">
+			<div class="col-md-12">Copyright © 2016</div>
+		</div>
+	</div>
+</div>

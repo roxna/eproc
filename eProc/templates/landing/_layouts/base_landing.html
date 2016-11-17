@@ -1,0 +1,52 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		<title>{% block title %} eProcure {% endblock %}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+		<!-- stylesheets for React theme -->
+		 <link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">  
+	    <link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %"> 
+	    <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}">
+
+		<!--[if lt IE 9]>
+	      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	    <![endif]-->
+	</head>
+	<body>
+		
+		{% block header %}
+			{% include "landing/_includes/header.html" with background_color="normal" signin_class="button" %}
+		{% endblock header %}
+
+
+		{% block content %}
+		{% endblock %}
+
+		{% block footer %}
+			{% include "landing/_includes/footer_dark.html" %}
+		{% endblock footer %}
+
+	</body>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="{% static 'js/bootstrap/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/theme.js' %}"></script>
+
+	<!-- Edit the "active" class (highlight color) for selected page -->
+	<script>
+		$('ul#footerMenu li').click(function(){
+			$('#footerMenu').each(function(){
+				removeClass('active');
+			})	
+			$(this).addClass('active');
+		})		
+	</script>
+
+	{% block js %}{% endblock js %}
+
+</html>

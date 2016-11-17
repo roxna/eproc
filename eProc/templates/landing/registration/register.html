@@ -1,0 +1,39 @@
+{% extends 'landing/_layouts/base_landing.html' %}
+{% load staticfiles %}
+
+{% block title %}Log In{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}Log In{% endblock header %}
+
+{% block content %}
+
+<div class="login-box">
+  <div class="login-logo">
+    <a href="{% url 'home' %}">eProc</a>
+  </div>
+  <!-- /.login-logo -->
+  <div class="login-box-body">
+    <p class="login-box-msg">Sign in</p>
+
+    <form method="post">
+    {% csrf_token %}
+      <div class="form-group has-feedback">
+        {{form.username}} <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        {{form.password}} <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+      </div>
+      <a href="#">I forgot my password</a><br><br>
+      <div class="footer">
+        <button type="submit" class="btn bg-dark-teal btn-block" name="register">Sign In</button>
+      </div>
+
+      </div>
+    </form>
+   </div>
+
+</div>
+
+{% endblock %}

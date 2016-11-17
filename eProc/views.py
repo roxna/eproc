@@ -26,7 +26,7 @@ def home(request):
 @sensitive_post_parameters()
 @csrf_protect
 @never_cache
-def login(request, template_name='settings/login.html',
+def login(request, template_name='landing/registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=LoginForm,
           current_app=None, extra_context=None):
@@ -51,6 +51,9 @@ def login(request, template_name='settings/login.html',
     if extra_context is not None:
         context.update(extra_context)
     return TemplateResponse(request, template_name, context)
+
+def register(request):
+    return render(request, "landing/registration/register.html")
 
 @login_required()
 def dashboard(request):
@@ -308,9 +311,9 @@ def new_requisition(request):
             requisition.save()
 
             if request.user.buyer_profile.role == 'SuperUser' or request.user.buyer_profile.role == 'Approver':
-                status = Status.objects.create(value='Approved', color="green", author=request.user.buyer_profile, document=requisition)
+                status = Status.objects.create(value='Approved', color='Approved', author=request.user.buyer_profile, document=requisition)
             else:
-                status = Status.objects.create(value='Pending', color="yellow", author=request.user.buyer_profile, document=requisition)
+                status = Status.objects.create(value='Pending', color='Pending', author=request.user.buyer_profile, document=requisition)
 
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
@@ -438,3 +441,22 @@ def view_purchaseorder(request, po_id):
         'latest_status': latest_status
     }
     return render(request, "pos/view_purchaseorder.html", data)
+
+def pricing(request):
+    return render(request, "landing/pricing.html")
+
+def features(request):
+    return render(request, "landing/features.html")
+
+def contact(request):
+    return render(request, "landing/contact.html")
+
+def blog(request):
+    return render(request, "landing/blog.html")
+
+def view_blog(request, blog_id):
+    # blog_id = Blog.objects.get(pk=blog_id)
+    data = {
+    'blog': blog,
+    }
+    return render(request, "landing/blog.html", data)

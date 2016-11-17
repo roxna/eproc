@@ -11,6 +11,13 @@ urlpatterns=[
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', views.home, name='home'),
+    url(r'^pricing/$', views.pricing, name='pricing'),
+    url(r'^features/$', views.features, name='features'),
+    url(r'^blog/$', views.blog, name='blog'),
+    url(r'^blog/(?P<blog_id>\w+)/$', views.view_blog, name='view_blog'),
+    url(r'^contact/$', views.contact, name='contact'),
+
+    url(r'^register/$', views.register, name='register'),
     url(r'^login/$', views.login, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
 

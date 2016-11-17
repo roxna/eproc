@@ -1,0 +1,29 @@
+{% extends 'landing/_layouts/base_landing.html' %}
+{% load staticfiles %}
+
+{% block content %}
+<div id="blog">
+	<div id="posts">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-9">
+					{% for blog in blogs %}
+						{% include "landing/_includes/blogpost_summary.html" with image=blog.image url=blog.url author=blog.author date=blog.date summary=blog.summary %}
+					{% endfor %}
+				</div>
+				<div class="col-md-3 sidebar">					
+					<div class="best-hits">
+						<strong>Check out our best hits:</strong>
+						{% for blog in best_blogs %}
+							<a href="{% url 'blog.url' %}">{{blog.title}}</a>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

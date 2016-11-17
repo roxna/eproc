@@ -1,0 +1,11 @@
+{% load staticfiles %}
+
+<div class="post">
+	<a href="{% url '{{url}}' %}" class="pic">
+		<img src="{% static 'images/' %}{{image}}" class="img-responsive" alt="blogpost" />
+	</a>
+	<div class="title"><a href="{% url '{{url}}' %}"></a></div>
+	<div class="author">{{author}}, {{date}}</div>
+	<p class="intro">{{summary}}</p>
+	<a href="{% url '{{url}}' %}" class="continue-reading">Continue reading..</a>
+</div>	
