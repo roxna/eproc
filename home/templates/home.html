@@ -1,4 +1,4 @@
-{% extends 'landing/_layouts/base_landing.html' %}
+{% extends '_layouts/base_landing.html' %}
 {% load staticfiles %}
 
 {% block content %}
@@ -20,22 +20,27 @@
 		</div>
 	</div>
 
-	{% include "landing/_includes/features.html" %}		
+	{% include "_includes/features.html" %}		
 
 	<div id="home">
 
 		{% block header %}
-			{% include "landing/_includes/header.html" with background_color="hero" signin_class="button-outline" ul_class="visible-md visible-lg" %}
+			{% include "_includes/header.html" with background_color="hero" signin_class="button-outline" ul_class="visible-md visible-lg" %}
 		{% endblock header %}		
-	
-		{% include "landing/_includes/pricing.html" %}
-		{% include "landing/_includes/get_started.html" %}	
+		
+		<div id="pricing">
+			<div class="container">
+				{% include "_includes/pricing.html" %}
+			</div>
+		</div>
+			{% include "_includes/get_started.html" %}
+
 		
 	</div>
 
-{% endblock %}
+{% endblock content %}
 
 {% block footer %}
-	{% include "landing/_includes/footer_light.html" %}	
+	{% include "_includes/footer_light.html" %}	
 {% endblock footer %}
 

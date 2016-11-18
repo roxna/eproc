@@ -1,4 +1,4 @@
-{% extends 'landing/_layouts/base_landing.html' %}
+{% extends '_layouts/base_landing.html' %}
 {% load staticfiles %}
 
 {% block content %}
@@ -8,7 +8,7 @@
 			<div class="row">
 				<div class="col-md-9">
 					{% for blog in blogs %}
-						{% include "landing/_includes/blogpost_summary.html" with image=blog.image url=blog.url author=blog.author date=blog.date summary=blog.summary %}
+						{% include "_includes/blogpost_summary.html" with image=blog.image id=blog.id author=blog.author date=blog.date summary=blog.summary %}
 					{% endfor %}
 				</div>
 				<div class="col-md-3 sidebar">					

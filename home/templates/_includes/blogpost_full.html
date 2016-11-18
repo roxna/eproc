@@ -15,8 +15,8 @@
 				<div class="author">By {{author}}, {{date}}</div>
 				<div class="content">{{content}}</div>
 				<div class="other-posts">
-					<a href="{% url '{{prevPost.url}}' %}" class="prev">{{prevPost.title}}</a>
-					<a href="{% url '{{nextPost.url}}' %}" class="prev">{{nextPost.title}}</a>
+					<a href="{% url '{{view_blog}}' %}{{prevPost.id}}" class="prev">{{prevPost.title|slice:":30"}}</a>
+					<a href="{% url '{{view_blog}}' %}{{nextPost.id}}" class="next">{{nextPost.title|slice:":30"}}</a>
 				</div>
 			</div>
 		</div>

@@ -4,7 +4,6 @@ from django.db.models import Count
 from django.forms import ModelForm, Textarea
 from eProc.models import *
 from django.utils import timezone
-# from crispy_forms.helper import FormHelper
 
 ROLES = ((1, 'SuperUser'),(2, 'Requester'),(3, 'Approver'),(4, 'Purchaser'),(5, 'Receiver'),(6, 'Payer'))  
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'))  
@@ -30,7 +29,7 @@ class UserForm(UserCreationForm):
             self.error_messages['duplicate_username'],
             code='duplicate_username',
         )
-
+        
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(ROLES, required=True)
     department = forms.ModelChoiceField(queryset=Department.objects.all())

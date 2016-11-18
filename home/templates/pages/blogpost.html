@@ -1,0 +1,6 @@
+{% extends '_layouts/base_landing.html' %}
+{% load staticfiles %}
+
+{% block content %}
+	{% include "_includes/blogpost_full.html" with image=blog.image title=blog.title author=blog.author date=blog.date content=blog.content prevPost=nextPost nextPost=nextPost %}
+{% endblock content %}

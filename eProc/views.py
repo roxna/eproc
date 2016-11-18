@@ -1,6 +1,6 @@
+from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Max
@@ -19,14 +19,10 @@ from eProc.forms import *
 import csv
 import pdb
 
-
-def home(request):
-    return render(request, "home.html")
-
 @sensitive_post_parameters()
 @csrf_protect
 @never_cache
-def login(request, template_name='landing/registration/login.html',
+def login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=LoginForm,
           current_app=None, extra_context=None):
@@ -53,7 +49,7 @@ def login(request, template_name='landing/registration/login.html',
     return TemplateResponse(request, template_name, context)
 
 def register(request):
-    return render(request, "landing/registration/register.html")
+    return render(request, "registration/register.html")
 
 @login_required()
 def dashboard(request):
@@ -442,21 +438,3 @@ def view_purchaseorder(request, po_id):
     }
     return render(request, "pos/view_purchaseorder.html", data)
 
-def pricing(request):
-    return render(request, "landing/pricing.html")
-
-def features(request):
-    return render(request, "landing/features.html")
-
-def contact(request):
-    return render(request, "landing/contact.html")
-
-def blog(request):
-    return render(request, "landing/blog.html")
-
-def view_blog(request, blog_id):
-    # blog_id = Blog.objects.get(pk=blog_id)
-    data = {
-    'blog': blog,
-    }
-    return render(request, "landing/blog.html", data)
