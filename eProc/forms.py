@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db.models import Count
-from django.forms import ModelForm, Textarea
+from django.forms import ModelForm
 from eProc.models import *
 from django.utils import timezone
 
@@ -29,7 +29,7 @@ class UserForm(UserCreationForm):
             self.error_messages['duplicate_username'],
             code='duplicate_username',
         )
-        
+
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(ROLES, required=True)
     department = forms.ModelChoiceField(queryset=Department.objects.all())

@@ -8,14 +8,14 @@
 			<div class="row">
 				<div class="col-md-9">
 					{% for blog in blogs %}
-						{% include "_includes/blogpost_summary.html" with image=blog.image id=blog.id author=blog.author date=blog.date summary=blog.summary %}
+						{% include "_includes/blogpost_summary.html" with image=blog.image title=blog.title id=blog.id author=blog.author date=blog.date summary=blog.summary %}
 					{% endfor %}
 				</div>
 				<div class="col-md-3 sidebar">					
 					<div class="best-hits">
 						<strong>Check out our best hits:</strong>
-						{% for blog in best_blogs %}
-							<a href="{% url 'blog.url' %}">{{blog.title}}</a>
+						{% for blog in blogs %}
+							<a href="{% url 'view_blog' blog.id %}">{{blog.title}}</a>
 						{% endfor %}
 					</div>
 				</div>

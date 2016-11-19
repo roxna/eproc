@@ -1,0 +1,14 @@
+{% extends '_layouts/base_landing.html' %}
+{% load staticfiles %}
+
+{% block content %}
+	<div>Got your message! We will reach out to you shortly</div>
+{% endblock content %}
+
+{% block js %}
+  <script>
+    $(function() {
+        setTimeout(function() { window.location = '/'}, 2000);
+    });
+  </script>
+{% endblock js %}

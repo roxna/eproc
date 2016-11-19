@@ -7,5 +7,9 @@ class BlogAdmin(admin.ModelAdmin):
 class PlanAdmin(admin.ModelAdmin):
 	list_display = ['name', 'price_per_user']
 
+class ContactRequestAdmin(admin.ModelAdmin):
+	list_display = ['topic', 'name', 'company']
+
 admin.site.register(Blog, BlogAdmin)
 admin.site.register(Plan, PlanAdmin)
+admin.site.register(ContactRequest, ContactRequestAdmin)

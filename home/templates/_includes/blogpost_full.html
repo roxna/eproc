@@ -1,22 +1,24 @@
 {% load staticfiles %}
 
-<div id="blogpost-wrapper">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12">
-				<div class="main-pic">
-					<img src="{% static 'images/' %}{{image}}" class="img-responsive" alt="blogpost" />
-				</div>					
+<div id="blogpost">
+	<div id="blogpost-wrapper">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="main-pic">
+						<img src="{% static 'images/' %}{{image}}" class="img-responsive" alt="blogpost" />
+					</div>					
+				</div>
 			</div>
-		</div>
-		<div class="row">
-			<div class="col-md-10 post">
-				<div class="title">{{title}}</div>
-				<div class="author">By {{author}}, {{date}}</div>
-				<div class="content">{{content}}</div>
-				<div class="other-posts">
-					<a href="{% url '{{view_blog}}' %}{{prevPost.id}}" class="prev">{{prevPost.title|slice:":30"}}</a>
-					<a href="{% url '{{view_blog}}' %}{{nextPost.id}}" class="next">{{nextPost.title|slice:":30"}}</a>
+			<div class="row">
+				<div class="col-md-10 post">
+					<div class="title">{{title}}</div>
+					<div class="author">By {{author}}, {{date}}</div>
+					<div class="content">{{content}}</div>
+					<div class="other-posts">
+						<a href="{% url 'view_blog' prevPost.id %}" class="prev">← {{prevPost.title|slice:":30"}}</a>						
+						<a href="{% url 'view_blog' nextPost.id %}" class="next pull-right">{{nextPost.title|slice:":30"}} →</a>
+					</div>
 				</div>
 			</div>
 		</div>

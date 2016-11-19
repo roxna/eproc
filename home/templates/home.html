@@ -1,7 +1,12 @@
 {% extends '_layouts/base_landing.html' %}
 {% load staticfiles %}
 
+{% block header %}
+	{% include "_includes/header.html" with background_color="hero" signin_class="button-outline" ul_class="visible-md visible-lg" %}
+{% endblock header %}	
+
 {% block content %}
+
 	<div id="home">
 		<div id="hero">
 			<div class="container">
@@ -22,19 +27,15 @@
 
 	{% include "_includes/features.html" %}		
 
-	<div id="home">
-
-		{% block header %}
-			{% include "_includes/header.html" with background_color="hero" signin_class="button-outline" ul_class="visible-md visible-lg" %}
-		{% endblock header %}		
+	<div id="home">			
 		
 		<div id="pricing">
 			<div class="container">
 				{% include "_includes/pricing.html" %}
 			</div>
 		</div>
-			{% include "_includes/get_started.html" %}
-
+		{% include "_includes/testimonials.html" %}	
+		{% include "_includes/get_started.html" %}
 		
 	</div>
 

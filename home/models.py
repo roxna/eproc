@@ -19,3 +19,21 @@ class Plan(models.Model):
 
 	def __unicode__(self):
 		return "{} - ${}/user".format(self.name, self.price_per_user)
+
+class ContactRequest(models.Model):
+	TOPICS = (
+		('Demo', 'I want to book a demo'),
+		('Pricing', 'I have a question about pricing'),
+		('Billing', 'I have a question about billing'),
+		('Partnerships', 'I want to talk about partnerships'),
+		('Other', 'Other'),
+	)
+	topic = models.CharField(choices=TOPICS, max_length=15)
+	name = models.CharField(max_length=50)
+	company = models.CharField(max_length=50)
+	email = models.EmailField(max_length=254)
+	date = models.DateTimeField(default=timezone.now)
+	body = models.TextField(null=True, blank=True)
+
+	def __unicode__(self):
+		return "{}({}) about {}".format(self.name, self.email, self.topic)
