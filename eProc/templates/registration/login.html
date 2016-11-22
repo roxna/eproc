@@ -1,0 +1,29 @@
+{% extends '_layouts/base_registration.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Log In{% endblock title %}
+
+{% block header %}
+  <h3 class="logo">
+    <a href="{% url 'home' %}">LOG IN</a>
+  </h3>
+  <h4>Get back to business</h4>
+  <p>Procurement savings at your fingertips</p>
+{% endblock header %}
+
+{% block forms %}
+  {% crispy user_form user_form.helper %}
+  <button type="submit" name="login" class="button basic-teal pull-right" value="Login">Log In</button>
+{% endblock forms %}
+
+
+{% block altCTA %}
+    <div class="already-account">
+      New to eProc?
+      <a href="{% url 'register' %}">Register now</a>
+      <p>By creating an account, you agree to the <a href="#">Terms of service</a></p>
+    </div>    
+{% endblock altCTA %}
+
+

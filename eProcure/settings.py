@@ -101,6 +101,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
@@ -111,6 +112,23 @@ AUTH_USER_MODEL = 'eProc.User'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'xx@gmail.com'
+EMAIL_HOST_PASSWORD = 'xx'
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = 'xx@gmail.com'
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, "static", *MEDIA_URL.strip("/").split("/"))
+
+
+ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'Approver'),('Purchaser', 'Purchaser'),('Receiver', 'Receiver'),('Payer', 'Payer'))  
+CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
+LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
+COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 
 # Inform settings.py about local_settings.py
 try:

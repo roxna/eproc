@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template.response import TemplateResponse
 from django.views import generic
 from django.utils import timezone
@@ -16,22 +16,27 @@ def features(request):
     return render(request, "pages/features.html")
 
 def contact(request):
-	contact_form = ContactRequestForm(request.POST or None)
+	author_form = AuthorForm(request.POST or None)
+	contact_form = ContactRequestForm(request.POST or None)	
 	if request.method == "POST":
-		if contact_form.is_valid():
-			contact_request = contact_form.save()            
+		if contact_form.is_valid() and author_form.is_valid():
+			author, created = Author.objects.get_or_create(**author_form.cleaned_data)
+			contact_request = contact_form.save(commit=False)
+			contact_request.author=author
+			contact_request.save()
 			return redirect('success')
 		else:
-			messages.error(request, 'Error. Department list not updated.')
+			messages.error(request, 'Error. Request not sent.')
 	data = {
 		'contact_form': contact_form,
+		'author_form': author_form
 	}
 	return render(request, "pages/contact.html", data)
 
 def success(request):
 	return render(request, "pages/success.html")
 
-def blog(request):
+def blog(request):	
 	blogs = Blog.objects.all().order_by('-date')[:5:1]
 	data = {
 		'blogs': blogs

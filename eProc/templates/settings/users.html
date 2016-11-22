@@ -18,20 +18,19 @@
             <div class="box-body">
               {% include "_includes/table_header.html" with tableID="userTable" header_class="basic-teal" header=table_headers %}            
                 <tbody>
-                    {% for user in users %}           
+                    {% for buyer in buyers %}           
                     <tr>
-                      <td>{{ user.user.username }}</td>
-                      <td>{{ user.user.email }}</td>                      
-                      <td>{{ user.get_role_display }}</td>                      
-                      
+                      <td>{{ buyer.user.username }}</td>
+                      <td>{{ buyer.user.email }}</td>                      
+                      <td>{{ buyer.role }}</td>                                          
+                      <td>
                         <form method="POST">
                           {% csrf_token %}
-                          <td>
-                          {% if user.buyer_profile.role == 'SuperUser' %}
-                          <button type="submit" name="delete" value="{{user.id}}"><i class="fa fa-trash"></i></button>
+                          {% if buyer.role == 'SuperUser' %}
+                          <button type="submit" name="delete" value="{{buyer.id}}"><i class="fa fa-trash"></i></button>
                           {% endif %}
-                          </td>
                         </form>
+                      </td>
                     </tr>
                     {% endfor %}
                 </tbody>

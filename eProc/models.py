@@ -1,16 +1,15 @@
 from __future__ import unicode_literals
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from eProc.managers import *
 
 
-CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
-
 ######### COMPANY DETAILS #########
 class Company (models.Model):
 	name = models.CharField(max_length=30)	
-	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
+	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
 	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
 
 	def __unicode__(self):
@@ -28,25 +27,25 @@ class VendorCo(Company):
 	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)	
 
 class Location(models.Model):
-	name = models.CharField(max_length=20)
-	is_primary = models.BooleanField(default=True)
-	address1 = models.CharField(max_length=40)
-	address2 = models.CharField(max_length=40)
-	city = models.CharField(max_length=20)
-	state = models.CharField(max_length=20)
-	country = models.CharField(max_length=20)
-	zipcode = models.IntegerField(default=94123)
-	phone = models.BigIntegerField(default=0)
-	email = models.EmailField(max_length=254)
+	name = models.CharField(max_length=20, default='HQ')
+	typee = models.CharField(choices=settings.LOCATION_TYPES, max_length=15, default='Billing')
+	address1 = models.CharField(max_length=40, null=True, blank=True)
+	address2 = models.CharField(max_length=40, null=True, blank=True)
+	city = models.CharField(max_length=20, null=True, blank=True)
+	state = models.CharField(max_length=20, null=True, blank=True)
+	country = models.CharField(choices=settings.COUNTRIES, max_length=20, null=True, blank=True)
+	zipcode = models.IntegerField(null=True, blank=True)
+	phone = models.BigIntegerField(null=True, blank=True)
+	email = models.EmailField(max_length=254, null=True, blank=True)
 	company = models.ForeignKey(Company, related_name="locations")
 
 	def __unicode__(self):
 		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 	def get_primary_location(self):
-		locations = Location.objects.filter(is_primary=True)[0]
-		if locations:
-			return locations
+		primary_location = Location.objects.filter(typee='HQ')[0]
+		if primary_location:
+			return primary_location 
 
 
 ######### ACCOUNTING DETAILS #########
@@ -83,15 +82,7 @@ class User(AbstractUser):
     	return self.username
 
 class BuyerProfile(models.Model):
-	ROLES = (
-		('SuperUser', 'SuperUser'),
-		('Requester', 'Requester'),
-		('Approver', 'Approver'),
-		('Purchaser', 'Purchaser'),
-		('Receiver', 'Receiver'),
-		('Payer', 'Payer'),
-	)
-	role = models.CharField(choices=ROLES, max_length=15)
+	role = models.CharField(choices=settings.ROLES, max_length=15)
 	user = models.OneToOneField(User, related_name="buyer_profile")	
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
@@ -114,7 +105,7 @@ class Document(models.Model):
 	date_created = models.DateTimeField(default=timezone.now)
 	date_issued = models.DateTimeField(default=timezone.now, null=True, blank=True)
 	date_due = models.DateField(default=timezone.now)
-	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
+	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
@@ -177,7 +168,7 @@ class CatalogItem(models.Model):
 	sku = models.CharField(max_length=20)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
-	currency = models.CharField(choices=CURRENCIES, default='USD', max_length=10)
+	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendorCo = models.ForeignKey(VendorCo, related_name="catalog_items")
 	buyerCo = models.ForeignKey(BuyerCo, related_name="catalog_items")

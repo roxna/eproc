@@ -9,7 +9,10 @@
 					<p>Got a question? We're happy to help!</p>
 					<form role="form" id="contact-form" method="post" novalidate="novalidate">
 						{% csrf_token %}
+						{% crispy author_form author_form.helper %}
 						{% crispy contact_form contact_form.helper %}
+						<br>
+						<button type="Submit" class="button basic-teal">Submit</button>
 					</form>
 					<br><br>
 					<p>By clicking "Submit", I agree to the Terms of User and Privacy Policy</p>

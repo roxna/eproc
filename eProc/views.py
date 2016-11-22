@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Max
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms import inlineformset_factory,BaseModelFormSet
@@ -16,8 +17,11 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from eProc.models import *
 from eProc.forms import *
+from eProc.utils import *
 import csv
 import pdb
+
+scalar = 570
 
 @sensitive_post_parameters()
 @csrf_protect
@@ -28,18 +32,21 @@ def login(request, template_name='registration/login.html',
           current_app=None, extra_context=None):
     redirect_to = request.POST.get(redirect_field_name, '')
     if request.method == "POST":
-        form = authentication_form(request, data=request.POST)
-        if form.is_valid():
+        user_form = authentication_form(request, data=request.POST)
+        if user_form.is_valid():
+            #TODO: If just authenticated & SUPERUSER, redirect to get_started
+            #TODO: If just authenticated & NEWUSER, redirect to updatePW
+            # login(request, new_user, redirect_field_name='/get_started/') 
             if not is_safe_url(url=redirect_to, host=request.get_host()):
                 redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-            auth_login(request, form.get_user())
+            auth_login(request, user_form.get_user())
             return HttpResponseRedirect(redirect_to)
     else:
-        form = authentication_form(request)
+        user_form = authentication_form(request)
 
     current_site = get_current_site(request)
     context = {
-        'form': form,
+        'user_form': user_form,
         redirect_field_name: redirect_to,
         'site': current_site,
         'site_name': current_site.name,
@@ -49,7 +56,41 @@ def login(request, template_name='registration/login.html',
     return TemplateResponse(request, template_name, context)
 
 def register(request):
-    return render(request, "registration/register.html")
+    user_form = RegisterUserForm(request.POST or None)  
+    buyer_company_form = BuyerCoForm(request.POST or None)      
+    if request.method == "POST":
+        if  user_form.is_valid() and buyer_company_form.is_valid():
+            user_instance = user_form.save()
+            company = buyer_company_form.save()
+            department = Department.objects.create(name='Admin', company=company)
+            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user, department=department, company=company)
+            messages.info(request, "Thank you for registering. You are now logged in.")
+            user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
+            user.is_active=False #User not active until activate account through email
+            user.save()
+            send_verific_email(user, user.id*scalar)
+            return redirect('thankyou')
+        else:
+            messages.error(request, 'Error. Registration unsuccessful') #TODO: Figure out how to show errors
+    data = {
+        'user_form': user_form,
+        'buyer_company_form': buyer_company_form
+    }
+    return render(request, "registration/register.html", data)
+
+def activate(request):
+    user_id = int(request.GET.get('id'))/scalar
+    user = User.objects.get(id=user_id)
+    user.is_active=True
+    user.save()
+    return render(request,'registration/activate.html')
+
+def thankyou(request):
+    return render(request, 'registration/thankyou.html')
+
+@login_required()
+def get_started(request):
+    return render(request, "main/get_started.html")
 
 @login_required()
 def dashboard(request):
@@ -61,39 +102,47 @@ def dashboard(request):
 # to register & activate: https://github.com/JunyiJ/django-register-activate/blob/master/register_activate/views.py
 @login_required
 def users(request):    
-    user_form = UserForm(request.POST or None)
-    buyer_profile_form = BuyerProfileForm(request.POST or None)                
+    user_form = AddUserForm(request.POST or None)
+    buyer_profile_form = BuyerProfileForm(request.POST or None)
+    buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
     if request.method == "POST":
         # pdb.set_trace()
-        if request.POST.get('add'):
+        if 'add' in request.POST:
             if user_form.is_valid() and buyer_profile_form.is_valid():
-                user = user_form.save()
-                buyer_profile = buyer_profile_form.save(commit=False)
-                buyer_profile.user = user
-                buyer_profile.company = request.user.buyer_profile.company
-                buyer_profile.save()
-                messages.success(request, 'User successfully invited')
-
-                # text_content = 'Hey {}, \n\n Welcome to LezzGo! We are excited to have you be a part of our family. \n\n Let us know if we can answer any questions as you book or offer out your first ride. \n\n From the folks at LezzGo!'.format(user.first_name)
-                # html_content = '<h2>{}, Welcome to LezzGo!</h2> <div>We are excited to have you be a part of our family.</div><br><div>Let us know if we can answer any questions as you book or offer out your first ride.</div><br><div> Folks at LezzGo!</div>'.format(user.first_name)
-                # msg = EmailMultiAlternatives("Welcome to LezzGo!!", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
-                # msg.attach_alternative(html_content, "text/html")
-                # msg.send()
-                return redirect('users')
-        elif request.POST.get('delete'):
+                try:
+                    user = user_form.save()
+                    buyer_profile = buyer_profile_form.save(commit=False)
+                    buyer_profile.user = user
+                    buyer_profile.company = request.user.buyer_profile.company
+                    buyer_profile.save()
+                    send_verific_email(user, user.id*scalar)
+                    messages.success(request, 'User successfully invited')
+                    return redirect('users')
+                #TODO: CHECK FOR VALIDATION ERROR IN FORMS.PY
+                except:
+                    pass
+                # except ValidationError: 
+                #     messages.error(request, 'Duplicate username. Please try again.')
+                #     return redirect('users')
+        elif 'delete' in request.POST:          
             for key in request.POST:
                 if key == 'delete':
-                    user_id = int(request.POST[key])
-                    deleted_user = BuyerProfile.objects.get(pk=user_id)
-                    deleted_user.delete()
-                    messages.success(request, 'User ' + deleted_user.user.username + ' successfully deleted')
-                    return redirect('users')
-        else:            
-            messages.error(request, 'Error. Please try again')
+                    buyer_id = int(request.POST[key])
+                    buyer_to_delete = BuyerProfile.objects.get(pk=buyer_id)
+                    user_to_delete = User.objects.get(buyer_profile=buyer_to_delete)
+                    if user_to_delete == request.user:
+                        messages.error(request, 'Sorry, you can not delete yourself')
+                    else:
+                        user_to_delete.delete()
+                        buyer_to_delete.delete()
+                        messages.success(request, 'User ' + user_to_delete.username + ' successfully deleted')
+                        return redirect('users')
+        else:
+            messages.error(request, 'Error. Please try again.')
             return redirect('users')
-    users = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
+    buyers = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
     data = {
-        'users': users,
+        'buyers': buyers,
         'user_form': user_form,
         'buyer_profile_form': buyer_profile_form,
         'table_headers': ['Username', 'Email Address', 'Role', ' ',]
@@ -130,6 +179,7 @@ def products(request):
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
+            product.currency = product.vendorCo.currency
             product.buyerCo = request.user.buyer_profile.company
             product.save()
             messages.success(request, "Product added successfully")
@@ -169,7 +219,7 @@ def upload_product_csv(request):
             except:
                 messages.error(request, 'Error in uploading the file. Please try again.')
     data = {
-    'csv_form': csv_form,
+        'csv_form': csv_form,
     }
     return render(request, "settings/catalog_import.html", data)
 
@@ -183,6 +233,7 @@ def vendors(request):
     if request.method == "POST":
         if vendor_form.is_valid() and location_form.is_valid():
             vendor = vendor_form.save()
+            vendor.currency = request.user.buyer_profile.company.currency
             vendor.buyer_co = request.user.buyer_profile.company
             vendor.save()
             location = location_form.save(commit=False)
@@ -237,37 +288,80 @@ def upload_vendor_csv(request):
     }
     return render(request, "settings/vendor_import.html", data)
 
-# DONE
+@login_required
+def categories(request):
+    categories = Category.objects.filter(buyerCo=request.user.buyer_profile.company)
+    category_form = CategoryForm(request.POST or None)
+    if request.method == "POST":
+        if category_form.is_valid():
+            category = category_form.save(commit=False)
+            category.buyerCo = request.user.buyer_profile.company
+            category.save()
+            messages.success(request, "Category added successfully")
+            return redirect('categories')
+        else:
+            messages.error(request, 'Error. Category list not updated.')
+    data = {
+        'categories': categories,
+        'category_form': category_form,
+        'table_headers': ['Code', 'Name']
+    }
+    return render(request, "settings/categories.html", data)   
+
+# USER USERCHANGEFORM instead?
 @login_required
 def user_profile(request):
-    user_form = UserForm(request.POST or None, instance=request.user)
-    buyer_profile = request.user.buyer_profile
+    user_form = RegisterUserForm(request.POST or None, instance=request.user)
+    buyer_profile_form = BuyerProfileForm(request.POST or None, instance=request.user.buyer_profile)
     if request.method == "POST":
-        if user_form.is_valid():
-            user = user_form.save()
+        if user_form.is_valid() and buyer_profile_form.is_valid():
+            user_form.save()
+            buyer_profile_form.save()
             messages.success(request, "Profile updated successfully")
             return redirect('user_profile')
         else:
             messages.error(request, 'Error. Profile not updated')
     data = {
         'user_form': user_form,
-        'buyer_profile': buyer_profile
+        'buyer_profile_form': buyer_profile_form
     }
     return render(request, "settings/user_profile.html", data)    
 
 # DONE
 @login_required
 def company_profile(request):
-    company_form = CompanyProfileForm(request.POST or None, instance=request.user.buyer_profile.company)
+    buyer = request.user.buyer_profile
+    company_form = BuyerCoForm(request.POST or None, instance=buyer.company)
+    try:
+        billing_add = Location.objects.filter(company=buyer.company).filter(typee='Billing').first()
+        shipping_add = Location.objects.filter(company=buyer.company, typee='Shipping').first()
+        billing_address_form = LocationForm(request.POST or None, instance=billing_add)
+        shipping_address_form = LocationForm(request.POST or None, instance=shipping_add)
+    except ObjectDoesNotExist:
+        billing_address_form = LocationForm(request.POST or None)
+        shipping_address_form = LocationForm(request.POST or None)
     if request.method == "POST":
-        if company_form.is_valid():
-            company = company_form.save()
-            messages.success(request, "Company settings updated successfully")
-            return redirect('company_profile')
+        if 'company' in request.POST:
+            if company_form.is_valid():
+                company_form.save()
+                messages.success(request, "Company profile updated successfully")
+                return redirect('company_profile')
+        elif 'billing' in request.POST:
+            if billing_address_form.is_valid():
+                billing_address_form.save()
+                messages.success(request, "Billing address updated successfully")
+                return redirect('company_profile')
+        elif 'shipping' in request.POST:
+            if shipping_address_form.is_valid():
+                shipping_address_form.save()
+                messages.success(request, "Shipping address updated successfully")
+                return redirect('company_profile')         
         else:
             messages.error(request, 'Error. Settings not updated')        
     data = {
-        'company_form': company_form
+        'company_form': company_form,
+        'billing_address_form': billing_address_form,
+        'shipping_address_form': shipping_address_form
     }
     return render(request, "settings/company_profile.html", data)       
 
@@ -308,6 +402,7 @@ def new_requisition(request):
 
             if request.user.buyer_profile.role == 'SuperUser' or request.user.buyer_profile.role == 'Approver':
                 status = Status.objects.create(value='Approved', color='Approved', author=request.user.buyer_profile, document=requisition)
+                requisition.order_items.update(is_approved=True)
             else:
                 status = Status.objects.create(value='Pending', color='Pending', author=request.user.buyer_profile, document=requisition)
 
@@ -326,9 +421,9 @@ def new_requisition(request):
 @login_required()
 def requisitions(request):
     all_requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company)
-    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=2)
-    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=3)
-    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=4)
+    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
+    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Denied')
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -367,8 +462,8 @@ def new_purchaseorder(request):
     approved_order_items = OrderItem.objects.filter(requisition__buyerCo=request.user.buyer_profile.company).filter(is_approved=True).exclude(purchase_order__isnull=False)
     po_form = PurchaseOrderForm(request.POST or None,
                                 initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyerCo=request.user.buyer_profile.company).count()+1)})
-    po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
-    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
+    po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Billing')
+    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Shipping')
     po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
         if po_form.is_valid():

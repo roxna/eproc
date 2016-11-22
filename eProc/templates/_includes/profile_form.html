@@ -1,0 +1,20 @@
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+<div class="box box-primary">
+<div class="box-body box-profile">
+	<div class="box-header with-border">
+	    <h3 class="box-title">{{title}}</h3>
+    </div>
+
+	<form method="POST" >
+		{% csrf_token %}
+	  	<table class="table">
+			<tbody>
+			    {% crispy form.as_table form.helper %}
+		    </tbody>
+		</table>
+	    <button type="submit" name={{buttonName}} class="btn basic-teal pull-right">Update {{title}}</button>
+	</form>
+</div>
+</div>

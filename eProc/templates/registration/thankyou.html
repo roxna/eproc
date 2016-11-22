@@ -1,0 +1,23 @@
+{% extends '_layouts/base_registration.html' %}
+
+{% block title %}Thank you{% endblock title %}
+
+{% block header %}
+  	<h3 class="logo">
+	    <div>
+		    {% if user.username %}
+		    	<a href="{% url 'home' %}">Welcome, {{user.username}}</a>
+			{% else %}
+				<h4>Hello!</h4>
+			{% endif %}
+		</div>
+		<br>
+		<div>			
+			<h4>An activation link has been sent to you by email. <br><br>
+			Please check your mailbox to activate your account. </h4><br><br>
+		</div>
+	<a href="{% url 'home' %}"><button type="button" class="button button-outline">Back home</button></a>
+	</h3>	
+{% endblock header %}
+
+{% block content %}{% endblock content %}

@@ -2,13 +2,25 @@
 {% load staticfiles %}
 
 {% block content %}
-	<div>Got your message! We will reach out to you shortly</div>
+<div id="home">
+	<div id="features">
+		<div class="container">
+			<div class="row header">
+				<div class="col-md-12">
+					<h2>Thanks!</h2>
+					<p>Got your message - we will reach out to you shortly.</p>
+					<i class="fa fa-thumbs-up fa-5x" aria-hidden="true"></i>
+				</div>
+			</div>
+		</div>
+	</div>	
+</div>		
 {% endblock content %}
 
 {% block js %}
   <script>
     $(function() {
-        setTimeout(function() { window.location = '/'}, 2000);
+        setTimeout(function() { window.location = '/'}, 3000);
     });
   </script>
 {% endblock js %}

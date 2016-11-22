@@ -10,9 +10,21 @@
 
 
 {% block content %}
-
-      {% include "_includes/profile.html" with image="dist/img/photo4.jpg" profile="company" fname=company_form.name currency=company_form.currency %}
-
+<section class="content">
+  <div class="row">
+      	<div class="col-lg-12">
+    		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form buttonName='company' %}
+    	</div>
+    </div>
+    <div class="row">
+    	<div class="col-lg-6">
+  			{% include "_includes/profile_form.html" with title="Billing Address" form=billing_address_form buttonName='billing' %}
+  		</div>
+  		<div class="col-lg-6">
+  			{% include "_includes/profile_form.html" with title="Shipping Address" form=shipping_address_form buttonName='shipping'%}
+  		</div>
+	</div>
+</section>
 {% endblock content %}
 
 

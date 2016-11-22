@@ -10,8 +10,15 @@
 
 
 {% block content %}
+<section class="content">
+  <div class="row">
+      	<div class="col-lg-12">
+    		{% include "_includes/profile_form_image.html" with title='Profile' image='dist/img/photo4.jpg' form=user_form buttonName='user' %}
+    	</div>
+  </div>
+</section>
+  
     
-    {% include "_includes/profile.html" with profile="user" image="dist/img/photo4.jpg" fname=user_form.first_name lname=user_form.last_name role=buyer_profile.role department=buyer_profile.department email=user_form.email %}
 
 {% endblock content %}
 

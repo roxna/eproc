@@ -1,0 +1,33 @@
+{% extends '_layouts/base_registration.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register{% endblock title %}
+
+{% block header %}
+  <h3 class="logo">
+    <a href="{% url 'home' %}">REGISTER</a>
+  </h3>
+  <h4>Set up your new account today.</h4>
+  <p>30-day money-back guarantee that starts after your first payment.</p>
+{% endblock header %}
+
+{% block forms %}
+
+  <h3>Your Information</h3>
+  {% crispy user_form user_form.helper %}
+
+  <h3>Company Information</h3>
+  {% crispy buyer_company_form buyer_company_form.helper %}  <br>
+
+  <button type="submit" name="register" class="button basic-teal pull-right" value="Register">Register</button>
+  <p><em>By registering, you agree to the <a href="#">Terms of service</a></em></p>
+
+{% endblock forms %}
+
+{% block altCTA %}
+    <div class="already-account">
+      Already have an account?
+      <a href="{% url 'login' %}">Log In Now</a>      
+    </div>   
+{% endblock altCTA %}

@@ -2,13 +2,22 @@ from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
 
+class Author(models.Model):
+	name = models.CharField(max_length=40)
+	title = models.CharField(max_length=40, null=True, blank=True)
+	company = models.CharField(max_length=50, null=True, blank=True)
+	email = models.EmailField(max_length=254, null=True, blank=True)
+
+	def __unicode__(self):
+		return "{}".format(self.name)
+
 class Blog(models.Model):
 	title = models.CharField(max_length=40)
 	summary = models.TextField()
-	content = models.TextField()
-	author = models.CharField(max_length=40)
+	content = models.TextField()	
 	date = models.DateField(default=timezone.now)
 	image = models.ImageField(upload_to='blogs', blank=True, null=True)
+	author = models.ForeignKey(Author, related_name="blogs")
 
 	def __unicode__(self):
 		return "{}".format(self.title)
@@ -29,11 +38,15 @@ class ContactRequest(models.Model):
 		('Other', 'Other'),
 	)
 	topic = models.CharField(choices=TOPICS, max_length=15)
-	name = models.CharField(max_length=50)
-	company = models.CharField(max_length=50)
-	email = models.EmailField(max_length=254)
+	author = models.ForeignKey(Author, related_name="contact_requests")		
 	date = models.DateTimeField(default=timezone.now)
 	body = models.TextField(null=True, blank=True)
 
 	def __unicode__(self):
-		return "{}({}) about {}".format(self.name, self.email, self.topic)
+		return "{}({})".format(self.topic, self.author.name)
+
+class Testimonial(models.Model):
+	body = models.TextField()
+	author = models.ForeignKey(Author, related_name="testimonials")
+	date = models.DateTimeField(default=timezone.now)
+

@@ -1,0 +1,18 @@
+{% extends '_layouts/base_registration.html' %}
+
+{% block title %}Account activated{% endblock title %}
+
+{% block header %}
+	<div class="container-fluid bg-grey text-center">
+		<h4>Your account is activated successfully!</h4>
+	</div><br><br>
+	<div class="container-fluid text-center">	
+		<h4>
+			<a href="{% url 'login' %}">
+			<button type="button" class="button button-outline">LOGIN</button>
+			</a>  &nbsp; now to view your account
+		</h4><br>
+	</div>
+{% endblock header %}
+
+{% block content %}{% endblock content %}
