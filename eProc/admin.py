@@ -18,12 +18,12 @@ class VendorProfileAdmin(admin.ModelAdmin):
     list_filter = ['company']
 
 class RequisitionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'department', 'buyerCo', 'sub_total']
+    list_display = ['id', 'number', 'department', 'buyer_co', 'sub_total']
     search_fields = ['number', 'department']
     list_filter = ['number', 'sub_total']
 
 class POAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyerCo', 'vendorCo', 'grand_total']
+    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'grand_total']
     # search_fields = ['number', 'department']
     # list_filter = ['number', 'sub_total']
 
@@ -37,7 +37,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 	list_display = ['product', 'quantity', 'unit_price']	
 
 class CompanyAdmin(admin.ModelAdmin):
-	list_display = ['name']
+	list_display = ['id', 'name']
     
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'company']

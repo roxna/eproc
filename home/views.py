@@ -43,7 +43,7 @@ def blog(request):
 	}
 	return render(request, "pages/blog.html", data)
 
-def view_blog(request, blog_id):
+def view_blog(request, blog_id, blog_slug):
     blog = Blog.objects.get(pk=blog_id)
     data = {
     	'blog': blog,
@@ -51,3 +51,9 @@ def view_blog(request, blog_id):
     	'nextPost': blog,
     }
     return render(request, "pages/blogpost.html", data)
+
+def terms(request):
+	return render(request, "legal/terms.html")
+
+def privacy_policy(request):
+	return render(request, "legal/privacy_policy.html")

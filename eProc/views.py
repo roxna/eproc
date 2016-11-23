@@ -3,6 +3,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.forms import UserChangeForm
+from django.core import serializers
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Max
 from django.http import HttpResponseRedirect, HttpResponse
@@ -23,38 +25,6 @@ import pdb
 
 scalar = 570
 
-@sensitive_post_parameters()
-@csrf_protect
-@never_cache
-def login(request, template_name='registration/login.html',
-          redirect_field_name=REDIRECT_FIELD_NAME,
-          authentication_form=LoginForm,
-          current_app=None, extra_context=None):
-    redirect_to = request.POST.get(redirect_field_name, '')
-    if request.method == "POST":
-        user_form = authentication_form(request, data=request.POST)
-        if user_form.is_valid():
-            #TODO: If just authenticated & SUPERUSER, redirect to get_started
-            #TODO: If just authenticated & NEWUSER, redirect to updatePW
-            # login(request, new_user, redirect_field_name='/get_started/') 
-            if not is_safe_url(url=redirect_to, host=request.get_host()):
-                redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-            auth_login(request, user_form.get_user())
-            return HttpResponseRedirect(redirect_to)
-    else:
-        user_form = authentication_form(request)
-
-    current_site = get_current_site(request)
-    context = {
-        'user_form': user_form,
-        redirect_field_name: redirect_to,
-        'site': current_site,
-        'site_name': current_site.name,
-    }
-    if extra_context is not None:
-        context.update(extra_context)
-    return TemplateResponse(request, template_name, context)
-
 def register(request):
     user_form = RegisterUserForm(request.POST or None)  
     buyer_company_form = BuyerCoForm(request.POST or None)      
@@ -63,7 +33,7 @@ def register(request):
             user_instance = user_form.save()
             company = buyer_company_form.save()
             department = Department.objects.create(name='Admin', company=company)
-            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user, department=department, company=company)
+            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, company=company)
             messages.info(request, "Thank you for registering. You are now logged in.")
             user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
             user.is_active=False #User not active until activate account through email
@@ -145,7 +115,7 @@ def users(request):
         'buyers': buyers,
         'user_form': user_form,
         'buyer_profile_form': buyer_profile_form,
-        'table_headers': ['Username', 'Email Address', 'Role', ' ',]
+        'table_headers': ['Username', 'Email Address', 'Role', 'Status', ' ',]
     }
     return render(request, "settings/users.html", data)
 
@@ -172,15 +142,15 @@ def departments(request):
 
 @login_required
 def products(request):
-    products = CatalogItem.objects.filter(buyerCo=request.user.buyer_profile.company)
+    products = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
-    product_form.fields['category'].queryset = Category.objects.filter(buyerCo=request.user.buyer_profile.company)
+    product_form.fields['category'].queryset = Category.objects.filter(buyer_co=request.user.buyer_profile.company)
     product_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
             product.currency = product.vendorCo.currency
-            product.buyerCo = request.user.buyer_profile.company
+            product.buyer_co = request.user.buyer_profile.company
             product.save()
             messages.success(request, "Product added successfully")
             return redirect('products')
@@ -204,7 +174,7 @@ def upload_product_csv(request):
             if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
                 messages.error(request, 'Error. Please make sure you have data correctly entered.')
             try:
-                buyerCo = request.user.buyer_profile.company
+                buyer_co = request.user.buyer_profile.company
                 for row in reader: 
                     name = row[0]
                     desc = row[1]
@@ -212,9 +182,9 @@ def upload_product_csv(request):
                     unit_price = float(row[3])
                     unit_type = row[4]
                     currency = row[5]
-                    category, categ_created = Category.objects.get_or_create(name=row[6], buyerCo=buyerCo)
-                    vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyerCo)
-                    CatalogItem.objects.create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=currency, vendorCo=vendorCo, buyerCo=buyerCo)
+                    category, categ_created = Category.objects.get_or_create(name=row[6], buyer_co=buyer_co)
+                    vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyer_co)
+                    CatalogItem.objects.create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=currency, vendorCo=vendorCo, buyer_co=buyer_co)
                 messages.success(request, 'Products successfully uploaded.')
             except:
                 messages.error(request, 'Error in uploading the file. Please try again.')
@@ -223,13 +193,14 @@ def upload_product_csv(request):
     }
     return render(request, "settings/catalog_import.html", data)
 
-# DONE
 @login_required
 def vendors(request):
     vendors = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
-    vendor_form = VendorForm(request.POST or None)
+    # to_serialize = list(vendors) + list(Company.objects.all())
+    vendor_ids = set(vendor.pk for vendor in vendors)    
+    vendors_json = serializers.serialize('json', list(vendors)+list(Company.objects.filter(pk__in=vendor_ids)))
+    vendor_form = VendorCoForm(request.POST or None)
     location_form = LocationForm(request.POST or None)
-    vendor_profile_form = VendorForm(request.POST or None)
     if request.method == "POST":
         if vendor_form.is_valid() and location_form.is_valid():
             vendor = vendor_form.save()
@@ -245,10 +216,10 @@ def vendors(request):
             messages.error(request, 'Error. Vendor list not updated.')
     data = {
         'vendors': vendors,
+        'vendors_json': vendors_json,
         'vendor_form': vendor_form,
         'location_form': location_form,
-        'vendor_profile_form': vendor_profile_form,
-        'table_headers': ['Vendor Name']
+        'table_headers': ['Co. Name']
     }
     return render(request, "settings/vendors.html", data)    
 
@@ -263,7 +234,7 @@ def upload_vendor_csv(request):
             if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
                 messages.error(request, 'Error. Please make sure you have data correctly entered.')
             try:
-                buyerCo = request.user.buyer_profile.company
+                buyer_co = request.user.buyer_profile.company
                 for row in reader: 
                     # co_name = row[0]
                     # co_currency = row[1]
@@ -276,7 +247,7 @@ def upload_vendor_csv(request):
                     # co_email = row[8]
                     # username = row[9]
                     # email = row[9]
-                    # vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyerCo)
+                    # vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyer_co)
                     company = VendorCo.objects.create()
                     Location.objects.create(name="Headquarters", is_primary=True, address1=address1, address2=address2, city=city, state=state, country=country, zipcode=zipcode, phone=phone, email=email, company=company)
                     VendorProfile.objects.create()
@@ -290,12 +261,12 @@ def upload_vendor_csv(request):
 
 @login_required
 def categories(request):
-    categories = Category.objects.filter(buyerCo=request.user.buyer_profile.company)
+    categories = Category.objects.filter(buyer_co=request.user.buyer_profile.company)
     category_form = CategoryForm(request.POST or None)
     if request.method == "POST":
         if category_form.is_valid():
             category = category_form.save(commit=False)
-            category.buyerCo = request.user.buyer_profile.company
+            category.buyer_co = request.user.buyer_profile.company
             category.save()
             messages.success(request, "Category added successfully")
             return redirect('categories')
@@ -308,10 +279,9 @@ def categories(request):
     }
     return render(request, "settings/categories.html", data)   
 
-# USER USERCHANGEFORM instead?
 @login_required
 def user_profile(request):
-    user_form = RegisterUserForm(request.POST or None, instance=request.user)
+    user_form = ChangeUserForm(request.POST or None, instance=request.user)
     buyer_profile_form = BuyerProfileForm(request.POST or None, instance=request.user.buyer_profile)
     if request.method == "POST":
         if user_form.is_valid() and buyer_profile_form.is_valid():
@@ -333,13 +303,16 @@ def company_profile(request):
     buyer = request.user.buyer_profile
     company_form = BuyerCoForm(request.POST or None, instance=buyer.company)
     try:
-        billing_add = Location.objects.filter(company=buyer.company).filter(typee='Billing').first()
-        shipping_add = Location.objects.filter(company=buyer.company, typee='Shipping').first()
+        billing_add = Location.objects.filter(company=buyer.company, loc_type='Billing').first()
         billing_address_form = LocationForm(request.POST or None, instance=billing_add)
-        shipping_address_form = LocationForm(request.POST or None, instance=shipping_add)
     except ObjectDoesNotExist:
         billing_address_form = LocationForm(request.POST or None)
+    try:
+        shipping_add = Location.objects.filter(company=buyer.company, loc_type='Shipping').first()
+        shipping_address_form = LocationForm(request.POST or None, instance=shipping_add)
+    except:    
         shipping_address_form = LocationForm(request.POST or None)
+
     if request.method == "POST":
         if 'company' in request.POST:
             if company_form.is_valid():
@@ -348,12 +321,16 @@ def company_profile(request):
                 return redirect('company_profile')
         elif 'billing' in request.POST:
             if billing_address_form.is_valid():
-                billing_address_form.save()
+                billing_add = billing_address_form.save(commit=False)
+                billing_add.company=buyer.company
+                billing_add.save()
                 messages.success(request, "Billing address updated successfully")
                 return redirect('company_profile')
         elif 'shipping' in request.POST:
             if shipping_address_form.is_valid():
-                shipping_address_form.save()
+                shipping_add = shipping_address_form.save(commit=False)
+                shipping_add.company=buyer.company
+                shipping_add.save()
                 messages.success(request, "Shipping address updated successfully")
                 return redirect('company_profile')         
         else:
@@ -368,14 +345,14 @@ def company_profile(request):
 @login_required
 def new_requisition(request):    
     requisition_form = RequisitionForm(request.POST or None,
-                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyerCo=request.user.buyer_profile.company).count()+1)})
+                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
     requisition_form.fields['department'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
     requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=request.user.buyer_profile.company).exclude(user=request.user)
 
     OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
     orderitem_formset = OrderItemFormSet(request.POST or None)
     for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyerCo=request.user.buyer_profile.company)
+        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
         orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=request.user.buyer_profile.company)
     
     if request.method == "POST":
@@ -384,7 +361,7 @@ def new_requisition(request):
             requisition.preparer = request.user.buyer_profile
             requisition.currency = request.user.buyer_profile.company.currency
             requisition.date_issued = timezone.now()
-            requisition.buyerCo = request.user.buyer_profile.company
+            requisition.buyer_co = request.user.buyer_profile.company
             requisition.sub_total = 0
             requisition.save()
 
@@ -420,7 +397,7 @@ def new_requisition(request):
 
 @login_required()
 def requisitions(request):
-    all_requisitions = Requisition.objects.filter(buyerCo=request.user.buyer_profile.company)
+    all_requisitions = Requisition.objects.filter(buyer_co=request.user.buyer_profile.company)
     pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
     denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Denied')
@@ -459,9 +436,9 @@ def view_requisition(request, requisition_id):
 
 @login_required
 def new_purchaseorder(request):
-    approved_order_items = OrderItem.objects.filter(requisition__buyerCo=request.user.buyer_profile.company).filter(is_approved=True).exclude(purchase_order__isnull=False)
+    approved_order_items = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company).filter(is_approved=True).exclude(purchase_order__isnull=False)
     po_form = PurchaseOrderForm(request.POST or None,
-                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyerCo=request.user.buyer_profile.company).count()+1)})
+                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
     po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Billing')
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Shipping')
     po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
@@ -471,7 +448,7 @@ def new_purchaseorder(request):
             purchase_order.preparer = request.user.buyer_profile
             purchase_order.currency = request.user.buyer_profile.company.currency
             purchase_order.date_issued = timezone.now()
-            purchase_order.buyerCo = request.user.buyer_profile.company
+            purchase_order.buyer_co = request.user.buyer_profile.company
             purchase_order.sub_total = 0
             purchase_order.save()
             status = Status.objects.create(value='Open', color="Pending", author=request.user.buyer_profile, document=purchase_order)
@@ -500,7 +477,7 @@ def new_purchaseorder(request):
 
 @login_required
 def purchaseorders(request):
-    all_pos = PurchaseOrder.objects.filter(buyerCo=request.user.buyer_profile.company)
+    all_pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
     open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=5)
     closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=6)
     cancelled_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=7)

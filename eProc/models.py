@@ -10,25 +10,28 @@ from eProc.managers import *
 class Company (models.Model):
 	name = models.CharField(max_length=30)	
 	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
+	website = models.CharField(max_length=100, null=True, blank=True)	
 	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
 
 	def __unicode__(self):
 		return "{}".format(self.name)
 
-
 class BuyerCo(Company):
 	pass
 
 class VendorCo(Company):
+	contact_rep = models.CharField(max_length=150, null=True, blank=True)
+	vendorID = models.CharField(max_length=50, null=True, blank=True)
 	bank_name = models.CharField(max_length=50, null=True, blank=True)
 	branch_details = models.CharField(max_length=50, null=True, blank=True)
 	ac_number = models.BigIntegerField(null=True, blank=True)
 	company_number = models.CharField(max_length=20, null=True, blank=True)
-	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)	
+	comments = models.CharField(max_length=150, null=True, blank=True)
+	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)
+
 
 class Location(models.Model):
-	name = models.CharField(max_length=20, default='HQ')
-	typee = models.CharField(choices=settings.LOCATION_TYPES, max_length=15, default='Billing')
+	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Billing')
 	address1 = models.CharField(max_length=40, null=True, blank=True)
 	address2 = models.CharField(max_length=40, null=True, blank=True)
 	city = models.CharField(max_length=20, null=True, blank=True)
@@ -36,14 +39,15 @@ class Location(models.Model):
 	country = models.CharField(choices=settings.COUNTRIES, max_length=20, null=True, blank=True)
 	zipcode = models.IntegerField(null=True, blank=True)
 	phone = models.BigIntegerField(null=True, blank=True)
+	fax = models.BigIntegerField(null=True, blank=True)
 	email = models.EmailField(max_length=254, null=True, blank=True)
-	company = models.ForeignKey(Company, related_name="locations")
+	company = models.ForeignKey(Company, related_name="locations", null=True, blank=True)
 
 	def __unicode__(self):
 		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 	def get_primary_location(self):
-		primary_location = Location.objects.filter(typee='HQ')[0]
+		primary_location = Location.objects.filter(loc_type='Billing')[0]
 		if primary_location:
 			return primary_location 
 
@@ -90,6 +94,7 @@ class BuyerProfile(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.user.username)
 
+# KILL FOR FIRST PASS - VENDOR USERS DONT HAVE A LOG IN/PW ETC
 class VendorProfile(models.Model):
 	user = models.OneToOneField(User, related_name="vendor_profile")
 	company = models.ForeignKey(VendorCo, related_name="users")
@@ -110,7 +115,7 @@ class Document(models.Model):
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
-	buyerCo = models.ForeignKey(BuyerCo, related_name="%(class)s")
+	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
 	
 	def get_latest_status(self):	    
 	    latest_status = None
@@ -130,7 +135,7 @@ class SalesOrder(models.Model):
 	terms = models.CharField(max_length=5000, blank=True, null=True)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
-	vendorCo = models.ForeignKey(VendorCo, related_name="%(class)s_orders")
+	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s_orders")
 
  	class Meta:
  		abstract = True	
@@ -157,7 +162,7 @@ class Invoice(Document, SalesOrder):
 class Category(models.Model):
 	code = models.IntegerField(null=True, blank=True)
 	name = models.CharField(max_length=50)
-	buyerCo = models.ForeignKey(BuyerCo, related_name="categories")
+	buyer_co = models.ForeignKey(BuyerCo, related_name="categories")
 
 	def __unicode__(self):
 		return "{}".format(self.name)
@@ -170,8 +175,8 @@ class CatalogItem(models.Model):
 	unit_type = models.CharField(max_length=20, default="each")
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
-	vendorCo = models.ForeignKey(VendorCo, related_name="catalog_items")
-	buyerCo = models.ForeignKey(BuyerCo, related_name="catalog_items")
+	vendor_co = models.ForeignKey(VendorCo, related_name="catalog_items")
+	buyer_co = models.ForeignKey(BuyerCo, related_name="catalog_items")
 
 	def __unicode__(self):
 		return "{}".format(self.name)

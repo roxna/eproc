@@ -22,12 +22,13 @@
                     <tr>
                       <td>{{ buyer.user.username }}</td>
                       <td>{{ buyer.user.email }}</td>                      
-                      <td>{{ buyer.role }}</td>                                          
+                      <td>{{ buyer.role }}</td> 
+                      <td>{% if buyer.user.is_active %} Active {% else %} Invite Pending {% endif %}</td>                                          
                       <td>
                         <form method="POST">
                           {% csrf_token %}
-                          {% if buyer.role == 'SuperUser' %}
-                          <button type="submit" name="delete" value="{{buyer.id}}"><i class="fa fa-trash"></i></button>
+                          {% if user.buyer_profile.role == 'SuperUser' and buyer.role != 'SuperUser' %}
+                            <button type="submit" name="delete" value="{{buyer.id}}"><i class="fa fa-trash"></i></button>
                           {% endif %}
                         </form>
                       </td>

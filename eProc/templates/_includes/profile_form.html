@@ -11,7 +11,7 @@
 		{% csrf_token %}
 	  	<table class="table">
 			<tbody>
-			    {% crispy form.as_table form.helper %}
+			    {% crispy form formhelper %}
 		    </tbody>
 		</table>
 	    <button type="submit" name={{buttonName}} class="btn basic-teal pull-right">Update {{title}}</button>

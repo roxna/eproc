@@ -12,13 +12,13 @@
 <section class="content">
   
   <div class="row">
-    {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. UPDATE SETTINGS" icon="fa-gear" url1="users" text1="a. Add users & departments" url2="products" text2="b. Upload catalog & vendors" %}
+    {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. SETTINGS" icon="fa-gear" url1="/settings/users/" text1="a. Add users & departments" url2="/products/" text2="b. Upload catalog & vendors" %}
 
-    {% include "_includes/get_started_widget.html" with color="bg-blue" title="2. REQUEST" icon="fa-book" url1="new_requisition" text1="a. Create a new request" url2="requisitions" text2="b. Approve/decline requests" %}
+    {% include "_includes/get_started_widget.html" with color="bg-blue" title="2. REQUEST" icon="fa-book" url1="/requisition/new/" text1="a. Create a new request" url2="/requisitions/" text2="b. Approve/decline requests" %}
 
-    {% include "_includes/get_started_widget.html" with color="bg-green" title="3. PROCURE" icon="fa-shopping-cart" url1="new_purchaseorder" text1="a. Create a purchase order" url2="purchaseorders" text2="b. View open/pending POs" %}
+    {% include "_includes/get_started_widget.html" with color="bg-green" title="3. PROCURE" icon="fa-shopping-cart" url1="/purchase-order/new/" text1="a. Create a purchase order" url2="/purchase-orders/" text2="b. View open/pending POs" %}
     
-    {% include "_includes/get_started_widget.html" with color="bg-red" title="4. RECEIVE & PAY" icon="fa-truck" url1="invoices" text1="a. Pay invoices" url2="inventory" text2="b. Keep track of inventory" %}
+    {% include "_includes/get_started_widget.html" with color="bg-red" title="4. RECEIVE & PAY" icon="fa-truck" url1="/invoice/new/" text1="a. Pay invoices" url2="/inventory/" text2="b. Keep track of inventory" %}
     
   </div>
 

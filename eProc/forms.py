@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from django.db.models import Count
 from django.forms import ModelForm
 from eProc.models import *
@@ -15,15 +15,14 @@ class RegisterUserForm(UserCreationForm):
     # profile_pic = forms.ImageField(label="Profile Picture", required=False)
     
     helper = FormHelper()
-    helper.layout = Layout(
-        Field('username', css_class='form-control'),
-        Field('first_name', css_class='form-control'),
-        Field('last_name', css_class='form-control'),
-        Field('email', css_class='form-control'),
-        Field('password1', css_class='form-control'),
-        Field('password2', css_class='form-control'),
-    )    
     helper.form_tag = False
+
+    helperReadOnly = FormHelper()
+    helperReadOnly.layout = Layout(
+        Field('username', css_class='form-control', readonly=True),
+        Field('email', css_class='form-control', readonly=True),
+    )
+    helperReadOnly.form_tag = False
 
     class Meta:
         model = User
@@ -39,6 +38,21 @@ class RegisterUserForm(UserCreationForm):
             self.error_messages['duplicate_username'],
             code='duplicate_username',
         )
+
+class ChangeUserForm(UserChangeForm):
+
+    helper = FormHelper()
+    helper.layout = Layout(
+        Field('username', css_class='form-control', readonly=True),
+        Field('email', css_class='form-control', readonly=True),
+    )
+    helper.form_tag = False
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password')
+
+
 
 # CREATING A USER WITH A TEMP PASSWORD
 class AddUserForm(forms.Form):  
@@ -75,23 +89,18 @@ class BuyerProfileForm(ModelForm):
     department = forms.ModelChoiceField(queryset=Department.objects.all())
 
     helper = FormHelper()
-    helper.layout = Layout(
-        Field('role', css_class='form-control'),
-        Field('department', css_class='form-control'),
-    )
     helper.form_tag = False
 
-    # READONLY_FIELDS = ('role', 'department')
+    helperReadOnly = FormHelper()
+    helperReadOnly.layout = Layout(
+        Field('role', css_class='form-control', readonly=True),
+        Field('department', css_class='form-control', readonly=True),
+    )
+    helperReadOnly.form_tag = False
 
     class Meta:
         model = BuyerProfile
-        fields = ("role", "department")    
-
-    # def __init__(self, read_only=False, *args, **kwargs):
-    #     super(BuyerProfileForm, self).__init__(*args, **kwargs)
-    #     if read_only:
-    #         for field in self.READONLY_FIELDS:
-    #             self.fields[field].widget.attrs['readonly'] = True
+        fields = ("role", "department")
         
 
 class BuyerCoForm(forms.ModelForm):
@@ -111,14 +120,10 @@ class BuyerCoForm(forms.ModelForm):
         fields = ('name', 'currency')
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': 'Username','class': 'form-control'}))
-    password = forms.CharField(required=True, widget=forms.PasswordInput(attrs={'placeholder': 'Password','class': 'form-control'}))
+    username = forms.CharField(required=True)
+    password = forms.CharField(required=True)
 
     helper = FormHelper()
-    helper.layout = Layout(
-        Field('username', css_class='form-control'),
-        Field('password', css_class='form-control'),
-    )
     helper.form_tag = False
 
 
@@ -150,18 +155,17 @@ class CatalogItemForm(ModelForm):
         model = CatalogItem
         fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendorCo')
 
-class VendorForm(ModelForm):
-    name = forms.CharField(required=True)
+class VendorCoForm(ModelForm):
+    name = forms.CharField(required=True, label="Vendor Name")
+    contact_rep = forms.CharField(required=False, label="Contact Rep")
+    website = forms.URLField(required=False)
 
     helper = FormHelper()
-    helper.layout = Layout(
-        Field('name', css_class='form-control', placeholder='Vendor Name'),
-    )
     helper.form_tag = False
 
     class Meta:
         model = VendorCo
-        fields = ("name", )
+        fields = ("name", "contact_rep", "website", "vendorID", "comments")
 
 class CategoryForm(ModelForm):
     helper = FormHelper()
@@ -172,47 +176,21 @@ class CategoryForm(ModelForm):
         fields = ("name", "code")
 
 class LocationForm(ModelForm):
-    # name = forms.CharField()
-    typee = forms.ChoiceField(settings.LOCATION_TYPES)
-    # address1 = forms.CharField(required=False)
-    # address2 = forms.CharField()
-    # city = forms.CharField()
-    # state = forms.CharField()
-    # zipcode = forms.IntegerField()
+    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="Address Type")
+    address1 = forms.CharField(required=True, label="Address Line 1")
+    address2 = forms.CharField(required=False, label="Address Line 2")
+    city = forms.CharField(required=True)
+    state = forms.CharField(required=True)
+    zipcode = forms.CharField(required=True)
     country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='India')
-    # phone = forms.IntegerField(required=False)
-    # email = forms.CharField(required=False)
+    email = forms.EmailField(required=False)
     
     helper = FormHelper()    
-    helper.layout = Layout(
-        Field('typee', css_class='form-control'),
-        Field('address1', css_class='form-control', placeholder='Address Line 1'),
-        Field('address2', css_class='form-control', placeholder='Address Line 2'),
-        Field('city', css_class='form-control'),
-        Field('zipcode', css_class='form-control'),
-        Field('state', css_class='form-control'),
-        Field('country', css_class='form-control'),
-        Field('phone', css_class='form-control'),
-        Field('email', css_class='form-control'),
-    )
-    # helper.all().wrap(Field, css_class="col-md-6") #TODO: WRAP FIELDS IN col-md-6 divs
     helper.form_tag = False
 
     class Meta:
         model = Location
-        fields = ('address1', 'typee', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
-
-class VendorProfileForm(ModelForm):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
-
-    helper = FormHelper()
-    helper.form_tag = False
-
-    class Meta:
-        model = VendorCo
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'fax', 'email')        
 
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))

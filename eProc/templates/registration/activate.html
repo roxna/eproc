@@ -8,9 +8,15 @@
 	</div><br><br>
 	<div class="container-fluid text-center">	
 		<h4>
-			<a href="{% url 'login' %}">
-			<button type="button" class="button button-outline">LOGIN</button>
-			</a>  &nbsp; now to view your account
+			<!-- 	If SUPERUSER, redirect to get_started
+					If REGUSER, redirect to create/updatePW -->
+			{% if user.buyer_profile.role == 'SuperUser' %}
+				<a href="{% url 'login' %}?next=/get-started/">
+			{% else %}
+				<a href="{% url 'login' %}?next=/settings/profile/">
+			{% endif %}
+					<button type="button" class="button button-outline">LOGIN</button>
+				</a>  &nbsp; now to view your account
 		</h4><br>
 	</div>
 {% endblock header %}

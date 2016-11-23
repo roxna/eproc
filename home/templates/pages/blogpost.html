@@ -2,5 +2,5 @@
 {% load staticfiles %}
 
 {% block content %}
-	{% include "_includes/blogpost_full.html" with image=blog.image title=blog.title author=blog.author date=blog.date content=blog.content prevPost=nextPost nextPost=nextPost %}
+	{% include "_includes/blogpost_full.html" with blog=blog prevPost=nextPost nextPost=nextPost %}
 {% endblock content %}

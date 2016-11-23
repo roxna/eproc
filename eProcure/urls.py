@@ -1,39 +1,51 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 admin.autodiscover()
-from django.contrib.auth.views import logout
+from django.contrib.auth.views import login, logout
 from django.contrib.auth import views as auth_views
 from home import views as home_views
 from eProc import views as eProc_views
+from eProc.forms import LoginForm
 
 urlpatterns=[
-    # Examples:
-    # url(r'^$', 'eProcure.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+#     # Examples:
+#     # url(r'^$', 'eProcure.views.home', name='home'),
+#     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 
 
-    ###### HOME - LANDING PAGE, BLOGS ETC ######
+    #####################################
+    ## HOME - LANDING PAGE, BLOGS ETC  ##
+    #####################################
+    # GENERAL
     url(r'^$', home_views.home, name='home'),
     url(r'^pricing/$', home_views.pricing, name='pricing'),
     url(r'^features/$', home_views.features, name='features'),
     url(r'^blog/$', home_views.blog, name='blog'),
-    url(r'^blog/(?P<blog_id>\w+)/$', home_views.view_blog, name='view_blog'),
+    url(r'^blog/(?P<blog_id>\w+)/(?P<blog_slug>[\w-]+)/$', home_views.view_blog, name='view_blog'), 
     url(r'^contact/$', home_views.contact, name='contact'),
     url(r'^success/$', home_views.success, name='success'),
+    # LEGAL
+    url(r'^terms/$', home_views.terms, name='terms'),
+    url(r'^privacy-policy/$', home_views.privacy_policy, name='privacy_policy'),
 
     ###### REGISTRATION URLS (in eProc) ######
     url(r'^register/$', eProc_views.register, name='register'),
     url(r'^activate/$', eProc_views.activate, name='activate'),
-    url(r'^login/$', eProc_views.login, name='login'),
+    url(r'^login/$', login, {'authentication_form': LoginForm}, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     url(r'^thankyou/$', eProc_views.thankyou, name='thankyou'),
-    # Reset Password
+    # Reset Password - https://docs.djangoproject.com/en/1.8/_modules/django/contrib/auth/views/
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
+    url(r'^password_reset/confirm/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
+    url(r'^password_reset/complete/$', auth_views.password_reset_complete, name='password_reset_complete'),
 
-    ###### EPROCURE MODULE ######
+
+    #####################################
+    ##         EPROCURE MODULE         ##
+    #####################################
     # Post log in URLS
     url(r'^get-started/$', eProc_views.get_started, name='get_started'),
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
@@ -41,7 +53,7 @@ urlpatterns=[
     url(r'^requisitions/$', eProc_views.requisitions, name='requisitions'),
     url(r'^requisitions/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),
     
-    url(r'^purchase-orders$', eProc_views.purchaseorders, name='purchaseorders'),
+    url(r'^purchase-orders/$', eProc_views.purchaseorders, name='purchaseorders'),
     url(r'^purchase-order/new/$', eProc_views.new_purchaseorder, name='new_purchaseorder'),
     url(r'^purchase-order/(?P<po_id>\w+)/$', eProc_views.view_purchaseorder, name='view_purchaseorder'),
     url(r'^purchase-order/print/(?P<po_id>\w+)$', eProc_views.print_purchaseorder, name='print_purchaseorder'),

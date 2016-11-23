@@ -1,0 +1,38 @@
+/* ePROC */
+.basic-teal{
+	background: #007777;
+	color: white;
+	margin: 5px;
+}
+.basic-grey{
+	background: #d4d8dc;
+	border-color: #d4d8dc;
+	color: black;
+	margin: 5px;
+}
+.alert{
+	padding: 4px 6px 4px 10px !important;
+}
+
+
+/* HOME */
+.bucket{
+	width: 100% !important;	
+	padding: 15px;
+	border: 15px;
+	margin: 15px;
+	border-radius: 5px;
+}
+
+.orange{
+	background: orange;
+}
+.teal{
+	background: teal;
+}
+.blue{
+	background: blue;
+}
+.red{
+	background: red;
+}

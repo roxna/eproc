@@ -1,11 +1,11 @@
 {% load staticfiles %}
 
 <div class="post">
-	<a href="{% url 'view_blog' id %}" class="pic">
-		<img src="{% static 'images/' %}{{image}}" class="img-responsive" alt="blogpost" />
+	<a href="{% url 'view_blog' blog.id blog.title|slugify %}" class="pic">
+		<img src="{% static 'images/' %}{{blog.image}}" class="img-responsive" alt="blogpost" />
 	</a>
-	<div class="title"><a href="{% url 'view_blog' id %}">{{title}}</a></div>
-	<div class="author">By {{author}}, {{date}}</div>
-	<p class="intro">{{summary}}</p>
-	<a href="{% url 'view_blog' id %}" class="continue-reading">Continue reading..</a>
+	<div class="title"><a href="{% url 'view_blog' blog.id blog.title|slugify %}">{{blog.title}}</a></div>
+	<div class="author">By {{blog.author}}, {{blog.date}}</div>
+	<p class="intro">{{blog.summary}}</p>
+	<a href="{% url 'view_blog' blog.id blog.title|slugify %}" class="continue-reading">Continue reading..</a>
 </div>	

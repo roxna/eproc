@@ -12,16 +12,16 @@
 {% block content %}
 <section class="content">
   <div class="row">
-      	<div class="col-lg-12">
-    		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form buttonName='company' %}
+      	<div class="col-lg-12">    		
+    		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form formhelper=company_form.helper buttonName='company' %}
     	</div>
     </div>
     <div class="row">
     	<div class="col-lg-6">
-  			{% include "_includes/profile_form.html" with title="Billing Address" form=billing_address_form buttonName='billing' %}
+    		{% include "_includes/profile_form.html" with title='Billing Address' form=billing_address_form formhelper=billing_address_form.helper buttonName='billing' %}  			
   		</div>
   		<div class="col-lg-6">
-  			{% include "_includes/profile_form.html" with title="Shipping Address" form=shipping_address_form buttonName='shipping'%}
+  			{% include "_includes/profile_form.html" with title="Shipping Address" form=shipping_address_form formhelper=shipping_address_form.helper buttonName='shipping'%}
   		</div>
 	</div>
 </section>

@@ -12,12 +12,12 @@
 			</div>
 			<div class="row">
 				<div class="col-md-10 post">
-					<div class="title">{{title}}</div>
-					<div class="author">By {{author}}, {{date}}</div>
-					<div class="content">{{content}}</div>
+					<div class="title">{{blog.title}}</div>
+					<div class="author">By {{blog.author}}, {{blog.date}}</div>
+					<div class="content">{{blog.content}}</div>
 					<div class="other-posts">
-						<a href="{% url 'view_blog' prevPost.id %}" class="prev">← {{prevPost.title|slice:":30"}}</a>						
-						<a href="{% url 'view_blog' nextPost.id %}" class="next pull-right">{{nextPost.title|slice:":30"}} →</a>
+						<a href="{% url 'view_blog' prevPost.id prevPost.title|slugify %}" class="prev">← {{blog.prevPost.title|slice:":30"}}</a>	
+						<a href="{% url 'view_blog' nextPost.id nextPost.title|slugify %}" class="next pull-right">{{blog.nextPost.title|slice:":30"}} →</a>
 					</div>
 				</div>
 			</div>

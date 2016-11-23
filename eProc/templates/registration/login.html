@@ -13,7 +13,7 @@
 {% endblock header %}
 
 {% block forms %}
-  {% crispy user_form user_form.helper %}
+  {% crispy form form.helper %}
   <button type="submit" name="login" class="button basic-teal pull-right" value="Login">Log In</button>
 {% endblock forms %}
 
@@ -22,7 +22,7 @@
     <div class="already-account">
       New to eProc?
       <a href="{% url 'register' %}">Register now</a>
-      <p>By creating an account, you agree to the <a href="#">Terms of service</a></p>
+      <p>By creating an account, you agree to the <a href="{% url 'terms' %}">Terms of service</a></p>
     </div>    
 {% endblock altCTA %}
 
