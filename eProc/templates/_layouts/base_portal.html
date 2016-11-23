@@ -38,11 +38,16 @@
         </a>
 
         <div class="navbar-custom-menu">
-          <ul class="nav navbar-nav">
+          <ul class="nav navbar-nav">            
+            <li class="dropdown user user-menu">
+              <a href="{% url 'get_started' %}" id="get-started">
+                <span class="pull-right-container">GET STARTED</span>
+              </a>
+            </li>            
             <li class="dropdown user user-menu">
               <a href="{% url 'logout' %}">
                 <span class="hidden-xs">Sign out</span>
-                <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>
+                <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
               </a>
             </li>
           </ul>
@@ -118,10 +123,11 @@
               </span>
             </a>
             <ul class="treeview-menu">
-              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
               <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
-              <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>
               <li><a href="{%url 'categories' %}"><i class="fa fa-file-excel-o"></i> Categories</a></li>
+              <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>
+              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
+              
             {% if user.buyer_profile.role == 'SuperUser' %}
               <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company</a></li>
               <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>

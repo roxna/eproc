@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from eProc.managers import *
@@ -37,8 +38,9 @@ class Location(models.Model):
 	city = models.CharField(max_length=20, null=True, blank=True)
 	state = models.CharField(max_length=20, null=True, blank=True)
 	country = models.CharField(choices=settings.COUNTRIES, max_length=20, null=True, blank=True)
-	zipcode = models.IntegerField(null=True, blank=True)
-	phone = models.BigIntegerField(null=True, blank=True)
+	zipcode = models.CharField(max_length=10, null=True, blank=True)
+	phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '999999999'. Up to 15 digits allowed.")
+	phone = models.CharField(max_length=15, validators=[phone_regex], null=True, blank=True)
 	fax = models.BigIntegerField(null=True, blank=True)
 	email = models.EmailField(max_length=254, null=True, blank=True)
 	company = models.ForeignKey(Company, related_name="locations", null=True, blank=True)
@@ -170,7 +172,7 @@ class Category(models.Model):
 class CatalogItem(models.Model):
 	name = models.CharField(max_length=50)
 	desc = models.CharField(max_length=150, null=True, blank=True)
-	sku = models.CharField(max_length=20)
+	sku = models.CharField(max_length=20, null=True, blank=True)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)

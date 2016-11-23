@@ -13,7 +13,12 @@
 .alert{
 	padding: 4px 6px 4px 10px !important;
 }
-
+#get-started{
+	background-color: #f39c12; 
+	margin: 5px;
+	padding: 10px;
+	border-radius: 3px;
+}
 
 /* HOME */
 .bucket{

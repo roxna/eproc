@@ -23,9 +23,10 @@
                       <td>{{ product.name }}</td>
                       <td>{{ product.sku }}</td>
                       <td>{{ product.desc }}</td>
-                      <td>{{ product.currency | upper}} {{ product.unit_price }} / {{ product.unit_type }}</td>
+                      <td>{{ product.unit_price }}</td>
+                      <td>{{ product.unit_type }}</td>
                       <td>{{ product.category }}</td>
-                      <td>{{ product.vendorCo }}</td>
+                      <td>{{ product.vendor_co }}</td>
                     </tr>
                   {% endfor %}
                 </tbody>

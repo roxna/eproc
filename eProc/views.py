@@ -69,7 +69,6 @@ def dashboard(request):
     }
     return render(request, "dashboard.html", data)
 
-# to register & activate: https://github.com/JunyiJ/django-register-activate/blob/master/register_activate/views.py
 @login_required
 def users(request):    
     user_form = AddUserForm(request.POST or None)
@@ -145,21 +144,22 @@ def products(request):
     products = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
     product_form.fields['category'].queryset = Category.objects.filter(buyer_co=request.user.buyer_profile.company)
-    product_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
+    product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)    
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
-            product.currency = product.vendorCo.currency
+            product.currency = product.vendor_co.currency
             product.buyer_co = request.user.buyer_profile.company
             product.save()
             messages.success(request, "Product added successfully")
             return redirect('products')
         else:
             messages.error(request, 'Error. Catalog list not updated.')
+    currency = request.user.buyer_profile.company.currency.upper()
     data = {
         'products': products,
         'product_form': product_form,
-        'table_headers': ['Name', 'SKU', 'Description', 'Price', 'Category', 'Vendor'],
+        'table_headers': ['Name', 'SKU', 'Description', 'Price ('+currency+')', 'Unit', 'Category', 'Vendor'],
     }
     return render(request, "settings/catalog.html", data)
 
@@ -167,27 +167,25 @@ def products(request):
 def upload_product_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
     if request.method == "POST":
-        if csv_form.is_valid():
-            csv_file = request.FILES['file'].read()
+        if csv_form.is_valid():       
+            csv_file = request.FILES['file']
             reader = csv.reader(csv_file, delimiter=',')
             header = next(reader) #Ignore header row
-            if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
-                messages.error(request, 'Error. Please make sure you have data correctly entered.')
             try:
-                buyer_co = request.user.buyer_profile.company
-                for row in reader: 
+                buyer_co = request.user.buyer_profile.company  
+                for row in reader:
                     name = row[0]
                     desc = row[1]
                     sku = row[2]
                     unit_price = float(row[3])
                     unit_type = row[4]
-                    currency = row[5]
-                    category, categ_created = Category.objects.get_or_create(name=row[6], buyer_co=buyer_co)
-                    vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyer_co)
-                    CatalogItem.objects.create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=currency, vendorCo=vendorCo, buyer_co=buyer_co)
+                    category, categ_created = Category.objects.get_or_create(name=row[5], buyer_co=buyer_co)
+                    vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row[6], buyer_co=buyer_co, currency=buyer_co.currency)
+                    CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, vendor_co=vendor_co, buyer_co=buyer_co)
                 messages.success(request, 'Products successfully uploaded.')
+                return redirect('products')
             except:
-                messages.error(request, 'Error in uploading the file. Please try again.')
+                messages.error(request, 'Error. Not all products uploaded. Please ensure all fields are correctly filled in and try again.')
     data = {
         'csv_form': csv_form,
     }
@@ -226,36 +224,39 @@ def vendors(request):
 @login_required
 def upload_vendor_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
+    currency = request.user.buyer_profile.company.currency.upper()
     if request.method == "POST":
         if csv_form.is_valid():
-            csv_file = request.FILES['file'].read()
+            csv_file = request.FILES['file']
             reader = csv.reader(csv_file, delimiter=',')
             header = next(reader) #Ignore header row
-            if sum(1 for row in reader) < 2:  #Check there's at least one line item to upload
-                messages.error(request, 'Error. Please make sure you have data correctly entered.')
             try:
                 buyer_co = request.user.buyer_profile.company
                 for row in reader: 
-                    # co_name = row[0]
-                    # co_currency = row[1]
-                    # address1 = row[2]
-                    # address2 = row[3]
-                    # city = row[4]
-                    # co_state = row[5]
-                    # co_zipcode = row[6]
-                    # co_phone = row[7]
-                    # co_email = row[8]
-                    # username = row[9]
-                    # email = row[9]
-                    # vendorCo, vendorCo_created = VendorCo.objects.get_or_create(name=row[7], buyer_co=buyer_co)
-                    company = VendorCo.objects.create()
-                    Location.objects.create(name="Headquarters", is_primary=True, address1=address1, address2=address2, city=city, state=state, country=country, zipcode=zipcode, phone=phone, email=email, company=company)
-                    VendorProfile.objects.create()
+                    name = row[0]
+                    vendorID = row[1]
+                    contact_rep = row[2]
+                    website = row[3]
+                    comments = row[4]
+
+                    address1 = row[5]
+                    address2 = row[6]
+                    city = row[7]
+                    state = row[8]
+                    zipcode = row[9]
+                    country = row[9]
+                    email = row[10]
+                    phone = row[11]
+                    vendor_co, vendor_created = VendorCo.objects.get_or_create(name=name, currency=currency, website=website, vendorID=vendorID,
+                                                                               contact_rep=contact_rep, comments=comments, buyer_co=buyer_co)
+                    location = Location.objects.get_or_create(address1=address1, address2=address2, city=city, state=state, zipcode=zipcode, 
+                                                              country=country, phone=phone, email=email, company=vendor_co)
                 messages.success(request, 'Vendor list successfully uploaded.')
+                return redirect('vendors')
             except:
-                messages.error(request, 'Error in uploading the file. Please try again.')
+                messages.error(request, 'Error. Not all vendors uploaded. Please ensure all fields are correctly filled in and try again.')
     data = {
-    'csv_form': csv_form,
+        'csv_form': csv_form,
     }
     return render(request, "settings/vendor_import.html", data)
 
@@ -281,19 +282,19 @@ def categories(request):
 
 @login_required
 def user_profile(request):
-    user_form = ChangeUserForm(request.POST or None, instance=request.user)
-    buyer_profile_form = BuyerProfileForm(request.POST or None, instance=request.user.buyer_profile)
+    user_form = ChangeUserForm(request.POST or None, instance=request.user)   #TODO: Ensure PW doesn't show in the form
+    # buyer_profile_form = BuyerProfileForm(request.POST or None, instance=request.user.buyer_profile)
     if request.method == "POST":
-        if user_form.is_valid() and buyer_profile_form.is_valid():
+        if user_form.is_valid():
             user_form.save()
-            buyer_profile_form.save()
+            # buyer_profile_form.save()
             messages.success(request, "Profile updated successfully")
             return redirect('user_profile')
         else:
             messages.error(request, 'Error. Profile not updated')
     data = {
         'user_form': user_form,
-        'buyer_profile_form': buyer_profile_form
+        # 'buyer_profile_form': buyer_profile_form
     }
     return render(request, "settings/user_profile.html", data)    
 
@@ -313,6 +314,7 @@ def company_profile(request):
     except:    
         shipping_address_form = LocationForm(request.POST or None)
 
+    # pdb.set_trace()
     if request.method == "POST":
         if 'company' in request.POST:
             if company_form.is_valid():
@@ -343,25 +345,26 @@ def company_profile(request):
     return render(request, "settings/company_profile.html", data)       
 
 @login_required
-def new_requisition(request):    
+def new_requisition(request): 
+    buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
-                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
-    requisition_form.fields['department'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
-    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=request.user.buyer_profile.company).exclude(user=request.user)
+                                       initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})
+    requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user)
 
     OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
     orderitem_formset = OrderItemFormSet(request.POST or None)
     for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
-        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=request.user.buyer_profile.company)
+        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
     
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = requisition_form.save(commit=False)
-            requisition.preparer = request.user.buyer_profile
-            requisition.currency = request.user.buyer_profile.company.currency
+            requisition.preparer = buyer
+            requisition.currency = buyer.company.currency
             requisition.date_issued = timezone.now()
-            requisition.buyer_co = request.user.buyer_profile.company
+            requisition.buyer_co = buyer.company
             requisition.sub_total = 0
             requisition.save()
 
@@ -377,11 +380,11 @@ def new_requisition(request):
                     order_item.save()            
             requisition.save()
 
-            if request.user.buyer_profile.role == 'SuperUser' or request.user.buyer_profile.role == 'Approver':
-                status = Status.objects.create(value='Approved', color='Approved', author=request.user.buyer_profile, document=requisition)
+            if buyer.role == 'SuperUser' or buyer.role == 'Approver':
+                status = Status.objects.create(value='Approved', color='Approved', author=buyer, document=requisition)
                 requisition.order_items.update(is_approved=True)
             else:
-                status = Status.objects.create(value='Pending', color='Pending', author=request.user.buyer_profile, document=requisition)
+                status = Status.objects.create(value='Pending', color='Pending', author=buyer, document=requisition)
 
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
@@ -441,7 +444,7 @@ def new_purchaseorder(request):
                                 initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
     po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Billing')
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Shipping')
-    po_form.fields['vendorCo'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
+    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
         if po_form.is_valid():
             purchase_order = po_form.save(commit=False)

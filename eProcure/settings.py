@@ -115,10 +115,10 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'xxx@gmail.com'
-EMAIL_HOST_PASSWORD = 'xx'
+EMAIL_HOST_USER = 'hatta.jee@gmail.com'
+EMAIL_HOST_PASSWORD = 'StillyGandu'
 EMAIL_PORT = 587
-DEFAULT_FROM_EMAIL = 'xx@gmail.com'
+DEFAULT_FROM_EMAIL = 'hatta.jee@gmail.com'
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 MEDIA_URL = "/media/"

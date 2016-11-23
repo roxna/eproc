@@ -6,7 +6,7 @@ from django.forms import ModelForm
 from eProc.models import *
 from django.utils import timezone
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field, HTML
+from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 
 class RegisterUserForm(UserCreationForm):
     first_name = forms.CharField(required=True)
@@ -14,15 +14,17 @@ class RegisterUserForm(UserCreationForm):
     email = forms.EmailField(required=True)
     # profile_pic = forms.ImageField(label="Profile Picture", required=False)
     
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(RegisterUserForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self. helper.form_tag = False
 
-    helperReadOnly = FormHelper()
-    helperReadOnly.layout = Layout(
-        Field('username', css_class='form-control', readonly=True),
-        Field('email', css_class='form-control', readonly=True),
-    )
-    helperReadOnly.form_tag = False
+        self.helperReadOnly = FormHelper()
+        self.helperReadOnly.layout = Layout(
+            Field('username', css_class='form-control', readonly=True),
+            Field('email', css_class='form-control', readonly=True),
+        )
+        self.helperReadOnly.form_tag = False
 
     class Meta:
         model = User
@@ -58,10 +60,21 @@ class ChangeUserForm(UserChangeForm):
 class AddUserForm(forms.Form):  
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True) 
-    email = forms.EmailField(required=True)  
-    
+    email = forms.EmailField(required=True, label="<i class='fa fa-envelope'></i> Email")  
+
     helper = FormHelper()
     helper.form_tag = False
+    helper.layout = Layout(
+        Div(
+            Div('first_name', css_class='col-md-6'),
+            Div('last_name', css_class='col-md-6'),
+            css_class='row',
+        ),
+        Div(
+            Div('email', css_class='col-md-12'),
+            css_class='row',
+        )
+    )
 
     def get_username(self):
         return self.cleaned_data['first_name']+self.cleaned_data['last_name']
@@ -85,18 +98,29 @@ class AddUserForm(forms.Form):
         return user
 
 class BuyerProfileForm(ModelForm):  
-    role = forms.ChoiceField(settings.ROLES, required=True)
-    department = forms.ModelChoiceField(queryset=Department.objects.all())
+    role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
 
     helper = FormHelper()
     helper.form_tag = False
-
-    helperReadOnly = FormHelper()
-    helperReadOnly.layout = Layout(
-        Field('role', css_class='form-control', readonly=True),
-        Field('department', css_class='form-control', readonly=True),
+    helper.layout = Layout(
+        Div(
+            Div('role', css_class='col-md-6'),
+            Div('department', css_class='col-md-6'),
+            css_class='row',
+        ),
     )
-    helperReadOnly.form_tag = False
+    # def __init__(self, *args, **kwargs):
+    #     super(BuyerProfileForm, self).__init__(*args, **kwargs)
+    #     self.helper = FormHelper()
+    #     self.helper.form_tag = False
+    #     self.helper.layout = Layout(
+    #         Div(
+    #             Div('role', css_class='col-md-6'),
+    #             Div('department', css_class='col-md-6'),
+    #             css_class='row',
+    #         ),
+    #     )
 
     class Meta:
         model = BuyerProfile
@@ -146,22 +170,42 @@ class CatalogItemForm(ModelForm):
     unit_type = forms.CharField(required=True)
     # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
     category = forms.ModelChoiceField(queryset=Category.objects.all())
-    vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all())
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Preferred Vendor")
 
     helper = FormHelper() 
     helper.form_tag = False
 
     class Meta:
         model = CatalogItem
-        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendorCo')
+        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
 class VendorCoForm(ModelForm):
-    name = forms.CharField(required=True, label="Vendor Name")
-    contact_rep = forms.CharField(required=False, label="Contact Rep")
-    website = forms.URLField(required=False)
+    name = forms.CharField(required=True, label="<i class='fa fa-building'></i> Vendor Name")
+    vendorID = forms.CharField(required=False, label="<i class='fa fa-id-card'></i> Vendor ID")
+    contact_rep = forms.CharField(required=False, label="<i class='fa fa-user'></i> Contact Rep")
+    website = forms.URLField(required=False, label="<i class='fa fa-globe'></i> Website")
+    comments = forms.CharField(required=False, label="<i class='fa fa-sticky-note'></i> Comments")
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(VendorCoForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-md-6'),
+                Div('vendorID', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('contact_rep', css_class='col-md-6'),
+                Div('website', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('comments', css_class='col-md-12'),
+                css_class='row',
+            ),
+        )
 
     class Meta:
         model = VendorCo
@@ -176,21 +220,50 @@ class CategoryForm(ModelForm):
         fields = ("name", "code")
 
 class LocationForm(ModelForm):
-    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="Address Type")
-    address1 = forms.CharField(required=True, label="Address Line 1")
-    address2 = forms.CharField(required=False, label="Address Line 2")
-    city = forms.CharField(required=True)
-    state = forms.CharField(required=True)
-    zipcode = forms.CharField(required=True)
-    country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='India')
-    email = forms.EmailField(required=False)
+    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Address Type")
+    address1 = forms.CharField(required=True, label="<i class='fa fa-home'></i> Address Line 1")
+    address2 = forms.CharField(required=False, label="<i class='fa fa-home'></i> Address Line 2")
+    city = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> City")
+    state = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> State")
+    zipcode = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> Zip Code")
+    country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='India', label="<i class='fa fa-globe'></i> Country")
+    phone = forms.CharField(required=False, label="<i class='fa fa-phone'></i> Phone Number")
+    email = forms.EmailField(required=False, label="<i class='fa fa-envelope'></i> Email")
     
-    helper = FormHelper()    
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(LocationForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('loc_type', css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div('address1', css_class='col-md-6'),
+                Div('address2', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('city', css_class='col-md-6'),
+                Div('state', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('zipcode', css_class='col-md-6'),
+                Div('country', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('email', css_class='col-md-6'),
+                Div('phone', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
 
     class Meta:
         model = Location
-        fields = ('loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'fax', 'email')        
+        fields = ('loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
 
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
@@ -221,7 +294,7 @@ class PurchaseOrderForm(ModelForm):
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, widget=forms.NumberInput(attrs={ "placeholder": 0}))
     terms = forms.CharField(max_length=5000)
-    vendorCo = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
     shipping_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
 
@@ -231,7 +304,7 @@ class PurchaseOrderForm(ModelForm):
     class Meta:
         model = PurchaseOrder
         fields = ("number", "date_due", "comments", "cost_shipping", "cost_other", 
-                  "discount_amount", "tax_amount", "terms", "vendorCo", "billing_add", "shipping_add")
+                  "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all())

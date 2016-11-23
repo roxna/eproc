@@ -12,7 +12,9 @@
 <section class="content">
   
   <div class="row">
-    {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. SETTINGS" icon="fa-gear" url1="/settings/users/" text1="a. Add users & departments" url2="/products/" text2="b. Upload catalog & vendors" %}
+
+  	<!-- TODO: Add CHECK MARKS IF EXISTS {% if user.buyer_profile.company.catalog_items|length == 0 %} {% endif %} -->
+    {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. SETTINGS" icon="fa-gear" url1="/vendors/" text1="a. Add vendors" url2="/products/" text2="b. Upload catalog & vendors" %}
 
     {% include "_includes/get_started_widget.html" with color="bg-blue" title="2. REQUEST" icon="fa-book" url1="/requisition/new/" text1="a. Create a new request" url2="/requisitions/" text2="b. Approve/decline requests" %}
 

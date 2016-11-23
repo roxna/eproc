@@ -7,7 +7,7 @@
         <div class="box-body">                            
           Download the {{source}} Importer template and fill in your product information according to the file. After that, proceed to Step 2<br><br>
           <a href="{% static '' %}templates/{{template_file}} ">
-            <button type="button" class="btn btn-block">Download</button>
+            <button type="button" class="btn btn-block"><i class="fa fa-download"></i> Download</button>
           </a>
         </div>
       </div>
@@ -23,7 +23,7 @@
           <form enctype="multipart/form-data" method="post">
             {% csrf_token %}
             {{ csv_form.as_p }}
-            <button type="submit" class="btn btn-block basic-teal">Upload CSV</button>
+            <button type="submit" class="btn btn-block basic-teal"><i class="fa fa-upload"></i> Upload CSV</button>
           </form>
         </div>
       </div>

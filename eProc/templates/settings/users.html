@@ -23,7 +23,12 @@
                       <td>{{ buyer.user.username }}</td>
                       <td>{{ buyer.user.email }}</td>                      
                       <td>{{ buyer.role }}</td> 
-                      <td>{% if buyer.user.is_active %} Active {% else %} Invite Pending {% endif %}</td>                                          
+                      <td>{% if buyer.user.is_active %} 
+                          <i class="fa fa-check"></i>  Active 
+                          {% else %} 
+                          Invite Pending
+                          {% endif %}
+                      </td> 
                       <td>
                         <form method="POST">
                           {% csrf_token %}

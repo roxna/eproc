@@ -35,7 +35,13 @@
      </div>
 
       <div class="col-lg-6 col-md-12 col-xs-12">
-        <div class="box box-widget widget-user">
+        <div class="box" id="noVendorSelected">
+            <div class="box-body">
+              <b>No vendor selected</b> <br><br>
+              <em>Click on a vendor in the table to see details.</em>
+            </div>
+        </div>
+        <div class="box box-widget widget-user" id="vendorDetailSection">
             <div class="widget-user-header bg-teal">
               <h3 class="widget-user-username" id="vendorName"></h3>
               <h5 class="widget-user-desc" id="vendorContactRep"></h5>
@@ -96,7 +102,10 @@
 
   <!-- TODO: MOVE TO CUSTOM.JS -->
   <script>
+    $('#vendorDetailSection').hide();
     $('#vendorTable tbody tr td').on('click', function(vendors_json){
+        $('#noVendorSelected').hide();
+        $('#vendorDetailSection').show();        
         var vendors_json = {{ vendors_json | safe }};
         var id = parseInt($(this).data('id'));
         console.log(id);
