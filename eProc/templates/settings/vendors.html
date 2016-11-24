@@ -20,7 +20,7 @@
                 <tbody>              
                   {% for vendor in vendors %}                           
                     <tr>
-                      <td data-id="{{vendor.id}}"><a>{{ vendor.name }}</a></td>
+                      <td data-id="{{vendor.id}}" data-name="{{vendor.name|slugify}}"><a>{{ vendor.name }}</a></td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -42,52 +42,43 @@
             </div>
         </div>
         <div class="box box-widget widget-user" id="vendorDetailSection">
-            <div class="widget-user-header bg-teal">
-              <h3 class="widget-user-username" id="vendorName"></h3>
-              <h5 class="widget-user-desc" id="vendorContactRep"></h5>
+            <div class="widget-user-header bg-gray">
+              <h3 class="widget-user-username" id="vendorName"></h3><br>
+              <h5 class="widget-user-desc">ID: <span id="vendorID"></span></h5>
             </div>
             <div class="box-footer">
               <div class="row">
-                <div class="col-sm-4 border-right">
+                <div class="col-sm-6 border-right">
                   <div class="description-block">
-                    <span class="description-text">EMAIL</span>
-                    <h5 class="description-header" id="vendorEmail"></h5>
+                    <h5 class="description-header pull-left">CONTACT INFORMATION</h5><br><br>
+                    <span class="pull-left">Contact: <b><span id="vendorContactRep"></span></b></span><br>
+                    <span class="pull-left">Email: <b><span id="vendorEmail"></span></b></span><br>
+                    <span class="pull-left">Phone: <b><span id="vendorPhone"></span></b></span><br>
+                    <span class="pull-left">Fax: <b><span id="vendorFax"></span></b></span><br>
                   </div>
                 </div>
-                <div class="col-sm-4 border-right">
+                <div class="col-sm-6 border-right">
                   <div class="description-block">
-                    <span class="description-text">PHONE</span>
-                    <h5 class="description-header" id="vendorPhone"></h5>
-                  </div>
-                </div>
-                <div class="col-sm-4">
-                  <div class="description-block">
-                    <span class="description-text">FAX</span>
-                    <h5 class="description-header" id="vendorFax"></h5>
+                    <h5 class="description-header pull-left">ADDRESS</h5><br><br>
+                    <span class="pull-left" id="vendorAdd1"></span><br>
+                    <span class="pull-left" id="vendorAdd2"></span><br>
+                    <span class="pull-left" id="vendorCity"></span> &nbsp;
+                    <span class="pull-left" id="vendorState"></span>
+                    <span class="pull-left" id="vendorZip"></span>
+                    <span class="pull-left" id="vendorCountry"></span>
                   </div>
                 </div>
               </div><br>
               <div class="row"></div>
               <div class="row">
-                <div class="col-sm-4 border-right">
+                <div class="col-sm-12 border-right">
                   <div class="description-block">
-                    <span class="description-text">ADDRESS</span>
-                    <h5 class="description-header" id="vendorAddress"></h5>
-                  </div>
-                </div>
-                <div class="col-sm-4 border-right">
-                  <div class="description-block">
-                    <span class="description-text">OTHER INFO</span>
-                    <h5 class="description-header" id="vendorOther"></h5>
-                  </div>
-                </div>
-                <div class="col-sm-4 border-right">
-                  <div class="description-block">
-                    <span class="description-text">NOTES</span>
-                    <h5 class="description-header" id="vendorComments"></h5>
+                    <h5 class="description-header pull-left">COMMENTS</h5><br>
+                    <span class="pull-left" id="vendorComments"></span>                    
                   </div>
                 </div>                                
               </div>
+              <div class="row"></div><br>
             </div>
         </div>
       </div>
@@ -99,19 +90,8 @@
 
 {% block js %}
   {% include "_includes/dataTablesNotifications.html" with tableID="vendorTable" %}
-
-  <!-- TODO: MOVE TO CUSTOM.JS -->
+  <script src="{% static 'dist/js/custom.js' %}"></script> 
   <script>
     $('#vendorDetailSection').hide();
-    $('#vendorTable tbody tr td').on('click', function(vendors_json){
-        $('#noVendorSelected').hide();
-        $('#vendorDetailSection').show();        
-        var vendors_json = {{ vendors_json | safe }};
-        var id = parseInt($(this).data('id'));
-        console.log(id);
-        console.log(vendors_json);
-        $("#vendorName").text(vendors_json[0]['pk']);     
-        $("#vendorComments").text(vendors_json[0]['fields']['comments']);        
-    });
   </script>
 {% endblock js %}

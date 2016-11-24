@@ -60,6 +60,7 @@ urlpatterns=[
     # url(r'^po/receive/$', eProc_views.receive, name='receive_po'),
     
     url(r'^vendors/$', eProc_views.vendors, name='vendors'),
+    url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
     url(r'^vendors/import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
     url(r'^products/$', eProc_views.products, name='products'),
     url(r'^products/import-csv$', eProc_views.upload_product_csv, name='upload_product_csv'),

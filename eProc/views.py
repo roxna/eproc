@@ -222,6 +222,18 @@ def vendors(request):
     return render(request, "settings/vendors.html", data)    
 
 @login_required
+def view_vendor(request, vendor_id, vendor_name):
+    vendor = VendorCo.objects.filter(pk=vendor_id)
+    company = Company.objects.filter(pk=vendor_id)
+    # Catch error if no Location has been determined for Vendor
+    try:
+        location = Location.objects.filter(company=company).first()
+        data = serializers.serialize('json', list(vendor) + list(company) + list(location))
+    except TypeError:
+        data = serializers.serialize('json', list(vendor) + list(company))
+    return HttpResponse(data, content_type='application/json')
+
+@login_required
 def upload_vendor_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
     currency = request.user.buyer_profile.company.currency.upper()

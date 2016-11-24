@@ -1,5 +1,52 @@
 $(document).ready(function(){
-  		
+  	
+	/***************************************
+	****      VENDOR DETAILS AJAX       ***
+	***************************************/	
+
+    $('#vendorTable tbody tr td').on('click', function(vendors_json){
+        $('#noVendorSelected').hide();
+        $('#vendorDetailSection').show();
+
+        var id = parseInt($(this).data('id'));
+        var name = $(this).data('name');
+        console.log(id);
+        console.log(name);
+        $.ajax({
+		    url: '/vendor/'+id+'/'+name,
+		    type: 'get',
+		    success: function(data) {
+		        console.log(data);
+				
+				var vendorCo = data[0]['fields'];
+				$('#vendorContactRep').text(vendorCo['contact_rep']);
+				$('#vendorID').text(vendorCo['vendorID']);
+				$('#vendorComments').text(vendorCo['comments']);
+
+		        var company = data[1]['fields'];		        
+		        $('#vendorName').text(company['name']);
+		        $('#vendorWebsite').text(company['website']);
+		        
+
+		        try{
+		        	var location = data[3]['fields'];
+		        }catch(error){
+
+		        }
+		    },
+		    failure: function(data) { 
+		        alert('Got an error dude');
+		    }
+		});
+
+
+    });
+
+
+	/***************************************
+	****     PURCHASE ORDER DETAILS      ***
+	***************************************/
+
 	// Show/hide content as 1st/2nd page of PO Creation Form 
   	$('#page2').hide();
   	$('#prevPage').hide();
@@ -57,5 +104,8 @@ $(document).ready(function(){
 	    });		     
 	    $('#POTotal').html(POTotal);
     });
+
+
+
 
 })
