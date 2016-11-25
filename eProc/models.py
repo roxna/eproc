@@ -49,9 +49,7 @@ class Location(models.Model):
 		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 	def get_primary_location(self):
-		primary_location = Location.objects.filter(loc_type='Billing')[0]
-		if primary_location:
-			return primary_location 
+		return Location.objects.last()
 
 
 ######### ACCOUNTING DETAILS #########
@@ -64,12 +62,14 @@ class Department(models.Model):
 
 class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
-	category = models.CharField(max_length=20)
-	description = models.CharField(max_length=50, null=True, blank=True)
+	name = models.CharField(max_length=20)
+	expense_type = models.CharField(choices=settings.EXPENSE_TYPES, max_length=20, default='Expense')
+	# description = models.CharField(max_length=50, null=True, blank=True)	
 	company = models.ForeignKey(BuyerCo, related_name='account_codes')
+	departments = models.ManyToManyField(Department, related_name='account_codes')
 	
 	def __unicode__(self):
-		return "[{}] {}".format(self.code, self.category)
+		return "[{}] {}".format(self.code, self.name)
 
 class Tax(models.Model):
 	name = models.CharField(max_length=15)
@@ -188,8 +188,14 @@ class OrderItem(models.Model):
 	quantity = models.IntegerField(default=1)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
-	comments = models.CharField(max_length=150, blank=True, null=True)		
-	is_approved = models.BooleanField(default=False)
+	comments = models.CharField(max_length=150, blank=True, null=True)
+	STATUS = (
+		('Requested', 'Requested'),
+		('Approved', 'Approved'),
+		('Ordered', 'Ordered'),
+		('Delivered', 'Delivered'),
+	)
+	status = models.CharField(choices=STATUS, max_length=20, default='Pending')
 	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")
@@ -205,27 +211,13 @@ class OrderItem(models.Model):
 
 ######### OTHER DETAILS #########
 class Status(models.Model):
-	STATUS = (
-		# Requisitions
-		('Draft', 'Draft'),
-		('Pending', 'Pending'),
-		('Approved', 'Approved'),
-		('Denied', 'Denied'),
-		# POs
-		('Open', 'Open'),
-		('Closed', 'Closed'),
-		('Cancelled', 'Cancelled'),
-		('Paid', 'Paid'),
-		# All 
-		('Archived', 'Archived'),
-	)
 	COLORS = (
 		('Pending', 'yellow'),
 		('Approved', 'green'),
 		('Denied', 'red'),
 		('Other', 'grey')
 	)
-	value = models.CharField(max_length=10, choices=STATUS, default='Draft')
+	value = models.CharField(max_length=10, choices=settings.STATUS, default='Draft')
 	color = models.CharField(max_length=10, choices=COLORS, default='Other')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="status_updates")

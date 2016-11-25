@@ -40,7 +40,7 @@
           <b>Request Number:</b> {{ requisition.number }}<br>
           <b>Currency:</b> {{ requisition.currency }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
-          <b>Status:</b> {{ latest_status }} 
+          <b>Status:</b> {{ latest_status }}  
             {% if latest_status == 'Approved' %}
             <i class="fa fa-check" style="color: green" aria-hidden="true"> </i>
             {% elif latest_status == 'Pending' %}

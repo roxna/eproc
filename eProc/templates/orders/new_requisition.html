@@ -1,5 +1,6 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
+{% load crispy_forms_tags %}
 
 {% block title %}New Requisition{% endblock title %}
 
@@ -15,71 +16,48 @@
     <form method="POST">
 	{% csrf_token %}
 
-      <div class="box box-default">
-
-	    <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
-        <div class="box-header with-border">
-          <h3 class="box-title">Order Details</h3>
-        </div>       
-
-         <div class="box-body">
-          <div class="row">
-        	<div class="col-xs-12">
-				<div class="box-body table-responsive no-padding">
-	              <table class="table">
-	                <tr class="basic-grey">	                  
-	                  <th>NUMBER</th>
-	                  <th>DEPARTMENT</th>
-	                  <th>DATE REQUIRED</th>	                  
-	                  <th>COMMENTS</th>
-	                </tr>
-    				<tr>    					
-    					<td>{{ requisition_form.number }}</td>
-    					<td>{{ requisition_form.department }}<br><br>
-                            <a href="{% url 'departments' %}"><i class="fa fa-plus"></i> Add Dept</a>
-                        </td>
-    					<td>{{ requisition_form.date_due }}</td>    					
-    					<td>{{ requisition_form.comments }}</td>
-    				</tr>
-    			   </table>
-	            </div>
-	        </div>
-		</div> 
+        <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
+        <div class="box box-default">	    
+            <div class="box-header with-border">
+              <h3 class="box-title">Order Details</h3>
+            </div>       
+             <div class="box-body">
+              <div class="row">
+            	<div class="col-xs-12">
+    				<div class="box-body no-padding">
+                        {% crispy requisition_form requisition_form.helper %}
+    	            </div>
+    	        </div>
+    		</div> 
+            </div>
         </div>
 
         <!-- ORDER DETAILS -->
-        <div class="box-header with-border">
-          <h3 class="box-title">Order Items List</h3>
-        </div>
+        <div class="box box-default">        
+            <div class="box-header with-border">
+              <h3 class="box-title">Order Items List</h3>
+            </div>
+            <div class="box-body">
+              <div class="row">
+            	<div class="col-xs-12">                
+    				<div class="box-body">    		        	
+                        {{ orderitem_formset.management_form | crispy }}
 
-        <div class="box-body">
-          <div class="row">
-        	<div class="col-xs-12">
-				<div class="box-body table-responsive no-padding">
-
-                    {% include "_includes/table_header.html" with tableID="orderItemTable" header_class="basic-teal" header=table_headers %}  
-                        <tbody> 
-        		        	{{ orderitem_formset.management_form }}
-        		        	{% for orderitem_form in orderitem_formset %}    				
-                                {% for hidden in orderitem_form.hidden_fields %}
-                                    {{ hidden }}
-                                {% endfor %}                    
-                				<tr class="orderitem_formset">
-                					<td>{{ orderitem_form.product }}</td>    					
-                					<td>{{ orderitem_form.quantity }}</td>    					
-                                    <td>{{ orderitem_form.account_code }}</td>
-                                    <td>{{ orderitem_form.comments }}</td>
-                				</tr>
-            				{% endfor %}
-                        </tbody>
-    				</table>
-	            </div>
-	        </div>
-		</div>
-        
-        <div class="pull-right">Next Approver: {{ requisition_form.next_approver }} </div><br><br>
-
-    	<input type="submit" value="SUBMIT REQUEST" class="button btn basic-teal pull-right"/>
+                        {% for form in orderitem_formset.forms %}                   
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            <div class="item" id="{{form.prefix}}">
+                                {% crispy form form.helper %}                                
+                            </div>                            
+                        {% endfor %}
+                        <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>                            
+    	           </div>
+    	        </div>
+    		  </div>
+              <input type="submit" value="SUBMIT REQUEST" class="button btn basic-teal pull-right"/>
+            </div>
+        </div>        
 
     </form>
 
@@ -87,15 +65,13 @@
 {% endblock content %}
 
 
-{% block js %}
-    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+{% block js %}    
+    <script src="{% static 'dist/js/custom.js' %}"></script>
 
-    <!-- Formsets -->
-    <script src="{% static 'plugins/django-dynamic-formset/jquery.formset.js' %}"></script>
-    <script type="text/javascript">
-        $('.orderitem_formset').formset({
-            addText: '<i class="fa fa-plus"></i> Add Line Item',
-            deleteText: ' <span class="pull-right"><i class="fa fa-trash"></i></span>'
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>    
+    <script>
+        $('.datepicker').datepicker({
+            format: 'mmm/dd/yyyy',
         });
     </script>
 {% endblock js %}

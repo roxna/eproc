@@ -129,6 +129,21 @@ ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'App
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
+EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
+STATUS = (
+    # Requisitions
+    ('Draft', 'Draft'),
+    ('Pending', 'Pending'),
+    ('Approved', 'Approved'),
+    ('Denied', 'Denied'),
+    # POs
+    ('Open', 'Open'),
+    ('Closed', 'Closed'),
+    ('Cancelled', 'Cancelled'),
+    ('Paid', 'Paid'),
+    # All 
+    ('Archived', 'Archived'),
+)
 
 # Inform settings.py about local_settings.py
 try:

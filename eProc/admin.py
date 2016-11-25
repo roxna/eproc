@@ -43,7 +43,7 @@ class DepartmentAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'company']
 
 class AccountCodeAdmin(admin.ModelAdmin):
-    list_display = ['id', 'code', 'category', 'description']    
+    list_display = ['id', 'code', 'name']    
 
 class StatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'document']    

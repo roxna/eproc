@@ -17,7 +17,7 @@ class RegisterUserForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterUserForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self. helper.form_tag = False
+        self.helper.form_tag = False
 
         self.helperReadOnly = FormHelper()
         self.helperReadOnly.layout = Layout(
@@ -147,20 +147,39 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(required=True)
     password = forms.CharField(required=True)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
 
 class DepartmentForm(ModelForm):
     name = forms.CharField(required=True)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(DepartmentForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
     class Meta:
         model = Department
         fields = ("name", )
 
+class AccountCodeForm(ModelForm):
+    expense_type = forms.ChoiceField(settings.EXPENSE_TYPES, required=True, )
+    departments = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=True, widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        super(AccountCodeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
+    class Meta:
+        model = AccountCode
+        fields = ("code", "name", "expense_type", "departments")
+        widgets = {
+            'departments': forms.CheckboxSelectMultiple(),
+        }
 
 class CatalogItemForm(ModelForm):
     name = forms.CharField(required=True)
@@ -172,8 +191,10 @@ class CatalogItemForm(ModelForm):
     category = forms.ModelChoiceField(queryset=Category.objects.all())
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Preferred Vendor")
 
-    helper = FormHelper() 
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(CatalogItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
     class Meta:
         model = CatalogItem
@@ -269,12 +290,28 @@ class RequisitionForm(ModelForm):
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
     # currency = forms.ChoiceField(settings.CURRENCIES, initial='USD')
-    comments = forms.CharField(required=False, max_length=200, help_text="Any comments for approving/purchasing dept: ")
-    department = forms.ModelChoiceField(queryset=Department.objects.all())
-    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all())
+    comments = forms.CharField(required=False, max_length=500,)
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(RequisitionForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(            
+            Div(
+                # Field('date_due', css_class='datepicker'),
+                Div('number', css_class='col-md-3'),
+                Div('department', css_class='col-md-3'),
+                Div('date_due', css_class='col-md-3'),
+                Div('next_approver', css_class='col-md-3'),
+                css_class='row',
+            ),
+            Div(
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            )
+        )    
 
     class Meta:
         model = Requisition
@@ -284,7 +321,7 @@ class RequisitionForm(ModelForm):
 class PurchaseOrderForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
-    comments = forms.CharField(required=False, max_length=500, help_text="PO Notes")
+    comments = forms.CharField(max_length=500, required=False,)
     # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
 
     cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
@@ -293,10 +330,10 @@ class PurchaseOrderForm(ModelForm):
     discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, widget=forms.NumberInput(attrs={ "placeholder": 0}))
-    terms = forms.CharField(max_length=5000)
-    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all()) #Update queryset in views.py
-    billing_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
-    shipping_add = forms.ModelChoiceField(queryset=Location.objects.all()) #Update queryset in views.py
+    terms = forms.CharField(max_length=5000, required=False)
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all())
+    billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
+    shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
 
     helper = FormHelper()
     helper.form_tag = False
@@ -307,17 +344,30 @@ class PurchaseOrderForm(ModelForm):
                   "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
 
 class OrderItemForm(ModelForm):
-    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all())
-    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all())
-    quantity = forms.IntegerField()
-    comments = forms.CharField(required=False, help_text="Additional comments")
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
+    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
+    quantity = forms.IntegerField(required=True)
+    comments = forms.CharField(required=False)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(OrderItemForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('product', css_class='col-md-3'),                
+                Div('quantity', css_class='col-md-1'),
+                Div('account_code', css_class='col-md-3'),
+                Div('comments', css_class='col-md-4'),
+                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
+                css_class='row',
+            ),
+        )
 
     class Meta:
         model = OrderItem
-        fields = ("product", "account_code", "quantity", "comments")
+        fields = ("product", "quantity", "account_code", "comments")
         
 
 class UploadCSVForm(forms.Form):

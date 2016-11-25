@@ -1,8 +1,8 @@
   <div class="row">
       <div class="col-xs-6">
         <p class="lead">Other</p>
-        <p class="text-muted well well-sm no-shadow">Comments: {{comments}}</p>
-        <p class="text-muted well well-sm no-shadow">Terms: {{terms}}</p>
+        <p class="text-muted well well-sm no-shadow">COMMENTS: {{form.comments}}</p>
+        <p class="text-muted well well-sm no-shadow">TERMS: {{form.terms}}</p>
       </div>
       <div class="col-xs-6 pull-right">
         <p class="lead">Totals</p>
@@ -16,22 +16,22 @@
                 </tr>
                 <tr>
                   <th>Tax:</th>
-                  <td class="amount">{{tax}}</td>
+                  <td class="amount">{{form.tax_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <th>Shipping:</th>
-                  <td class="amount">{{shipping}}</td>
+                  <td class="amount">{{form.cost_shipping}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <th>Discount:</th>
-                  <td class="amount discount">{{discount}}</td>
+                  <td class="amount discount">{{form.discount_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <th>Other costs:</th>
-                  <td class="amount">{{other}}</td>
+                  <td class="amount">{{form.cost_other}}</td>
                   <td>{{currency}}</td>
                 </tr>    
                 <tr class="lead">
@@ -44,3 +44,4 @@
         </div>
       </div>
   </div
+

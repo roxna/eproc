@@ -24,9 +24,9 @@
                       <td>{{ buyer.user.email }}</td>                      
                       <td>{{ buyer.role }}</td> 
                       <td>{% if buyer.user.is_active %} 
-                          <i class="fa fa-check"></i>  Active 
+                          <span class="label label-success"> Active </span>
                           {% else %} 
-                          Invite Pending
+                          <span class="label label-warning"> Pending </span>
                           {% endif %}
                       </td> 
                       <td>

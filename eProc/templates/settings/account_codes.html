@@ -1,0 +1,59 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Account Code{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+
+<!-- NOT BEING USED - DELETE FOR NOW-->
+<link rel="stylesheet" type="text/css" href="{% static 'dist/css/chosen.min.css' %}" media="screen"/>
+{% endblock css %}
+
+{% block header %}Account Code{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+            <div class="box-body">
+              {% include "_includes/table_header.html" with tableID="accountCodeTable" header_class="basic-teal" header=table_headers %}           
+
+                  <tbody>              
+                    {% for account_code in account_codes %}                           
+                      <tr>
+                        <td>{{ account_code.code }}</td>
+                        <td>{{ account_code.name }}</td>
+                        <td>{% for department in account_code.departments.all %}
+                              {{ department.name }},
+                            {% endfor %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+              </table>  
+
+              <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Account Code</button>
+              {% include "_includes/modal_singleform.html" with target="Account Code" form=account_code_form %}
+            </div>
+
+        </div>
+      </div>
+    </div>
+</section>
+{% endblock content %}
+
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="accountCodeTable" %}
+
+  <!-- Multi-select for Departments -->
+  <!-- NOT BEING USED - DELETE FOR NOW-->
+  <script type="text/javascript" src="{% static 'dist/js/chosen.jquery.min.js' %}"/>
+  <script type="text/javascript">  
+    $(".chosen").chosen();
+  </script>
+{% endblock js %}

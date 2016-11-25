@@ -31,12 +31,12 @@
 						  <tr>
 						  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
 						    <td><span class="btn basic-teal">{{ item.number }}</span></a><br>
-						      <small><b>Requested by:</b> {{item.requisition.preparer.department }} <em>[{{ item.requisition.preparer.user.username }}]</em></small>
+						      <small><b>Requested by:</b> {{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
 						    </td>
 						    <td class="itemName"> {{ item.product.name }} <br>
-						      <small><em>{{ item.product.desc }}</em></small>
+						      <!-- <small><em>{{ item.product.desc }}</em></small> -->
 						    </td>
-						    <td class="itemVendor"> {{ item.product.vendorCo }}</td>                      
+						    <td class="itemVendor"> {{ item.product.vendor_co }}</td>                      
 						    <td> {{ item.date_due }}</td>
 						    <td> {{ item.product.currency|upper }} <span class="itemSubTotal">{{ item.sub_total }}</span><br>
 						      <em><small><b>Total Qty:</b> {{ item.quantity }}</small></em>
@@ -66,7 +66,7 @@
 		        	  </div>
 				      <div class="row invoice-info">				      	
 				      	<div class="col-sm-3 invoice-col">
-				          Vendor <br> {{po_form.vendorCo}}
+				          Vendor <br> {{po_form.vendor_co}}
 				        </div>
 				        <div class="col-sm-3 invoice-col">
 				          Billing Address <br>{{po_form.billing_add}}
@@ -96,13 +96,13 @@
 
 
 				        <!-- Comments, Terms &&&&& Sub Total & Grand Total tables -->
-				        {% include "_includes/po_comments_totals.html" with tableID="POTable" comments=po_form.comments terms=po_form.terms tax=po_form.tax_amount shipping=po_form.cost_shipping discount=po_form.discount_amount other=po_form.cost_other currency=currency %}
+				        {% include "_includes/po_comments_totals.html" with tableID="POTable" form=po_form currency=currency %}
 
 						<!-- Button to go toggle on 1st page of form -->
 			        	<button type="button" class="button btn basic-grey pull-left navigation" id="prevPage"><i class="fa fa-angle-left"></i> Go back</button>
 						
-						<input type="submit" value="Create Purchase Order" name="createPO" class="button btn basic-teal pull-right"/>
-						<input type="button" value="Cancel" name="cancel" class="button btn basic-grey pull-right" onclick="window.location='{% url 'new_purchaseorder' %}"/>
+						<input type="submit" value="Create Purchase Order" name="createPO" class="button btn basic-teal pull-right"/>						
+						<a href="{% url 'new_purchaseorder' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
 
 		        	</div>
 				</div>    

@@ -68,8 +68,9 @@ urlpatterns=[
 
     url(r'^settings/profile/$', eProc_views.user_profile, name='user_profile'),
     url(r'^settings/company/$', eProc_views.company_profile, name='company_profile'),
-    url(r'^settings/users/$', eProc_views.users, name='users'),   
+    url(r'^settings/users/$', eProc_views.users, name='users'),
     url(r'^settings/departments/$', eProc_views.departments, name='departments'),
+    url(r'^settings/account-codes/$', eProc_views.account_codes, name='account_codes'),
     # url(r'^settings/taxes/$', eProc_views.taxes, name='taxes'),
 
 

@@ -118,7 +118,6 @@ def users(request):
     }
     return render(request, "settings/users.html", data)
 
-
 @login_required
 def departments(request):
     departments = Department.objects.filter(company=request.user.buyer_profile.company)
@@ -138,6 +137,28 @@ def departments(request):
         'table_headers': ['Name']
     }
     return render(request, "settings/departments.html", data)
+
+@login_required
+def account_codes(request):
+    account_codes = AccountCode.objects.filter(company=request.user.buyer_profile.company)    
+    account_code_form = AccountCodeForm(request.POST or None)
+    account_code_form.fields['departments'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
+    if request.method == "POST":
+        if account_code_form.is_valid():
+            code = account_code_form.save(commit=False)
+            code.company = request.user.buyer_profile.company
+            code.save()
+            account_code_form.save_m2m() #Save dept m2m field
+            messages.success(request, 'Account Code added successfully')
+            return redirect('account_codes')
+        else:
+            messages.error(request, 'Error. Account Code list not updated.')
+    data = {
+        'account_codes': account_codes,
+        'account_code_form': account_code_form,
+        'table_headers': ['Code', 'Name', 'Departments']
+    }
+    return render(request, "settings/account_codes.html", data)
 
 @login_required
 def products(request):
@@ -194,9 +215,6 @@ def upload_product_csv(request):
 @login_required
 def vendors(request):
     vendors = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
-    # to_serialize = list(vendors) + list(Company.objects.all())
-    vendor_ids = set(vendor.pk for vendor in vendors)    
-    vendors_json = serializers.serialize('json', list(vendors)+list(Company.objects.filter(pk__in=vendor_ids)))
     vendor_form = VendorCoForm(request.POST or None)
     location_form = LocationForm(request.POST or None)
     if request.method == "POST":
@@ -214,7 +232,6 @@ def vendors(request):
             messages.error(request, 'Error. Vendor list not updated.')
     data = {
         'vendors': vendors,
-        'vendors_json': vendors_json,
         'vendor_form': vendor_form,
         'location_form': location_form,
         'table_headers': ['Co. Name']
@@ -227,7 +244,7 @@ def view_vendor(request, vendor_id, vendor_name):
     company = Company.objects.filter(pk=vendor_id)
     # Catch error if no Location has been determined for Vendor
     try:
-        location = Location.objects.filter(company=company).first()
+        location = Location.objects.filter(company=company)
         data = serializers.serialize('json', list(vendor) + list(company) + list(location))
     except TypeError:
         data = serializers.serialize('json', list(vendor) + list(company))
@@ -371,6 +388,7 @@ def new_requisition(request):
         orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
     
     if request.method == "POST":
+        # pdb.set_trace()
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = requisition_form.save(commit=False)
             requisition.preparer = buyer
@@ -392,9 +410,9 @@ def new_requisition(request):
                     order_item.save()            
             requisition.save()
 
-            if buyer.role == 'SuperUser' or buyer.role == 'Approver':
+            if (buyer.role == 'SuperUser' or buyer.role == 'Approver') and requisition.next_approver is None:
                 status = Status.objects.create(value='Approved', color='Approved', author=buyer, document=requisition)
-                requisition.order_items.update(is_approved=True)
+                requisition.order_items.update(status='Approved')
             else:
                 status = Status.objects.create(value='Pending', color='Pending', author=buyer, document=requisition)
 
@@ -434,7 +452,7 @@ def view_requisition(request, requisition_id):
         if request.POST.get('approve'):
             Status.objects.create(value='Approved', color="Approved", author=request.user.buyer_profile, document=requisition)
             for order_item in requisition.order_items:
-                order_item.is_approved = True
+                order_item.status = 'Approved'
             messages.success(request, 'Requisition approved')
         if request.POST.get('deny'):
             Status.objects.create(value='Denied', color="Denied", author=request.user.buyer_profile, document=requisition)
@@ -451,11 +469,11 @@ def view_requisition(request, requisition_id):
 
 @login_required
 def new_purchaseorder(request):
-    approved_order_items = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company).filter(is_approved=True).exclude(purchase_order__isnull=False)
+    approved_order_items = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company).filter(status='Approved').exclude(purchase_order__isnull=False)
     po_form = PurchaseOrderForm(request.POST or None,
                                 initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
-    po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Billing')
-    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company, typee='Shipping')
+    po_form.fields['billing_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
+    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
         if po_form.is_valid():
@@ -472,6 +490,7 @@ def new_purchaseorder(request):
             items = OrderItem.objects.filter(id__in=item_ids)
             for item in items:
                 item.purchase_order = purchase_order
+                item.status = 'Ordered'
                 purchase_order.sub_total += item.sub_total
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()

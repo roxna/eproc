@@ -11,17 +11,15 @@
       <div class="row invoice-info">
         <div class="col-sm-3 invoice-col">
           	<p class="lead">Vendor</p>
-            <b>{{ purchase_order.vendorCo }}</b><br>
-            {#<!-- {{ purchase_order.vendorCo.locations.get_primary_location() }}<br> -->#}
+            {{ purchase_order.vendor_co }}<br>
+            {{ purchase_order.vendor_co.locations.get_primary_location }}<br>
         </div>
          <div class="col-sm-3 invoice-col">
             <p class="lead">Bill to:</p>
-            <b> {{purchase_order.billing_add.name }}</b><br>
             {{ purchase_order.billing_add }}<br><br>
         </div>
          <div class="col-sm-3 invoice-col">
             <p class="lead">Ship to:</p>
-            <b> {{purchase_order.shipping_add.name }}</b><br>
             {{ purchase_order.shipping_add }}<br>
         </div>        
         <div class="col-sm-3 invoice-col">
@@ -47,6 +45,6 @@
       {% include "_includes/order_item_table.html" with order_items=purchase_order.order_items.all %}
 
       <!-- Comments, Terms &&&&& Sub Total & Grand Total tables -->
-      {% include "_includes/po_comments_totals.html" with tableID="POTable" comments=purchase_order.comments terms=purchase_order.terms sub_total=purchase_order.sub_total tax=purchase_order.tax_amount shipping=purchase_order.cost_shipping discount=purchase_order.discount_amount other=purchase_order.cost_other grand_total=purchase_order.grand_total currency=currency %}
+      {% include "_includes/po_comments_totals.html" with tableID="POTable" form=purchase_order currency=currency sub_total=purchase_order.sub_total grand_total=purchase_order.grand_total %}
 
 
