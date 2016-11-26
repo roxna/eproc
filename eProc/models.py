@@ -118,12 +118,8 @@ class Document(models.Model):
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
 	
-	def get_latest_status(self):	    
-	    latest_status = None
-	    for status in self.status_updates.all():
-	        if latest_status is None or latest_status.date < status.date:
-	            latest_status = status
-	    return latest_status
+	def get_latest_status(self):
+	    return self.status_updates.latest('date')
 
 	@property
 	def is_past_due(self):
@@ -156,6 +152,7 @@ class Requisition(Document):
 class PurchaseOrder(Document, SalesOrder):	
 	def __unicode__(self):
 		return "PO No. {}".format(self.number)
+
 
 class Invoice(Document, SalesOrder):
 	is_paid = models.BooleanField(default=False)
@@ -216,14 +213,7 @@ class OrderItem(models.Model):
 
 ######### OTHER DETAILS #########
 class Status(models.Model):
-	COLORS = (
-		('Pending', 'yellow'),
-		('Approved', 'green'),
-		('Denied', 'red'),
-		('Other', 'grey')
-	)
 	value = models.CharField(max_length=10, choices=settings.STATUS, default='Draft')
-	color = models.CharField(max_length=10, choices=COLORS, default='Other')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
 	document = models.ForeignKey(Document, related_name="status_updates")

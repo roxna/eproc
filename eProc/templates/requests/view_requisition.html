@@ -37,7 +37,7 @@
           <b>Request Number:</b> {{ requisition.number }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
           <b>Status:</b> 
-          <!-- TODO: GET THIS == statements working -->
+          {% with requisition.get_latest_status.value as latest_status %} 
             {% if latest_status == 'Approved' %} <span class="label label-success"> 
             {% elif latest_status == 'Pending' %} <span class="label label-warning">
             {% elif latest_status == 'Denied' %}<span class="label label-danger">

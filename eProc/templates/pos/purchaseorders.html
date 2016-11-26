@@ -1,12 +1,12 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 
-{% block title %}Purchase Orders{% endblock title %}
+{% block title %}{{title}}{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}Purchase Orders {% endblock header %}
+{% block header %}{{title}}{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -29,27 +29,27 @@
             <div class="tab-content">
               <div class="tab-pane" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/po_table.html" with purchaseorders=all_pos %}
+                 {% include po_table_template with purchaseorders=all_pos href=href %}
                   </table>
               </div>
               <div class="tab-pane active" id="open"> 
                  <table id="openTable" class="table table-striped">
-                 {% include "_includes/po_table.html" with purchaseorders=open_pos %}
+                 {% include po_table_template with purchaseorders=open_pos href=href %}
                   </table>
               </div>
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
-                 {% include "_includes/po_table.html" with purchaseorders=closed_pos %}
+                 {% include po_table_template with purchaseorders=closed_pos href=href %}
                   </table>
               </div>
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes/po_table.html" with purchaseorders=cancelled_pos %}
+                 {% include po_table_template with purchaseorders=cancelled_pos href=href %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include "_includes/po_table.html" with purchaseorders=paid_pos %}
+                 {% include po_table_template with purchaseorders=paid_pos href=href %}
                   </table>
               </div>              
 

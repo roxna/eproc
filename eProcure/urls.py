@@ -57,7 +57,7 @@ urlpatterns=[
     url(r'^purchase-order/new/$', eProc_views.new_purchaseorder, name='new_purchaseorder'),
     url(r'^purchase-order/(?P<po_id>\w+)/$', eProc_views.view_purchaseorder, name='view_purchaseorder'),
     url(r'^purchase-order/print/(?P<po_id>\w+)$', eProc_views.print_purchaseorder, name='print_purchaseorder'),
-    url(r'^purchase-order/receive/$', eProc_views.receive_pos, name='receive_pos'),
+    url(r'^purchase-orders/receive/$', eProc_views.receive_pos, name='receive_pos'),
     url(r'^purchase-order/receive/(?P<po_id>\w+)/$', eProc_views.receive_purchaseorder, name='receive_purchaseorder'),
 
     url(r'^inventory/$', eProc_views.inventory, name='inventory'),

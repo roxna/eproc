@@ -1,10 +1,10 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
+{% load crispy_forms_tags %}
 
-{% block title %}Purchase Orders{% endblock title %}
+{% block title %}Receive PO{% endblock title %}
 
-{% block header %}Purchase Order Details
-{% endblock header %}
+{% block header %}PO Receive Details{% endblock header %}
 
 
 {% block content %}
@@ -13,20 +13,83 @@
 
     <div class="row">
       <div class="col-xs-12">
-        <a href="{% url 'purchaseorders' %}"><i class="fa fa-angle-left"></i> Back</a>
+        <a href="{% url 'receive_pos' %}"><i class="fa fa-angle-left"></i> Back</a>
       </div>
     </div>
-
-    {% include "_includes/po_template.html" with purchase_order=purchase_order %}
 
     <div class="row">
+        <div class="col-xs-12">
+          <h2 class="page-header no-border">{{purchase_order.number}}</h2>
+        </div>
+    </div>
+    <div class="row invoice-info">
+        <div class="col-sm-12 invoice-col">
+            <table>
+              <tr>
+                <td>PURCHASED BY: </td>
+                <td style="padding-left:3em">{{ purchase_order.preparer }}</td>
+              </tr>
+              <tr>
+                <td>VENDOR: </td>
+                <td style="padding-left:3em">{{ purchase_order.vendor_co.name }}</td>
+              </tr>
+            </table> <br>
+        </div>
+    </div>
+
+    <!-- Order Item Form in Request -->
+    <form method="POST">
+    {% csrf_token %}
       <div class="row">
-        <div class="col-xs-12">                      
-            <a href="{% url 'print_purchaseorder' purchase_order.id %}"><button type="input" class="btn basic-teal pull-right"><i class="fa fa-print"></i> Print PO</button></a>
-            <a href="mailto:{{user.email}}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email PO</button></a>
+        <div class="col-xs-12">
+         <p class="lead">PO Line Items</p>
+        </div>
+        
+        <div class="col-xs-12 table-responsive">
+          <table class="table table-striped">
+            <thead>
+            <tr>
+              <th>Number</th>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Quantity</th>
+              <th>Status</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for item in purchase_order.order_items.all %}
+            <tr>
+              <td>{{ item.number }}</td>
+              <td>{{ item.product.name }}</td>
+              <td>{{ item.product.sku }}</td>
+              <td>{{ item.quantity }}</td> 
+              {% if item.status == 'Delivered' %}        
+                <td class="label label-success">Delivered </td>
+                {% else %}
+                <td class="approvedToggle"><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/> &nbsp;Delivered?</td>   
+              {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div><br>
+      <div class="row">
+        <div class="row">
+          <div class="col-xs-12"> 
+            {% with purchase_order.get_latest_status as latest_status %} 
+              {% if latest_status.value == 'Open' %}
+                <button type="submit" class="btn basic-teal pull-right">Save Changes</button>
+              {% elif latest_status.value == 'Closed' %}
+                <div class="label" style="color:grey"><b>PO Closed: <em></b>
+                {{latest_status.date}} by {{latest_status.author}}</div></em>
+              {% endif %}
+            {% endwith %}            
+          </div>
         </div>
       </div>
-    </div>
+    </form>
 
   </section>
   <div class="clearfix"></div>
@@ -35,5 +98,7 @@
 
 
 {% block js %}
-  {% include "_includes/dataTablesNotifications.html" %}
+<script>
+  
+</script>
 {% endblock js %}

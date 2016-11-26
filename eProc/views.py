@@ -413,10 +413,10 @@ def new_requisition(request):
             requisition.save()
 
             if buyer.role == 'SuperUser':
-                status = Status.objects.create(value='Approved', color='Approved', author=buyer, document=requisition)
+                status = Status.objects.create(value='Approved', author=buyer, document=requisition)
                 requisition.order_items.update(status='Approved')
             else:
-                status = Status.objects.create(value='Pending', color='Pending', author=buyer, document=requisition)
+                status = Status.objects.create(value='Pending', author=buyer, document=requisition)
 
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
@@ -447,23 +447,21 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     requisition = Requisition.objects.get(pk=requisition_id)
-    latest_status = requisition.status_updates.latest('date')
     # Manage approving/denying requisitions
     if request.method == 'POST':
         if 'approve' in request.POST:
-            Status.objects.create(value='Approved', color="Approved", author=request.user.buyer_profile, document=requisition)
+            Status.objects.create(value='Approved', author=request.user.buyer_profile, document=requisition)
             for order_item in requisition.order_items:
                 order_item.status = 'Approved'
             messages.success(request, 'Requisition approved')
         if 'deny' in request.POST:
-            Status.objects.create(value='Denied', color="Denied", author=request.user.buyer_profile, document=requisition)
+            Status.objects.create(value='Denied', author=request.user.buyer_profile, document=requisition)
             messages.success(request, 'Requisition denied')
         else:
             messages.error(request, 'Error. Requisition not updated')
         return redirect('requisitions')
     data = {
         'requisition': requisition,
-        'latest_status': latest_status,
         'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
     }
     return render(request, "requests/view_requisition.html", data)
@@ -486,7 +484,7 @@ def new_purchaseorder(request):
             purchase_order.buyer_co = request.user.buyer_profile.company
             purchase_order.sub_total = 0
             purchase_order.save()
-            status = Status.objects.create(value='Open', color="Pending", author=request.user.buyer_profile, document=purchase_order)
+            status = Status.objects.create(value='Open', author=request.user.buyer_profile, document=purchase_order)
 
             item_ids = request.POST.getlist('order_items')
             items = OrderItem.objects.filter(id__in=item_ids)
@@ -521,6 +519,9 @@ def purchaseorders(request):
         'closed_pos': closed_pos,
         'cancelled_pos': cancelled_pos,
         'paid_pos': paid_pos,
+        'po_table_template': '_includes/po_table.html',
+        'href': 'view_purchaseorder',
+        'title': 'Purchase Orders',
     }
     return render(request, "pos/purchaseorders.html", data)
 
@@ -535,11 +536,8 @@ def print_purchaseorder(request, po_id):
 @login_required
 def view_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
-    latest_status = purchase_order.status_updates.latest('date')
-    # pdb.set_trace()
     data = {
         'purchase_order': purchase_order,
-        'latest_status': latest_status
     }
     return render(request, "pos/view_purchaseorder.html", data)
 
@@ -553,23 +551,38 @@ def receive_pos(request):
         'closed_pos': closed_pos,
         'cancelled_pos': cancelled_pos,
         'paid_pos': paid_pos,
+        'po_table_template': '_includes/po_table.html',
+        'href': 'receive_purchaseorder',
+        'title': 'Receive Purchase Orders',
     }
     return render(request, "pos/receive_pos.html", data)
 
 @login_required
 def receive_purchaseorder(request, po_id):
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)
-    latest_status = purchase_order.status_updates.latest('date')
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)    
+    if request.method == 'POST':
+        item_ids = request.POST.getlist('order_items')
+        approved_items = OrderItem.objects.filter(id__in=item_ids)
+        try:
+            for item in approved_items:
+                item.status = 'Delivered'
+                item.save()
+            unapproved_order_items = OrderItem.objects.filter(purchase_order=purchase_order, status='Ordered')
+            if len(unapproved_order_items) == 0:
+                purchase_order.status = 'Closed'
+                purchase_order.save()
+            messages.success(request, 'Orders updated successfully')
+            return redirect('receive_pos')  
+        except:
+            messages.error(request, 'Error updating items')
     data = {
-        'purchase_order': purchase_order,
-        'latest_status': latest_status
+        'purchase_order': purchase_order,   
     }
     return render(request, "pos/receive_purchaseorder.html", data)
 
 @login_required
 def inventory(request):
-    orderitems = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company)
-    # , status='Delivered'
+    orderitems = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company, status='Delivered')
     inventoryCount = orderitems.values('product__name').order_by('product__name').annotate(totalCount=Sum('quantity'))
     inventoryCost = orderitems.values('product__name').annotate(totalCost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
 

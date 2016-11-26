@@ -16,18 +16,19 @@
   {% for po in purchaseorders %}           
   <tr>
     <td> 
-      <!-- TODO: Get if statements to work -->
-      <a href="{% url 'view_purchaseorder' po_id=po.id %}">
-      {% if po.get_latest_status == 'Paid' %}
-        <span class="label label-large label-success">
-      {% elif po.get_latest_status == 'Open' %}
-        <span class="label label-large label-warning">
-      {% elif po.get_latest_status == 'Cancelled' %}
-        <span class="label label-large label-danger">
-      {% else %}
-        <span class="label label-large label-primary">
-      {% endif %}
+      {% with po.get_latest_status.value as latest_status %}
+      <a href="{% url href po_id=po.id %}">
+        {% if latest_status == 'Paid' %}
+          <span class="label label-large label-success">
+        {% elif latest_status == 'Open' %}
+          <span class="label label-large label-warning">
+        {% elif latest_status == 'Cancelled' %}
+          <span class="label label-large label-danger">
+        {% else %}
+          <span class="label label-large label-primary">
+        {% endif %}
         {{ po.number }}</span>
+      {% endwith %}
       </a>
     </td>
     <td>
@@ -37,12 +38,9 @@
       {% endif %}<br>
       <em><small><b>Submitted:</b> {{ po.date_created|date }}</small></em>      
     </td>                      
-    <td>{{ po.vendor_co }} <br>      
-    </td>
-    <td> {{ po.grand_total }}<br>      
-    </td>
-    <td> {{ po.comments }}<br>      
-    </td>
+    <td>{{ po.vendor_co }} <br></td>
+    <td> {{ po.grand_total }}<br></td>
+    <td> {{ po.comments }}<br></td>
     <td>
       <small>Prepared by: <b>{{ po.preparer.user.username }}</b></small><br>
       <small>Num. items: <b>{{ po.order_items.count }}</b></small>

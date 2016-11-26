@@ -42,10 +42,11 @@
 <section class="content col-xs-12 col-md-6 col-lg-6">
   <div class="box box-default">     
     <div class="box-header with-border">
-      <h3 class="box-title">Breakdown of items</h3>
+      <h3 class="box-title">Spend by item</h3>
     </div>       
     <div class="box-body">
-      <canvas id="inventoryChart" style="height: 261px; width: 522px;" height="522" width="1044"></canvas>
+      <canvas id="inventoryChart" height="300" width="300"></canvas>
+      <span id="legendDiv"></span>
     </div>        
   </div>    
 </section>
@@ -59,25 +60,26 @@
 
   <script>
     $(function () {
-      var pieChartCanvas = $("#inventoryChart").get(0).getContext("2d");
-      var pieChart = new Chart(pieChartCanvas);
-
+      var ctx = $("#inventoryChart").get(0).getContext("2d");      
       var data = [];
       {% for item in inventoryCost %}
         data[{{forloop.counter0}}] = {
           value: {{item.totalCost}},
           label: '{{item.product__name}}',
+          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
         };
       {% endfor %}
-
       var options = {
+        tooltipTemplate: "$<%= value %>",
         legend: {
               display: true,
               position: 'right',
           },
       };
 
-      pieChart.Doughnut(data, options);    
+      var pieChart = new Chart(ctx).Pie(data, options);
+
+      document.getElementById('legendDiv').innerHTML = pieChart.generateLegend();
     });
 
   </script>
