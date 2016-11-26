@@ -64,7 +64,6 @@ class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
 	name = models.CharField(max_length=20)
 	expense_type = models.CharField(choices=settings.EXPENSE_TYPES, max_length=20, default='Expense')
-	# description = models.CharField(max_length=50, null=True, blank=True)	
 	company = models.ForeignKey(BuyerCo, related_name='account_codes')
 	departments = models.ManyToManyField(Department, related_name='account_codes')
 	
@@ -125,6 +124,12 @@ class Document(models.Model):
 	        if latest_status is None or latest_status.date < status.date:
 	            latest_status = status
 	    return latest_status
+
+	@property
+	def is_past_due(self):
+	    if timezone.now() > self.date_due:
+	        return True
+	    return False
 
 class SalesOrder(models.Model):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -189,13 +194,13 @@ class OrderItem(models.Model):
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
 	comments = models.CharField(max_length=150, blank=True, null=True)
-	STATUS = (
+	ITEM_STATUS = (
 		('Requested', 'Requested'),
 		('Approved', 'Approved'),
 		('Ordered', 'Ordered'),
 		('Delivered', 'Delivered'),
 	)
-	status = models.CharField(choices=STATUS, max_length=20, default='Pending')
+	status = models.CharField(choices=ITEM_STATUS, max_length=20, default='Pending')
 	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")

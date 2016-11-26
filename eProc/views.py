@@ -6,7 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.forms import UserChangeForm
 from django.core import serializers
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db.models import Max
+from django.db.models import Sum, Max, F
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms import inlineformset_factory,BaseModelFormSet
 from django.shortcuts import render, redirect, resolve_url
@@ -404,13 +404,15 @@ def new_requisition(request):
                     order_item = orderitem_form.save(commit=False)
                     order_item.number = requisition.number + "-" + str(index+1)
                     order_item.requisition = requisition                    
-                    order_item.date_due = requisition.date_due
+                    order_item.date_due = requisition.date_due                    
                     order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
                     requisition.sub_total += order_item.sub_total            
-                    order_item.save()            
+                    order_item.save()
+                    order_item.unit_price = order_item.product.unit_price
+                    order_item.save()
             requisition.save()
 
-            if (buyer.role == 'SuperUser' or buyer.role == 'Approver') and requisition.next_approver is None:
+            if buyer.role == 'SuperUser':
                 status = Status.objects.create(value='Approved', color='Approved', author=buyer, document=requisition)
                 requisition.order_items.update(status='Approved')
             else:
@@ -425,7 +427,7 @@ def new_requisition(request):
         'orderitem_formset': orderitem_formset,
         'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
     }
-    return render(request, "orders/new_requisition.html", data)
+    return render(request, "requests/new_requisition.html", data)
 
 
 @login_required()
@@ -440,32 +442,31 @@ def requisitions(request):
         'approved_requisitions': approved_requisitions,
         'denied_requisitions': denied_requisitions,
     }
-    return render(request, "orders/requisitions.html", data)
+    return render(request, "requests/requisitions.html", data)
 
 @login_required
 def view_requisition(request, requisition_id):
     requisition = Requisition.objects.get(pk=requisition_id)
     latest_status = requisition.status_updates.latest('date')
-
     # Manage approving/denying requisitions
     if request.method == 'POST':
-        if request.POST.get('approve'):
+        if 'approve' in request.POST:
             Status.objects.create(value='Approved', color="Approved", author=request.user.buyer_profile, document=requisition)
             for order_item in requisition.order_items:
                 order_item.status = 'Approved'
             messages.success(request, 'Requisition approved')
-        if request.POST.get('deny'):
+        if 'deny' in request.POST:
             Status.objects.create(value='Denied', color="Denied", author=request.user.buyer_profile, document=requisition)
             messages.success(request, 'Requisition denied')
         else:
             messages.error(request, 'Error. Requisition not updated')
         return redirect('requisitions')
     data = {
-    'requisition': requisition,
-    'latest_status': latest_status,
-    'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
+        'requisition': requisition,
+        'latest_status': latest_status,
+        'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
     }
-    return render(request, "orders/view_requisition.html", data)
+    return render(request, "requests/view_requisition.html", data)
 
 @login_required
 def new_purchaseorder(request):
@@ -476,6 +477,7 @@ def new_purchaseorder(request):
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=request.user.buyer_profile.company)
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
     if request.method == 'POST':
+        # pdb.set_trace()
         if po_form.is_valid():
             purchase_order = po_form.save(commit=False)
             purchase_order.preparer = request.user.buyer_profile
@@ -486,11 +488,12 @@ def new_purchaseorder(request):
             purchase_order.save()
             status = Status.objects.create(value='Open', color="Pending", author=request.user.buyer_profile, document=purchase_order)
 
-            item_ids = request.POST.getlist('order_items[]')
+            item_ids = request.POST.getlist('order_items')
             items = OrderItem.objects.filter(id__in=item_ids)
             for item in items:
                 item.purchase_order = purchase_order
                 item.status = 'Ordered'
+                item.save()
                 purchase_order.sub_total += item.sub_total
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()
@@ -508,14 +511,10 @@ def new_purchaseorder(request):
     }
     return render(request, "pos/new_purchaseorder.html", data)
 
-
 @login_required
 def purchaseorders(request):
     all_pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
-    open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=5)
-    closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=6)
-    cancelled_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=7)
-    paid_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value=8)
+    open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(all_pos)
     data = {
         'all_pos': all_pos,
         'open_pos': open_pos,
@@ -544,3 +543,38 @@ def view_purchaseorder(request, po_id):
     }
     return render(request, "pos/view_purchaseorder.html", data)
 
+@login_required
+def receive_pos(request):
+    all_pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
+    open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(all_pos)
+    data = {
+        'all_pos': all_pos,
+        'open_pos': open_pos,
+        'closed_pos': closed_pos,
+        'cancelled_pos': cancelled_pos,
+        'paid_pos': paid_pos,
+    }
+    return render(request, "pos/receive_pos.html", data)
+
+@login_required
+def receive_purchaseorder(request, po_id):
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    latest_status = purchase_order.status_updates.latest('date')
+    data = {
+        'purchase_order': purchase_order,
+        'latest_status': latest_status
+    }
+    return render(request, "pos/receive_purchaseorder.html", data)
+
+@login_required
+def inventory(request):
+    orderitems = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company)
+    # , status='Delivered'
+    inventoryCount = orderitems.values('product__name').order_by('product__name').annotate(totalCount=Sum('quantity'))
+    inventoryCost = orderitems.values('product__name').annotate(totalCost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+
+    data = {
+        'inventoryCount': inventoryCount,
+        'inventoryCost': inventoryCost,
+    }
+    return render(request, "invoices/inventory.html", data)

@@ -3,27 +3,49 @@
 <!-- REQUISITIONS: All / Pending / Approved / Denied -->
   <thead class="basic-teal">
     <tr>
-      <th>Request Order</th>                        
-      <th>Date Due</th>                        
-      <th>Vendor</th>
-      <th>Total</th>
+      <th class="col-md-1">PO</th>                        
+      <th class="col-md-3">Date Due</th>                        
+      <th class="col-md-2">Vendor</th>
+      <th class="col-md-2">Total {{po.currency|upper}}</th>
+      <th class="col-md-2">Comments</th>
+      <th class="col-md-2">Other Notes</th>
     </tr>
   </thead>
   
   <tbody>
   {% for po in purchaseorders %}           
   <tr>
-    <td><a href="{% url 'view_purchaseorder' po_id=po.id %}"><span class="btn basic-grey">{{ po.number }}</span></a><br>
-      <small><b>Prepared by:</b> {{ po.preparer.user.username }}</small>          
+    <td> 
+      <!-- TODO: Get if statements to work -->
+      <a href="{% url 'view_purchaseorder' po_id=po.id %}">
+      {% if po.get_latest_status == 'Paid' %}
+        <span class="label label-large label-success">
+      {% elif po.get_latest_status == 'Open' %}
+        <span class="label label-large label-warning">
+      {% elif po.get_latest_status == 'Cancelled' %}
+        <span class="label label-large label-danger">
+      {% else %}
+        <span class="label label-large label-primary">
+      {% endif %}
+        {{ po.number }}</span>
+      </a>
     </td>
-    <td><b> {{ po.date_due }} </b><br>
-      <em><small><b>Submitted:</b> {{ po.date_created }}</small></em>      
+    <td>
+      <b> {{ po.date_due }} </b>
+      {% if po.is_past_due %}
+        <span class="label label-danger">Overdue</span>
+      {% endif %}<br>
+      <em><small><b>Submitted:</b> {{ po.date_created|date }}</small></em>      
     </td>                      
-    <td><b> {{ po.vendorCo }} </b><br>
-      <em><small><b>Comments:</b> {{ po.comments }}</small></em>
+    <td>{{ po.vendor_co }} <br>      
     </td>
-    <td> {{ po.currency|upper }} {{ po.grand_total }}<br>
-      <em><small><b>Num. items:</b> {{ po.order_items.count }}</small></em>
+    <td> {{ po.grand_total }}<br>      
+    </td>
+    <td> {{ po.comments }}<br>      
+    </td>
+    <td>
+      <small>Prepared by: <b>{{ po.preparer.user.username }}</b></small><br>
+      <small>Num. items: <b>{{ po.order_items.count }}</b></small>
     </td>
   </tr>
   {% endfor %}

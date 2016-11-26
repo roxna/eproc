@@ -77,7 +77,7 @@ class AddUserForm(forms.Form):
     )
 
     def get_username(self):
-        return self.cleaned_data['first_name']+self.cleaned_data['last_name']
+        return self.cleaned_data['first_name'].lower()+self.cleaned_data['last_name'].lower()
 
     def clean_username(self):
         try:
@@ -101,26 +101,17 @@ class BuyerProfileForm(ModelForm):
     role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
     department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
 
-    helper = FormHelper()
-    helper.form_tag = False
-    helper.layout = Layout(
-        Div(
-            Div('role', css_class='col-md-6'),
-            Div('department', css_class='col-md-6'),
-            css_class='row',
-        ),
-    )
-    # def __init__(self, *args, **kwargs):
-    #     super(BuyerProfileForm, self).__init__(*args, **kwargs)
-    #     self.helper = FormHelper()
-    #     self.helper.form_tag = False
-    #     self.helper.layout = Layout(
-    #         Div(
-    #             Div('role', css_class='col-md-6'),
-    #             Div('department', css_class='col-md-6'),
-    #             css_class='row',
-    #         ),
-    #     )
+    def __init__(self, *args, **kwargs):
+        super(BuyerProfileForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('role', css_class='col-md-6'),
+                Div('department', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
 
     class Meta:
         model = BuyerProfile

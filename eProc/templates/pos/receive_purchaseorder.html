@@ -1,0 +1,39 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Purchase Orders{% endblock title %}
+
+{% block header %}Purchase Order Details
+{% endblock header %}
+
+
+{% block content %}
+
+  <section class="invoice">
+
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{% url 'purchaseorders' %}"><i class="fa fa-angle-left"></i> Back</a>
+      </div>
+    </div>
+
+    {% include "_includes/po_template.html" with purchase_order=purchase_order %}
+
+    <div class="row">
+      <div class="row">
+        <div class="col-xs-12">                      
+            <a href="{% url 'print_purchaseorder' purchase_order.id %}"><button type="input" class="btn basic-teal pull-right"><i class="fa fa-print"></i> Print PO</button></a>
+            <a href="mailto:{{user.email}}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email PO</button></a>
+        </div>
+      </div>
+    </div>
+
+  </section>
+  <div class="clearfix"></div>
+   
+{% endblock content %}
+
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" %}
+{% endblock js %}

@@ -15,11 +15,11 @@
             {{ purchase_order.vendor_co.locations.get_primary_location }}<br>
         </div>
          <div class="col-sm-3 invoice-col">
-            <p class="lead">Bill to:</p>
+            <p class="lead">Bill to</p>
             {{ purchase_order.billing_add }}<br><br>
         </div>
          <div class="col-sm-3 invoice-col">
-            <p class="lead">Ship to:</p>
+            <p class="lead">Ship to</p>
             {{ purchase_order.shipping_add }}<br>
         </div>        
         <div class="col-sm-3 invoice-col">
@@ -30,13 +30,6 @@
             Promise Date: <b>{{ purchase_order.date_due }}</b><br>
 
             Status: <b>{{ latest_status }}</b>
-            {% if latest_status == 'Closed' %}
-              <i class="fa fa-check" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
-              {% elif latest_status == 'Open' %}
-              <i class="fa fa-question" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
-              {% elif latest_status == 'Cancelled' %}
-              <i class="fa fa-close" style="color: {{latest_status.color.get_value_display}}" aria-hidden="true"> </i>
-            {% endif %}
           <br>
         </div>
       </div><br><br>

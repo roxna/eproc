@@ -3,9 +3,6 @@
 
 {% block title %}Requests{% endblock title %}
 
-{% block css %}
-{% endblock css %}
-
 {% block header %}Requisition{% endblock header %}
 
 
@@ -38,17 +35,14 @@
         </div>
         <div class="col-sm-6 invoice-col">
           <b>Request Number:</b> {{ requisition.number }}<br>
-          <b>Currency:</b> {{ requisition.currency }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
-          <b>Status:</b> {{ latest_status }}  
-            {% if latest_status == 'Approved' %}
-            <i class="fa fa-check" style="color: green" aria-hidden="true"> </i>
-            {% elif latest_status == 'Pending' %}
-            <i class="fa fa-question" style="color: orange" aria-hidden="true"> </i>
-            {% elif latest_status == 'Denied' %}
-            <i class="fa fa-close" style="color: red" aria-hidden="true"> </i>
-            {% endif %}
-          <br>
+          <b>Status:</b> 
+          <!-- TODO: GET THIS == statements working -->
+            {% if latest_status == 'Approved' %} <span class="label label-success"> 
+            {% elif latest_status == 'Pending' %} <span class="label label-warning">
+            {% elif latest_status == 'Denied' %}<span class="label label-danger">
+            {% endif %} {{ latest_status }}  </span>
+          <br><br>
         </div>
       </div>
 
@@ -56,32 +50,37 @@
       {% include "_includes/order_item_table.html" with order_items=requisition.order_items.all %}
 
 	    <!-- Comments & Total -->
-      <div class="row">      
-        <div class="col-xs-12">
-        {% if requisition.comments %}
-          <p class="lead">Comments</p>
-          <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;"> {{ requisition.comments }}</p>
-        </div>
-        {% endif %}
+      <div class="row">              
+        <div class="col-xs-12 col-md-8">
+          <p class="lead" style="margin-bottom: 0px;">Comments</p>
+          <p> 
+            {% if requisition.comments %}
+              {{ requisition.comments }}
+            {% else %}
+              -
+            {% endif %}
+          </p>
+        </div>        
 
-        <div class="col-xs-12">
-          <p class="lead pull-right">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
+        <div class="col-xs-12 col-md-4">
+          <p class="lead">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
         </div>
       </div><br>
       
       <div class="row no-print">
-        <div class="col-xs-12">                  
+        <div class="col-xs-12">
           {% if latest_status == 'Pending' %}
+            <!-- TODO: GET THE == statements working -->
             <!-- Show only if Approver Role -->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-              <form method="post">
-                {% csrf_token %}
-                <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
-                <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
-              </form>
+                <form method="post">
+                  {% csrf_token %}
+                  <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
+                  <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
+                </form>
             {% endif %}
           {% else %}
-            <div class="btn basic-grey pull-right">Status: <em><b>{{latest_status}}</b> [{{latest_status.author}} on {{latest_status.date}}]</div></em>
+              <div class="label" style="color:grey">Status: <em><b>{{latest_status}}</b> [Submitted by {{latest_status.author}} on {{latest_status.date}}]</div></em>
           {% endif %}          
         </div>
       </div>
@@ -89,8 +88,3 @@
    
     <div class="clearfix"></div>
 {% endblock content %}
-
-
-{% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID="catalogTable" %}
-{% endblock js %}

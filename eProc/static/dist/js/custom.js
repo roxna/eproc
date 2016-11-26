@@ -175,4 +175,14 @@ $(document).ready(function(){
 	    $('#POTotal').html(POTotal);
 	});
 
+
+	/***************************************
+	****      INVENTORY CHART AJAX       ***
+	***************************************/	
+
+	// see inventory.html
+
+
+
+
 })

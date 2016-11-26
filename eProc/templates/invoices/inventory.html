@@ -1,0 +1,85 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Inventory{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Inventory{% endblock header %}
+
+{% block content %}
+<section class="content col-xs-12 col-md-6 col-lg-6">
+  <div class="box box-default">     
+    <div class="box-header with-border">
+      <h3 class="box-title">List of Delivered Items</h3>
+    </div>       
+    <div class="box-body">
+        <table id="inventoryTable" class="table table-striped">
+             <thead class="basic-teal">
+              <tr>
+                <th>Product Name</th>                        
+                <th>Quantity</th>
+                <!-- <th>Category</th> -->
+              </tr>
+            </thead>
+            
+            <tbody> 
+            {% for item in inventoryCount %}           
+            <tr>
+              <td>{{ item.product__name }}</td>
+              <td>{{ item.totalCount }}</td>
+              <!-- <td>{{ item.product.category }}</td> -->
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>        
+  </div>    
+</section>
+
+<section class="content col-xs-12 col-md-6 col-lg-6">
+  <div class="box box-default">     
+    <div class="box-header with-border">
+      <h3 class="box-title">Breakdown of items</h3>
+    </div>       
+    <div class="box-body">
+      <canvas id="inventoryChart" style="height: 261px; width: 522px;" height="522" width="1044"></canvas>
+    </div>        
+  </div>    
+</section>
+
+{% endblock content %}
+
+
+{% block js %}    
+  {% include "_includes/dataTablesNotifications.html" with tableID="inventoryTable" %}
+  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+
+  <script>
+    $(function () {
+      var pieChartCanvas = $("#inventoryChart").get(0).getContext("2d");
+      var pieChart = new Chart(pieChartCanvas);
+
+      var data = [];
+      {% for item in inventoryCost %}
+        data[{{forloop.counter0}}] = {
+          value: {{item.totalCost}},
+          label: '{{item.product__name}}',
+        };
+      {% endfor %}
+
+      var options = {
+        legend: {
+              display: true,
+              position: 'right',
+          },
+      };
+
+      pieChart.Doughnut(data, options);    
+    });
+
+  </script>
+
+{% endblock js %}

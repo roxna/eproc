@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="{% static 'dist/css/_all-skins.min.css' %}">
   <link rel="stylesheet" href="{% static 'dist/css/skin-teal.css' %}">
   <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
   {% block css %}{% endblock css %}
 
 </head>
@@ -111,8 +112,8 @@
           {% endif %}
 
           {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-            <li><a href="{%url 'dashboard' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
-            <li><a href="{%url 'dashboard' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
+            <li><a href="{%url 'receive_pos' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
+            <li><a href="{%url 'inventory' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
           {% endif %}
           <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-line-chart"></i> <span>Reports</span></a></li> -->
           <li class="treeview">
