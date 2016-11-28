@@ -9,6 +9,12 @@ def send_verific_email(user,random_id):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
+def get_requisitions(all_requisitions):
+    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
+    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Denied')
+    return pending_requisitions, approved_requisitions, denied_requisitions
+
 def get_pos(all_pos):
     open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
     closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Closed')

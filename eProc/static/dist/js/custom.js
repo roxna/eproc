@@ -150,9 +150,10 @@ $(document).ready(function(){
 			// Show Order Items on 2nd page
 			$('#orderPOTable tbody').append(
 				'<tr>' +
-					'<td>' + $(this).closest("tr").find('.itemName').text() + '</td>' +
-					'<td>' + $(this).closest("tr").find('.itemVendor').text() + '</td>' +
-					'<td>' + $(this).closest("tr").find('.itemSubTotal').text() + '</td>' +				    
+					'<td>' + $(this).closest('tr').find('.itemName').text() + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemQty').text() + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemVendor').text() + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemSubTotal').text() + '</td>' +				    
 				'</tr>'
 			)
 
@@ -180,7 +181,28 @@ $(document).ready(function(){
 	****      INVENTORY CHART AJAX       ***
 	***************************************/	
 
-	// see inventory.html
+    $(function () {
+      var ctx = $("#inventoryChart").get(0).getContext("2d");      
+      var data = [];
+      {% for item in inventoryCost %}
+        data[{{forloop.counter0}}] = {
+          value: {{item.totalCost}},
+          label: '{{item.product__name}}',
+          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
+        };
+      {% endfor %}
+      var options = {
+        tooltipTemplate: "$<%= value %>",
+        legend: {
+              display: true,
+              position: 'right',
+          },
+      };
+
+      var pieChart = new Chart(ctx).Pie(data, options);
+
+      document.getElementById('legendDiv').innerHTML = pieChart.generateLegend();
+    });
 
 
 

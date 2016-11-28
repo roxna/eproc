@@ -1,0 +1,81 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'plugins/morris/morris.css' %}">
+{% endblock css %}
+
+{% block header %}Dashboard{% endblock header %}
+
+{% block content %}
+<section class="content">  
+  
+  <!-- WIDGETS -->
+  <div class="row">
+    {% include "_includes/dashboard_widget.html" with color="bg-yellow" value=pending_req_count title="Pending Requests" href='requisitions' icon='book' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-blue" value=pending_po_count title="Open Purchase Orders" href='purchaseorders' icon='shopping-cart' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-red" value=items_recd_count title="Items Received" href='purchaseorders' icon='truck' %}
+  </div>
+  
+  <!-- CHARTS -->
+  <div class="row">
+    {% include "_includes/dashboard_chart.html" with chartID='deptSpendChart' title='Department' %}
+    {% include "_includes/dashboard_chart.html" with chartID='categorySpendChart' title='Category' %}
+    {% include "_includes/dashboard_chart.html" with chartID='productSpendChart' title='Product' %}
+  </div>
+
+{% endblock content %}
+
+
+{% block js %}
+  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+  <script>
+    $(function () {
+      var deptCtx = $("#deptSpendChart").get(0).getContext("2d");      
+      var deptData = [];
+      {% for item in dept_spend %}
+        deptData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.requisition__department__name}}',
+          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
+        };
+      {% endfor %}
+      var deptOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+      };
+      
+      var categCtx = $("#categorySpendChart").get(0).getContext("2d");      
+      var categData = [];
+      {% for item in categ_spend %}
+        categData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.product__category__name}}',
+          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
+        };
+      {% endfor %}
+      var categOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+      };
+
+      var productCtx = $("#productSpendChart").get(0).getContext("2d");      
+      var productData = [];
+      {% for item in product_spend %}
+        productData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.product__name}}',
+          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
+        };
+      {% endfor %}
+      var productOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+      };
+
+      var deptChart = new Chart(deptCtx).Pie(deptData, deptOptions);
+      var categChart = new Chart(categCtx).Pie(categData, categOptions);
+      var productChart = new Chart(productCtx).Pie(productData, productOptions);
+    });
+
+  </script>
+{% endblock js %}

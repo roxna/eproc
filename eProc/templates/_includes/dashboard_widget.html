@@ -1,13 +1,14 @@
-    <div class="col-lg-3 col-xs-6">
-      <!-- small box -->
-      <div class="small-box {{color}}">
-        <div class="inner">
-          <h3>{{value}}</h3>
-          <p>{{title}}</p>
+    <div class="col-lg-4 col-md-4 col-xs-4">
+      <a href="{% url href %}">
+        <div class="small-box {{color}}">
+          <div class="inner">
+            <h3>{{value}}</h3>
+            <p>{{title}}</p>
+          </div>
+          <div class="icon">
+            <i class="fa fa-{{icon}}"></i>
+          </div>
+          <div class="small-box-footer"></div>
         </div>
-        <div class="icon">
-          <i class="ion ion-person-add"></i>
-        </div>
-        <div class="small-box-footer"></div>
-      </div>
+      </a>
     </div>

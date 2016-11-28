@@ -24,21 +24,21 @@
 		          		<h3 class="box-title">Select Order Items to Add to PO</h3>
 		          	</div>        	
 		        	<div class="box-body">        	
-		        		{% include "_includes/table_header.html" with tableID="orderTable" header_class="basic-grey" table_headers=item_header %}
+		        		{% include "_includes/table_header.html" with tableID="orderTable" header_class="basic-teal" table_headers=item_header %}
 						<tbody>					
 						  {% for item in approved_order_items %} 
 						  <tr>
 						  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
-						    <td><span class="btn basic-teal">{{ item.number }}</span></a><br>
+						    <td><span class="btn basic-grey">{{ item.number }}</span></a><br>
 						      <small><b>Requested by:</b> {{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
 						    </td>
-						    <td class="itemName"> {{ item.product.name }} <br>
-						      <!-- <small><em>{{ item.product.desc }}</em></small> -->
+						    <td> 
+						    	<span class="itemName">{{ item.product.name }}</span> <br>
+						    	<em><small><b>Qty:</b> <span class="itemQty">{{ item.quantity }}</span></small></em>
 						    </td>
 						    <td class="itemVendor"> {{ item.product.vendor_co }}</td>                      
 						    <td> {{ item.date_due }}</td>
-						    <td> {{ item.product.currency|upper }} <span class="itemSubTotal">{{ item.sub_total }}</span><br>
-						      <em><small><b>Total Qty:</b> {{ item.quantity }}</small></em>
+						    <td> <span class="itemSubTotal">{{ item.sub_total }}</span><br>
 						    </td>				    
 						  </tr>
 						  {% endfor %}					

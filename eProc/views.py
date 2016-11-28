@@ -64,10 +64,23 @@ def get_started(request):
 
 @login_required()
 def dashboard(request):
+    all_requisitions = Requisition.objects.filter(buyer_co=request.user.buyer_profile.company)
+    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    all_pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
+    pending_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
+    items_received = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company, status='Delivered')
+    dept_spend = items_received.values('requisition__department__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     data = {
-
+        'pending_req_count': len(pending_requisitions),
+        'pending_po_count': len(pending_pos),
+        'items_recd_count': len(items_received),
+        'dept_spend': dept_spend,
+        'categ_spend': categ_spend,
+        'product_spend': product_spend,        
     }
-    return render(request, "dashboard.html", data)
+    return render(request, "main/dashboard.html", data)
 
 @login_required
 def users(request):    
@@ -241,12 +254,11 @@ def vendors(request):
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
     vendor = VendorCo.objects.filter(pk=vendor_id)
-    company = Company.objects.filter(pk=vendor_id)
-    # Catch error if no Location has been determined for Vendor
+    company = Company.objects.filter(pk=vendor_id)    
     try:
         location = Location.objects.filter(company=company)
         data = serializers.serialize('json', list(vendor) + list(company) + list(location))
-    except TypeError:
+    except TypeError: # No Location has been determined for Vendor
         data = serializers.serialize('json', list(vendor) + list(company))
     return HttpResponse(data, content_type='application/json')
 
@@ -433,9 +445,7 @@ def new_requisition(request):
 @login_required()
 def requisitions(request):
     all_requisitions = Requisition.objects.filter(buyer_co=request.user.buyer_profile.company)
-    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
-    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
-    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Denied')
+    pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(all_requisitions)
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -500,12 +510,13 @@ def new_purchaseorder(request):
         else:
             messages.error(request, 'Error. Purchase order not created')
             return redirect('new_purchaseorder')
+    currency = request.user.buyer_profile.company.currency
     data = {
         'approved_order_items': approved_order_items,
         'po_form': po_form,
         'currency': request.user.buyer_profile.company.currency,
-        'item_header': ['', 'Order No.', 'Item', 'Vendor', 'Date Required', 'Total Cost'],
-        'po_header': ['Item', 'Vendor', 'Total Cost'],
+        'item_header': ['', 'Order No.', 'Item', 'Vendor', 'Date Required', 'Total Cost ('+currency+')'],
+        'po_header': ['Item', 'Qty', 'Vendor', 'Total Cost ('+currency+')'],
     }
     return render(request, "pos/new_purchaseorder.html", data)
 
@@ -559,35 +570,32 @@ def receive_pos(request):
 
 @login_required
 def receive_purchaseorder(request, po_id):
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)    
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)
     if request.method == 'POST':
         item_ids = request.POST.getlist('order_items')
-        approved_items = OrderItem.objects.filter(id__in=item_ids)
+        approved_items = OrderItem.objects.filter(id__in=item_ids)        
         try:
             for item in approved_items:
                 item.status = 'Delivered'
-                item.save()
+                item.save()                        
             unapproved_order_items = OrderItem.objects.filter(purchase_order=purchase_order, status='Ordered')
-            if len(unapproved_order_items) == 0:
-                purchase_order.status = 'Closed'
-                purchase_order.save()
-            messages.success(request, 'Orders updated successfully')
-            return redirect('receive_pos')  
+            if len(unapproved_order_items) == 0:            
+                Status.objects.create(value='Closed', author=request.user.buyer_profile, document=purchase_order)
+            messages.success(request, 'Orders updated successfully')            
+            return redirect('receive_pos')
         except:
-            messages.error(request, 'Error updating items')
+            messages.error(request, 'Error updating items')        
     data = {
-        'purchase_order': purchase_order,   
+        'purchase_order': purchase_order,
     }
     return render(request, "pos/receive_purchaseorder.html", data)
 
 @login_required
 def inventory(request):
     orderitems = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company, status='Delivered')
-    inventoryCount = orderitems.values('product__name').order_by('product__name').annotate(totalCount=Sum('quantity'))
-    inventoryCost = orderitems.values('product__name').annotate(totalCost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    inventory_count = orderitems.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
 
     data = {
-        'inventoryCount': inventoryCount,
-        'inventoryCost': inventoryCost,
+        'inventory_count': inventory_count,
     }
     return render(request, "invoices/inventory.html", data)

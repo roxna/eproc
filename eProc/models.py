@@ -118,6 +118,9 @@ class Document(models.Model):
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
 	
+	def __unicode__(self):
+		return "Doc No. {}".format(self.number)
+
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
 

@@ -10,7 +10,7 @@
 {% block header %}Inventory{% endblock header %}
 
 {% block content %}
-<section class="content col-xs-12 col-md-6 col-lg-6">
+<section class="content col-xs-12">
   <div class="box box-default">     
     <div class="box-header with-border">
       <h3 class="box-title">List of Delivered Items</h3>
@@ -19,34 +19,22 @@
         <table id="inventoryTable" class="table table-striped">
              <thead class="basic-teal">
               <tr>
-                <th>Product Name</th>                        
+                <th>Product</th>                        
                 <th>Quantity</th>
-                <!-- <th>Category</th> -->
+                <th>Category</th>
               </tr>
             </thead>
             
             <tbody> 
-            {% for item in inventoryCount %}           
+            {% for item in inventory_count %}           
             <tr>
               <td>{{ item.product__name }}</td>
               <td>{{ item.totalCount }}</td>
-              <!-- <td>{{ item.product.category }}</td> -->
+              <td>{{ item.product__category__name }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
-    </div>        
-  </div>    
-</section>
-
-<section class="content col-xs-12 col-md-6 col-lg-6">
-  <div class="box box-default">     
-    <div class="box-header with-border">
-      <h3 class="box-title">Spend by item</h3>
-    </div>       
-    <div class="box-body">
-      <canvas id="inventoryChart" height="300" width="300"></canvas>
-      <span id="legendDiv"></span>
     </div>        
   </div>    
 </section>
@@ -56,32 +44,4 @@
 
 {% block js %}    
   {% include "_includes/dataTablesNotifications.html" with tableID="inventoryTable" %}
-  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
-
-  <script>
-    $(function () {
-      var ctx = $("#inventoryChart").get(0).getContext("2d");      
-      var data = [];
-      {% for item in inventoryCost %}
-        data[{{forloop.counter0}}] = {
-          value: {{item.totalCost}},
-          label: '{{item.product__name}}',
-          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
-        };
-      {% endfor %}
-      var options = {
-        tooltipTemplate: "$<%= value %>",
-        legend: {
-              display: true,
-              position: 'right',
-          },
-      };
-
-      var pieChart = new Chart(ctx).Pie(data, options);
-
-      document.getElementById('legendDiv').innerHTML = pieChart.generateLegend();
-    });
-
-  </script>
-
 {% endblock js %}
