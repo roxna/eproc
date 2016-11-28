@@ -177,32 +177,6 @@ $(document).ready(function(){
 	});
 
 
-	/***************************************
-	****      INVENTORY CHART AJAX       ***
-	***************************************/	
-
-    $(function () {
-      var ctx = $("#inventoryChart").get(0).getContext("2d");      
-      var data = [];
-      {% for item in inventoryCost %}
-        data[{{forloop.counter0}}] = {
-          value: {{item.totalCost}},
-          label: '{{item.product__name}}',
-          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
-        };
-      {% endfor %}
-      var options = {
-        tooltipTemplate: "$<%= value %>",
-        legend: {
-              display: true,
-              position: 'right',
-          },
-      };
-
-      var pieChart = new Chart(ctx).Pie(data, options);
-
-      document.getElementById('legendDiv').innerHTML = pieChart.generateLegend();
-    });
 
 
 

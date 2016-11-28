@@ -42,13 +42,15 @@ class RegisterUserForm(UserCreationForm):
         )
 
 class ChangeUserForm(UserChangeForm):
-
-    helper = FormHelper()
-    helper.layout = Layout(
-        Field('username', css_class='form-control', readonly=True),
-        Field('email', css_class='form-control', readonly=True),
-    )
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(RegisterUserForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False        
+        self.helper.layout = Layout(
+            Field('username', css_class='form-control', readonly=True),
+            Field('email', css_class='form-control', readonly=True),
+        )
+        self.helper.form_tag = False
 
     class Meta:
         model = User
@@ -310,7 +312,7 @@ class RequisitionForm(ModelForm):
 
 
 class PurchaseOrderForm(ModelForm):    
-    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True)
     comments = forms.CharField(max_length=500, required=False,)
     # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
@@ -326,13 +328,53 @@ class PurchaseOrderForm(ModelForm):
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
     shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(PurchaseOrderForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
     class Meta:
         model = PurchaseOrder
         fields = ("number", "date_due", "comments", "cost_shipping", "cost_other", 
                   "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
+
+class InvoiceForm(ModelForm):
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")
+
+    def __init__(self, *args, **kwargs):
+        super(InvoiceForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(            
+            Div(
+                Div('number', css_class='col-md-3'),
+                Div('date_due', css_class='col-md-3'),
+                Div('vendor_co', css_class='col-md-3'),
+                Div('purchase_order', css_class='col-md-3'),                
+                css_class='row',
+            ),
+            Div(
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            )
+        ) 
+
+    class Meta:
+        model = Invoice
+        fields = ("number", "date_due", "comments", "purchase_order", "vendor_co")
+
+class FileForm(ModelForm):
+    file = forms.FileField(required=True, label="Upload Invoice from Vendor")
+
+    def __init__(self, *args, **kwargs):
+        super(FileForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False        
+
+    class Meta:
+        model = File
+        fields = ("file", )
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)

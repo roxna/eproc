@@ -509,12 +509,11 @@ def new_purchaseorder(request):
             return redirect('purchaseorders')  
         else:
             messages.error(request, 'Error. Purchase order not created')
-            return redirect('new_purchaseorder')
     currency = request.user.buyer_profile.company.currency
     data = {
         'approved_order_items': approved_order_items,
         'po_form': po_form,
-        'currency': request.user.buyer_profile.company.currency,
+        'currency': currency,
         'item_header': ['', 'Order No.', 'Item', 'Vendor', 'Date Required', 'Total Cost ('+currency+')'],
         'po_header': ['Item', 'Qty', 'Vendor', 'Total Cost ('+currency+')'],
     }
@@ -591,10 +590,63 @@ def receive_purchaseorder(request, po_id):
     return render(request, "pos/receive_purchaseorder.html", data)
 
 @login_required
+def new_invoice(request):    
+    invoice_form = InvoiceForm(request.POST or None,
+                                initial= {'number': "INV"+str(Invoice.objects.filter(buyer_co=request.user.buyer_profile.company).count()+1)})
+    invoice_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
+    # TODO: POs with UNBILLED ITEMS ONLY 
+    invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
+    file_form = FileForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST':
+        # pdb.set_trace()
+        if invoice_form.is_valid() and file_form.is_valid():            
+            invoice = invoice_form.save(commit=False)
+            invoice.preparer = request.user.buyer_profile
+            invoice.currency = request.user.buyer_profile.company.currency
+            invoice.date_issued = timezone.now()
+            invoice.buyer_co = request.user.buyer_profile.company
+            purchase_order = invoice_form.cleaned_data['purchase_order']
+            # TODO: ADD ORDER ITEMS AND UPDATE TOTALS
+            invoice.sub_total = purchase_order.sub_total
+            invoice.grand_total = purchase_order.grand_total
+            invoice.billing_add = purchase_order.billing_add
+            invoice.shipping_add = purchase_order.shipping_add
+            invoice.save()
+
+            #TODO: UPLOAD FILE NOT WORKING
+            # file = file_form.save(commit=False)
+            # file.document = invoice
+            # file.save()
+            file = file_form.cleaned_data(request.FILES['file'])
+            File.objects.create(file=file, document=invoice)
+            
+            #TODO: UPDATE PURCHASE ORDER STATUS?
+            status = Status.objects.create(value='Open', author=request.user.buyer_profile, document=invoice)
+            messages.success(request, 'Invoice created successfully')
+            return redirect('invoices')  
+        else:
+            messages.error(request, 'Error. Invoice not created')
+    currency = request.user.buyer_profile.company.currency
+    data = {
+        'invoice_form': invoice_form,
+        'file_form': file_form,
+        'currency': currency,
+    }
+    return render(request, "invoices/new_invoice.html", data)
+
+@login_required
+def invoices(request):
+    invoices = Invoice.objects.filter(buyer_co=request.user.buyer_profile.company)
+    data = {
+        'invoices': invoices,
+        'table_headers': ['Invoice No.', 'Amount', 'Date Due', 'Vendor', 'File',]
+    }
+    return render(request, "invoices/invoices.html", data)
+
+@login_required
 def inventory(request):
     orderitems = OrderItem.objects.filter(requisition__buyer_co=request.user.buyer_profile.company, status='Delivered')
     inventory_count = orderitems.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
-
     data = {
         'inventory_count': inventory_count,
     }

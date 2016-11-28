@@ -1,0 +1,53 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}New Invoice{% endblock title %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
+{% endblock css %}
+
+{% block header %}Create an Invoice Record{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+    <div class="box box-default">	    
+        
+        <div class="box-header with-border">
+          <h3 class="box-title">Invoice Details</h3>
+        </div> 
+
+         <div class="box-body">
+              <div class="row">
+            	<div class="col-xs-12">
+        			<div class="box-body no-padding">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% crispy invoice_form invoice_form.helper %}
+                        {% crispy file_form file_form.helper %}
+                        <input type="submit" value="CREATE INVOICE" class="button btn basic-teal pull-right"/>
+                    </form>
+                    </div>
+                </div>
+        	</div> 
+        </div>
+
+    </div>
+
+</section>
+{% endblock content %}
+
+
+{% block js %}    
+{% endblock js %}
+
+
+
+
+
+
+
+
+

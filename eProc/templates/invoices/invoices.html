@@ -1,0 +1,29 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Invoices{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Invoices{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+          <div class="box-body">          
+             <table id="allInvoicesTable" class="table table-striped">
+                {% include "_includes/invoice_table.html" with headers=table_headers invoices=invoices %}
+              </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="allInvoicesTable" %}
+{% endblock js %}

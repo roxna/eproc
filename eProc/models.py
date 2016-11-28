@@ -7,12 +7,19 @@ from django.utils import timezone
 from eProc.managers import *
 
 
-######### COMPANY DETAILS #########
+################################
+###     COMPANY DETAILS     ### 
+################################ 
+
+# File will be uploaded to MEDIA_ROOT/<buyer_co_name>/<filename>
+def co_logo_directory_path(instance, filename):
+	return '{0}/logo/{1}'.format(instance.user.buyer_profile.company.name, filename)
+
 class Company (models.Model):
 	name = models.CharField(max_length=30)	
 	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
 	website = models.CharField(max_length=100, null=True, blank=True)	
-	logo = models.ImageField(upload_to='logos', default='../static/img/default_logo.jpg', blank=True, null=True)
+	logo = models.ImageField(upload_to=co_logo_directory_path, default='../static/img/default_logo.jpg', blank=True, null=True)
 
 	def __unicode__(self):
 		return "{}".format(self.name)
@@ -78,10 +85,17 @@ class Tax(models.Model):
 		return "{} ({}%)".format(self.name, self.percent)
 
 
-########## USERS  #########
+################################
+###           USERS          ### 
+################################ 
+
+# File will be uploaded to MEDIA_ROOT/<buyer_co_name>/<filename>
+def user_img_directory_path(instance, filename):
+	return '{0}/profile_pics/{1}_{2}'.format(instance.user.buyer_profile.company.name, instance.user.id, filename)
+
 class User(AbstractUser):
     # Already has username, firstname, lastname, email, is_staff, is_active, date_joined    
-    # profile_pic = models.ImageField(upload_to='profile_pics', default='../static/img/default_profile_pic.jpg', blank=True, null=True)
+    profile_pic = models.ImageField(upload_to=user_img_directory_path, default='../static/img/default_profile_pic.jpg', blank=True, null=True)
 
     def __unicode__(self):
     	return self.username
@@ -104,7 +118,10 @@ class VendorProfile(models.Model):
 		return "{}".format(self.user.username)
 
 
-########## ORDERS - REQUISITION, PO, INVOICE  #########
+################################
+###        DOCUMENTS         ### 
+################################ 
+
 class Document(models.Model):
 	number = models.CharField(max_length=20)
 	title = models.CharField(max_length=32, null=True, blank=True)
@@ -156,14 +173,25 @@ class PurchaseOrder(Document, SalesOrder):
 	def __unicode__(self):
 		return "PO No. {}".format(self.number)
 
-
 class Invoice(Document, SalesOrder):
-	is_paid = models.BooleanField(default=False)
+	# is_paid = models.BooleanField(default=False) CHANGE THIS TO STATUS INSTEAD
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
 	def __unicode__(self):
-		return "Invoice No. {}".format(self.number)	
+		return "Invoice No. {}".format(self.number)		
 
+# File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
+def file_directory_path(instance, filename):	    
+	    return '{0}/docs/{1}'.format(instance.user.buyer_profile.company.name, filename)
+
+class File(models.Model):
+	name = models.CharField(max_length=50, blank=True, null=True)
+	file = models.FileField(upload_to=file_directory_path)
+	document = models.ForeignKey(Document, related_name='files', blank=True, null=True)
+	# company = models.ForeignKey(BuyerCo, related_name="attachments")
+
+	def __unicode__(self):
+		return "{}".format(self.name)	
 
 ######### PRODUCT & ORDER LINE ITEMS #########
 class Category(models.Model):
@@ -236,11 +264,4 @@ class Rating(models.Model):
 	company = models.ForeignKey(Company, related_name="ratings")
 	comments = models.CharField(max_length=100)
 
-class Attachment(models.Model):
-	name = models.CharField(max_length=50)
-	file = models.FileField(upload_to='/docs', blank=True, null=True)
-	company = models.ForeignKey(VendorCo, related_name="attachments")
-
-	def __unicode__(self):
-		return "{}".format(self.name)	
 
