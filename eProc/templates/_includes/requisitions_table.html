@@ -12,20 +12,34 @@
   </thead>
   
   <tbody>
-  {% for requisition in requisitions %}           
-  <tr>
-    <td><a href="{% url 'view_requisition' requisition_id=requisition.id %}"><span class="btn basic-grey">{{ requisition.number }}</span></a><br>
-      <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
-    </td>
-    <td><b> {{ requisition.date_due | date:"M d, Y" }} </b><br>
-      <em><small><b>Created:</b> {{ requisition.date_created }}</small></em>
-    </td>                      
-    <td> {{ requisition.department }}</td>
-    <td> {{ requisition.comments }} </td>
-    <td> {{ requisition.currency }} {{ requisition.sub_total }}<br>
-      <em><small><b>Num. items:</b> {{ requisition.order_items.count }}</small></em>
-    </td>
-  </tr>
+  {% for requisition in requisitions %}    
+    <tr>
+      <td>
+        <a href="{% url 'view_requisition' requisition_id=requisition.id %}">
+          {% with requisition.get_latest_status.value as latest_status %}
+            {% if latest_status == 'Approved' %}
+              <span class="label label-large label-success">
+            {% elif latest_status == 'Pending' %}
+              <span class="label label-large label-warning">
+            {% elif latest_status == 'Denied' %}
+              <span class="label label-large label-danger">
+            {% else %}
+              <span class="label label-large label-primary">
+            {% endif %}
+            {{ requisition.number }}</span>
+          {% endwith %}
+        </a><br>
+        <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
+      </td>
+      <td><b> {{ requisition.date_due | date:"M d, Y" }} </b><br>
+        <em><small><b>Created:</b> {{ requisition.date_created }}</small></em>
+      </td>                      
+      <td> {{ requisition.department }}</td>
+      <td> {{ requisition.comments }} </td>
+      <td> {{ requisition.currency }} {{ requisition.sub_total }}<br>
+        <em><small><b>Num. items:</b> {{ requisition.order_items.count }}</small></em>
+      </td>
+    </tr>
   {% endfor %}
   </tbody>
 

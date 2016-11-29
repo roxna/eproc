@@ -64,7 +64,7 @@
               <td>{{ item.product.name }}</td>
               <td>{{ item.product.sku }}</td>
               <td>{{ item.quantity }}</td> 
-              {% if item.status == 'Delivered' %}        
+              {% if item.get_latest_status.value == 'Delivered' %}        
                 <td class="label label-success" style="vertical-align: bottom;">Delivered </td>
                 {% else %}
                 <td class="approvedToggle"><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/> &nbsp;Delivered?</td>   

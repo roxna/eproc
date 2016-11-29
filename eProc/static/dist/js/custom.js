@@ -90,7 +90,8 @@ $(document).ready(function(){
 
 	function addForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
-        // Clone a form (w/o event handlers) from 1st form & insert it after last form
+
+        // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
         var row = $(".item:first").clone(false).get(0);
         $(row).removeAttr('id').hide().insertAfter(".item:last").slideDown(300);
 
@@ -185,6 +186,10 @@ $(document).ready(function(){
 	    $('#POTotal').html(POTotal);
 	});
 
+	/***************************************
+	****      INVOICE UPDATE PO AJAX     ***
+	***************************************/
+	// Dynamically updated the PO list based on Invoice selected on new_invoice
 
 
 

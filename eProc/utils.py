@@ -9,6 +9,7 @@ def send_verific_email(user,random_id):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
+# TO FIX THESE QUERIES
 def get_requisitions(all_requisitions):
     pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
@@ -16,7 +17,7 @@ def get_requisitions(all_requisitions):
     return pending_requisitions, approved_requisitions, denied_requisitions
 
 def get_pos(all_pos):
-    open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
+    open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__exact='Open')
     closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Closed')
     cancelled_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Cancelled')
     paid_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Paid')

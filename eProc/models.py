@@ -134,6 +134,8 @@ class Document(models.Model):
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
+	# objects = models.Manager()
+	# latest_status = LatestStatusManager() #See managers.py
 	
 	def __unicode__(self):
 		return "{}".format(self.number)
@@ -223,7 +225,9 @@ class OrderItem(models.Model):
 	product = models.ForeignKey(CatalogItem, related_name='order_items')
 	requisition = models.ForeignKey(Requisition, related_name='order_items')
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True) # If order_item is part of a PO, no longer 'pending'
-
+	# objects = models.Manager()
+	# latest_status_objects = LatestStatusManager()
+	
 	def __unicode__(self):
 		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
 
@@ -244,7 +248,7 @@ class Status(models.Model):
 
 	class Meta:
 		abstract = True
-		get_latest_by = "date"
+		get_latest_by = 'date'
 
 class OrderItemStatus(Status):
 	order_item = models.ForeignKey(OrderItem, related_name='status_updates')

@@ -341,8 +341,10 @@ class PurchaseOrderForm(ModelForm):
                   "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
 
 class InvoiceForm(ModelForm):
-    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label="Invoice Number")
+    date_issued = forms.DateField(initial=timezone.now, label="Invoice Date")
+    date_due = forms.DateField(initial=timezone.now, label="Date Due")
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")    
 
     def __init__(self, *args, **kwargs):
         super(InvoiceForm, self).__init__(*args, **kwargs)
@@ -350,11 +352,19 @@ class InvoiceForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(            
             Div(
-                Div('number', css_class='col-md-3'),
-                Div('date_due', css_class='col-md-3'),
-                Div('vendor_co', css_class='col-md-3'),
-                Div('purchase_order', css_class='col-md-3'),                
+                Div('number', css_class='col-md-6'),
+                Div('date_issued', css_class='col-md-3'),
+                Div('date_due', css_class='col-md-3'),                                
                 css_class='row',
+            ),
+            Div(
+                Div('vendor_co', css_class='col-md-5', css_id='vendor_co'),
+                HTML('<div class="col-md-1" style="margin-top:28px;">'+
+                        '<button type="button" id="selectVendor" class="label label-warning">Select</button>' +
+                     '</div>'
+                ),
+                Div('purchase_order', css_class='col-md-6', css_id="po_list"),
+                css_class='row'
             ),
             Div(
                 Div('comments', css_class='col-md-6'),
@@ -364,9 +374,10 @@ class InvoiceForm(ModelForm):
 
     class Meta:
         model = Invoice
-        fields = ("number", "date_due", "comments", "purchase_order", "vendor_co")
+        fields = ("number", "date_issued", "date_due", "comments", "purchase_order", "vendor_co")
 
 class FileForm(ModelForm):
+    name = forms.CharField(required=False, label='Invoice name or notes')
     file = forms.FileField(required=True, label="Upload Invoice from Vendor")
 
     def __init__(self, *args, **kwargs):
@@ -376,7 +387,7 @@ class FileForm(ModelForm):
 
     class Meta:
         model = File
-        fields = ("file", )
+        fields = ("name", "file", )
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)

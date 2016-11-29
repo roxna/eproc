@@ -20,19 +20,27 @@
         </div> 
 
          <div class="box-body">
-              <div class="row">
-            	<div class="col-xs-12">
-        			<div class="box-body no-padding">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {% crispy invoice_form invoice_form.helper %}
-                        {% crispy file_form file_form.helper %}
-                        <input type="submit" value="CREATE INVOICE" class="button btn basic-teal pull-right"/>
-                    </form>
+            <form method="POST">
+            {% csrf_token %}
+                <div class="row">
+        	       <div class="col-xs-12 col-md-8 col-lg-8">
+        			     <div class="box-body no-padding">
+                            {% crispy invoice_form invoice_form.helper %}
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-4 col-lg-4">
+                        <div class="box-body no-padding">
+                            {% crispy file_form file_form.helper %}
+                        </div>
                     </div>
                 </div>
-        	</div> 
-        </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <input type="submit" value="CREATE INVOICE" class="button btn basic-teal pull-right"/>
+                    </div>
+                </div>
+            </form>
+        </div> 
 
     </div>
 
@@ -40,7 +48,32 @@
 {% endblock content %}
 
 
-{% block js %}    
+{% block js %}  
+<script src="{% static 'dist/js/custom.js' %}"></script> 
+<script>
+    $(document).ready(function(){
+        $('#div_id_purchase_order').hide();
+        $('#selectVendor').on('click', function(){ 
+            $('#div_id_purchase_order').show();           
+            var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
+            $.ajax({
+                url: '/invoices/'+vendor_id,
+                type: 'get',
+                success: function(data){
+                    console.log(data);
+                    $('select[id=id_purchase_order]').html('');
+                    $.each(data, function(key, value){
+                        console.log( value);
+                    $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>');
+                    });
+                },
+                error: function(data){
+                    console.log(data);
+                }
+            })
+        })
+    })
+</script>  
 {% endblock js %}
 
 

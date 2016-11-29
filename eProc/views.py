@@ -6,7 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.forms import UserChangeForm
 from django.core import serializers
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db.models import Sum, Max, F
+from django.db.models import Sum, Max, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms import inlineformset_factory,BaseModelFormSet
 from django.shortcuts import render, redirect, resolve_url
@@ -259,8 +259,8 @@ def vendors(request):
 
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
-    vendor = VendorCo.objects.filter(pk=vendor_id)
-    company = Company.objects.filter(pk=vendor_id)    
+    vendor = VendorCo.objects.get(pk=vendor_id)
+    company = Company.objects.get(pk=vendor_id)    
     try:
         location = Location.objects.filter(company=company)
         data = serializers.serialize('json', list(vendor) + list(company) + list(location))
@@ -588,12 +588,12 @@ def receive_purchaseorder(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
     if request.method == 'POST':
         item_ids = request.POST.getlist('order_items')
-        approved_items = OrderItem.objects.filter(id__in=item_ids)        
+        approved_items = OrderItem.objects.filter(id__in=item_ids)
         try:
             for item in approved_items:
                 OrderItemStatus.objects.create(value='Delivered', author=buyer, order_item=item)
             all_items = OrderItem.objects.filter(purchase_order=purchase_order)
-            unapproved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Ordered')
+            unapproved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(~Q(status_updates__value='Delivered'))    
             if len(unapproved_order_items) == 0:            
                 DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
             messages.success(request, 'Orders updated successfully')            
@@ -632,11 +632,13 @@ def new_invoice(request):
             invoice.save()
 
             #TODO: UPLOAD FILE NOT WORKING
-            # file = file_form.save(commit=False)
-            # file.document = invoice
+            upload_file = file_form.save(commit=False)
+            # upload_file.file = request.FILES['file']
+            upload_file.document = invoice
+            upload_file.save()
             # file.save()
-            file = file_form.cleaned_data(request.FILES['file'])
-            File.objects.create(file=file, document=invoice)
+            # file = file_form.cleaned_data(request.FILES['file'])
+            # File.objects.create(file=file, document=invoice)
             
             DocumentStatus = Status.objects.create(value='Open', author=buyer, document=invoice)
             DocumentStatus = Status.objects.create(value='Closed', author=buyer, document=purchase_order)
@@ -660,6 +662,20 @@ def invoices(request):
         'table_headers': ['Invoice No.', 'Amount', 'Date Due', 'Vendor', 'File',]
     }
     return render(request, "invoices/invoices.html", data)
+
+
+@login_required
+def vendor_invoices(request, vendor_id):
+    vendor_co = VendorCo.objects.get(pk=vendor_id)
+    buyer_co = request.user.buyer_profile.company
+    try:
+        purchase_orders = PurchaseOrder.objects.filter(buyer_co=buyer_co, vendor_co=vendor_co)
+        po_numbers = [order.number for order in purchase_orders]
+        documents = Document.objects.filter(number__in=po_numbers)
+        data = serializers.serialize('json', list(documents))
+    except TypeError:
+        pass
+    return HttpResponse(data, content_type='application/json')
 
 @login_required
 def inventory(request):
