@@ -136,7 +136,7 @@ class Document(models.Model):
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
 	
 	def __unicode__(self):
-		return "Doc No. {}".format(self.number)
+		return "{}".format(self.number)
 
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
@@ -166,19 +166,14 @@ class SalesOrder(models.Model):
 class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
-	def __unicode__(self):
-		return "Requisition No. {}".format(self.number)
 
 class PurchaseOrder(Document, SalesOrder):	
-	def __unicode__(self):
-		return "PO No. {}".format(self.number)
+	pass	
 
 class Invoice(Document, SalesOrder):
 	# is_paid = models.BooleanField(default=False) CHANGE THIS TO STATUS INSTEAD
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
-	def __unicode__(self):
-		return "Invoice No. {}".format(self.number)		
 
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
@@ -222,13 +217,6 @@ class OrderItem(models.Model):
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
 	comments = models.CharField(max_length=150, blank=True, null=True)
-	ITEM_STATUS = (
-		('Requested', 'Requested'),
-		('Approved', 'Approved'),
-		('Ordered', 'Ordered'),
-		('Delivered', 'Delivered'),
-	)
-	status = models.CharField(choices=ITEM_STATUS, max_length=20, default='Pending')
 	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")
@@ -242,15 +230,27 @@ class OrderItem(models.Model):
 	def get_unit_price(self):
 		return self.unit_price
 
+	def get_latest_status(self):
+	    return self.status_updates.latest('date')		
+
 ######### OTHER DETAILS #########
 class Status(models.Model):
-	value = models.CharField(max_length=10, choices=settings.STATUS, default='Draft')
+	value = models.CharField(max_length=15, choices=settings.STATUSES, default='Draft')
 	date = models.DateTimeField(editable=False, default=timezone.now)
-	author = models.ForeignKey(BuyerProfile, related_name="status_updates")
-	document = models.ForeignKey(Document, related_name="status_updates")
+	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")	
 
 	def __unicode__(self):
 		return "{}".format(self.value)
+
+	class Meta:
+		abstract = True
+		get_latest_by = "date"
+
+class OrderItemStatus(Status):
+	order_item = models.ForeignKey(OrderItem, related_name='status_updates')
+
+class DocumentStatus(Status):
+	document = models.ForeignKey(Document, related_name="status_updates")
 
 class Rating(models.Model):
 	SCORES = (

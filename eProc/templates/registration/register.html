@@ -13,16 +13,19 @@
 {% endblock header %}
 
 {% block forms %}
+  <form method="POST" class="uniForm">
+      <div class="form-group">
+        {% csrf_token %}
+        <h3>Your Information</h3>
+        {% crispy user_form user_form.helper %}
 
-  <h3>Your Information</h3>
-  {% crispy user_form user_form.helper %}
+        <h3>Company Information</h3>
+        {% crispy buyer_company_form buyer_company_form.helper %}  <br>
 
-  <h3>Company Information</h3>
-  {% crispy buyer_company_form buyer_company_form.helper %}  <br>
-
-  <button type="submit" name="register" class="button basic-teal pull-right" value="Register">Register</button>
-  <p><em>By registering, you agree to the <a href="#">Terms of service</a></em></p>
-
+        <button type="submit" name="register" class="button basic-teal pull-right" value="Register">Register</button>
+        <p><em>By registering, you agree to the <a href="#">Terms of service</a></em></p>
+      </div>
+  </form>
 {% endblock forms %}
 
 {% block altCTA %}

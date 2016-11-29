@@ -19,11 +19,7 @@
                   {% for vendor in vendors %}                           
                     <tr>
                       <td data-id="{{vendor.id}}" data-name="{{vendor.name|slugify}}">
-                          <a href="#">{{ vendor.name }}</a>
-                          <!-- TODO: EDIT VENDOR MODAL -->
-                          <!-- <button type="button" class="pull-right" name="edit" data-toggle="modal" data-target="#editModal">
-                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-                          </button> -->                          
+                          <a href="#">{{ vendor.name }}</a>                
                       </td>                      
                     </tr>
                   {% endfor %}

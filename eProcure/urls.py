@@ -26,6 +26,7 @@ urlpatterns=[
     url(r'^blog/(?P<blog_id>\w+)/(?P<blog_slug>[\w-]+)/$', home_views.view_blog, name='view_blog'), 
     url(r'^contact/$', home_views.contact, name='contact'),
     url(r'^success/$', home_views.success, name='success'),
+    
     # LEGAL
     url(r'^terms/$', home_views.terms, name='terms'),
     url(r'^privacy-policy/$', home_views.privacy_policy, name='privacy_policy'),
@@ -36,11 +37,15 @@ urlpatterns=[
     url(r'^login/$', login, {'authentication_form': LoginForm}, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     url(r'^thankyou/$', eProc_views.thankyou, name='thankyou'),
+    
     # Reset Password - https://docs.djangoproject.com/en/1.8/_modules/django/contrib/auth/views/
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
-    url(r'^password_reset/confirm/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
-    url(r'^password_reset/complete/$', auth_views.password_reset_complete, name='password_reset_complete'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
+    url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
+    # TODO: password_change isn't passing messages framework as extra_context to show pw changed success
+    url(r'^password_change/$', auth_views.password_change, {'post_change_redirect': 'user_profile', 'extra_context': { 'messages': 'Password changed successfully'}}, name='password_change'),
+    # url(r'^password_change/done/$', auth_views.password_change_done, name='password_change_done'),
 
 
     #####################################

@@ -16,6 +16,7 @@ $(document).ready(function(){
 		    url: '/vendor/'+id+'/'+name,
 		    type: 'get',
 		    success: function(data) {
+		    	console.log(data);
 				var vendorCo = data[0]['fields'];
 				$('#vendorContactRep').text(vendorCo['contact_rep']);
 				$('#vendorID').text(vendorCo['vendorID']);
@@ -37,7 +38,15 @@ $(document).ready(function(){
 		        	$('#vendorZip').text(location['zipcode']);
 		        	$('#vendorCountry').text(location['country'].toUpperCase());
 		        }catch(error){
-
+		        	$('#vendorEmail').text('');
+		        	$('#vendorPhone').text('');
+		        	$('#vendorFax').text('');
+		        	$('#vendorAdd1').text('');
+		        	$('#vendorAdd2').text('');
+		        	$('#vendorCity').text('');
+		        	$('#vendorState').text('');
+		        	$('#vendorZip').text('');
+		        	$('#vendorCountry').text('');
 		        }
 		    },
 		    failure: function(data) { 

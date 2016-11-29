@@ -45,8 +45,11 @@ class DepartmentAdmin(admin.ModelAdmin):
 class AccountCodeAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'name']    
 
-class StatusAdmin(admin.ModelAdmin):
-    list_display = ['id', 'value', 'date', 'author', 'document']    
+class DocumentStatusAdmin(admin.ModelAdmin):
+    list_display = ['id', 'value', 'date', 'author', 'document']
+
+class OrderItemStatusAdmin(admin.ModelAdmin):
+    list_display = ['id', 'value', 'date', 'author', 'order_item']       
 
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
@@ -65,5 +68,6 @@ admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder, POAdmin)
 admin.site.register(Invoice)
 admin.site.register(Rating)
-admin.site.register(Status, StatusAdmin)
+admin.site.register(DocumentStatus, DocumentStatusAdmin)
+admin.site.register(OrderItemStatus, OrderItemStatusAdmin)
 admin.site.register(Tax)

@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm, ReadOnlyPasswordHashField
 from django.db.models import Count
 from django.forms import ModelForm
 from eProc.models import *
@@ -42,8 +42,13 @@ class RegisterUserForm(UserCreationForm):
         )
 
 class ChangeUserForm(UserChangeForm):
+    password = ReadOnlyPasswordHashField(label= ("Password"),
+        help_text= ("Raw passwords are not stored, so there is no way to see "
+                    "this user's password, but you can change the password "
+                    "using this form."))
+
     def __init__(self, *args, **kwargs):
-        super(RegisterUserForm, self).__init__(*args, **kwargs)
+        super(ChangeUserForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False        
         self.helper.layout = Layout(
@@ -137,9 +142,6 @@ class BuyerCoForm(forms.ModelForm):
         fields = ('name', 'currency')
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(required=True)
-    password = forms.CharField(required=True)
-
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()

@@ -26,13 +26,13 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django.contrib.admin',
+    'eProc',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home',
-    'eProc',
+    'home',    
     'crispy_forms',
 )
 
@@ -116,7 +116,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'xx@gmail.com'
-EMAIL_HOST_PASSWORD = 'xx'
+EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
@@ -130,18 +130,27 @@ CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
-STATUS = (
-    # Requisitions
+STATUSES = (
+    #### Order Items  ####
+    ('Requested', 'Requested'),
+    # ('Approved', 'Approved'),
+    # ('Denied', 'Denied'),
+    ('Ordered', 'Ordered'),
+    ('Delivered', 'Delivered'),
+
+    #### Requisitions ####
     ('Draft', 'Draft'),
     ('Pending', 'Pending'),
     ('Approved', 'Approved'),
     ('Denied', 'Denied'),
-    # POs
+
+    #### POs ####
     ('Open', 'Open'),
     ('Closed', 'Closed'),
     ('Cancelled', 'Cancelled'),
     ('Paid', 'Paid'),
-    # All 
+    
+    #### ALL #### 
     ('Archived', 'Archived'),
 )
 

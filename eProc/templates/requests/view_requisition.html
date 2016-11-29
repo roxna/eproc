@@ -7,6 +7,8 @@
 
 
 {% block content %}
+
+  {% with requisition.get_latest_status as latest_status %} 
     <section class="invoice">
     <div class="row">
       <div class="col-xs-12">
@@ -36,12 +38,11 @@
         <div class="col-sm-6 invoice-col">
           <b>Request Number:</b> {{ requisition.number }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
-          <b>Status:</b> 
-          {% with requisition.get_latest_status.value as latest_status %} 
-            {% if latest_status == 'Approved' %} <span class="label label-success"> 
-            {% elif latest_status == 'Pending' %} <span class="label label-warning">
-            {% elif latest_status == 'Denied' %}<span class="label label-danger">
-            {% endif %} {{ latest_status }}  </span>
+          <b>Status:</b>           
+            {% if latest_status.value == 'Approved' %} <span class="label label-success"> 
+            {% elif latest_status.value == 'Pending' %} <span class="label label-warning">
+            {% elif latest_status.value == 'Denied' %}<span class="label label-danger">
+            {% endif %} {{ latest_status }}  </span>          
           <br><br>
         </div>
       </div>
@@ -80,10 +81,12 @@
                 </form>
             {% endif %}
           {% else %}
-              <div class="label" style="color:grey">Status: <em><b>{{latest_status}}</b> [Submitted by {{latest_status.author}} on {{latest_status.date}}]</div></em>
+              <div class="label" style="color:grey">Status: <em><b>{{latest_status}}</b> [Submitted by {{latest_status.author}} on {{latest_status.date|date}}]</div></em>
           {% endif %}          
         </div>
       </div>
+
+      {% endwith %}
     </section>
    
     <div class="clearfix"></div>

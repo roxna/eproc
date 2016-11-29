@@ -13,8 +13,14 @@
 {% endblock header %}
 
 {% block forms %}
-  {% crispy form form.helper %}
-  <button type="submit" name="login" class="button basic-teal pull-right" value="Login">Log In</button>
+  <form method="POST" class="uniForm">
+      <div class="form-group">
+        {% csrf_token %}
+        {% crispy form form.helper %} 
+        <button type="submit" name="login" class="button basic-teal pull-right" value="Login">Log In</button>
+        <a href='{% url "password_reset" %}' class="pull-left">Forgot Password?</a>
+      </div>
+  </form>
 {% endblock forms %}
 
 
