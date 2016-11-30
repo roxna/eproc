@@ -51,6 +51,9 @@ class DocumentStatusAdmin(admin.ModelAdmin):
 class OrderItemStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'order_item']       
 
+class FileAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'file', 'document']    
+
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
 admin.site.register(VendorProfile, VendorProfileAdmin)
@@ -70,4 +73,5 @@ admin.site.register(Invoice)
 admin.site.register(Rating)
 admin.site.register(DocumentStatus, DocumentStatusAdmin)
 admin.site.register(OrderItemStatus, OrderItemStatusAdmin)
+admin.site.register(File, FileAdmin)
 admin.site.register(Tax)

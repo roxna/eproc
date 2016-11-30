@@ -26,6 +26,10 @@
         {% endwith %}
       </td>
       <td> {{ invoice.grand_total }}<br></td>
+      <td> 
+        <b>By: </b>{{ invoice.preparer }}<br>
+        <b>On: </b>{{ invoice.date_issued | date }}<br>
+      </td>
       <td>
         {{ invoice.date_due }}
         {% if invoice.is_past_due %}
@@ -33,7 +37,21 @@
         {% endif %}<br>      
       </td>                      
       <td>{{ invoice.vendor_co }} <br></td>      
-      <td>{{ invoice.file }} <br></td>
+      <td>
+        <a href="{% url 'view_purchaseorder' invoice.purchase_order.id %}">
+          <span class="label label-large label-primary">
+            {{ invoice.purchase_order }}
+          </span>
+        </a><br>
+      </td>
+      <td>
+        {% for file in invoice.files.all %}
+          <!-- {#<a href="{% url file.base_url %}">#} -->
+          {{ file.name }}
+          </a> <br>
+        <!-- {% endfor %} -->
+      </td>
+      <td>{{ invoice.comments }} <br></td>
     </tr>
     {% endfor %}
   </tbody>

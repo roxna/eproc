@@ -395,49 +395,16 @@ def company_profile(request):
 def new_requisition(request): 
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
-                                       initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})
-    requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
-    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user)
-
+                                       initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})    
     OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
     orderitem_formset = OrderItemFormSet(request.POST or None)
-    for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
-        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
+    initialize_newreq_forms(request.user, requisition_form, orderitem_formset)    
     
     if request.method == "POST":
-        # pdb.set_trace()
         if requisition_form.is_valid() and orderitem_formset.is_valid():
-            requisition = requisition_form.save(commit=False)
-            requisition.preparer = buyer
-            requisition.currency = buyer.company.currency
-            requisition.date_issued = timezone.now()
-            requisition.buyer_co = buyer.company
-            requisition.sub_total = 0
-            requisition.save()
-
-            # Save the data for each form in the order_items formset 
-            for index, orderitem_form in enumerate(orderitem_formset.forms):
-                if orderitem_form.is_valid():
-                    order_item = orderitem_form.save(commit=False)
-                    order_item.number = requisition.number + "-" + str(index+1)
-                    order_item.requisition = requisition                    
-                    order_item.date_due = requisition.date_due                    
-                    order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
-                    requisition.sub_total += order_item.sub_total            
-                    order_item.save()                    
-                    order_item.unit_price = order_item.product.unit_price
-                    order_item.save()
-            requisition.save()
-
-            if buyer.role == 'SuperUser':
-                DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
-                for order_item in requisition.order_items.all():
-                    OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
-            else:
-                DocumentStatus.objects.create(value='Pending', author=buyer, document=requisition)
-                for order_item in requisition.order_items.all():
-                    OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)                
+            requisition = save_new_requisition(buyer, requisition_form)
+            save_newreq_orderitems(requisition, orderitem_formset)
+            save_newreq_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
         else:
@@ -616,6 +583,7 @@ def new_invoice(request):
     invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     file_form = FileForm(request.POST or None, request.FILES or None)
     if request.method == 'POST':
+        file_form = FileForm(request.POST, request.FILES)
         # pdb.set_trace()
         if invoice_form.is_valid() and file_form.is_valid():            
             invoice = invoice_form.save(commit=False)
@@ -631,17 +599,14 @@ def new_invoice(request):
             invoice.shipping_add = purchase_order.shipping_add
             invoice.save()
 
-            #TODO: UPLOAD FILE NOT WORKING
             upload_file = file_form.save(commit=False)
-            # upload_file.file = request.FILES['file']
+            upload_file.name = request.FILES['file'].name
             upload_file.document = invoice
             upload_file.save()
-            # file.save()
-            # file = file_form.cleaned_data(request.FILES['file'])
-            # File.objects.create(file=file, document=invoice)
             
-            DocumentStatus = Status.objects.create(value='Open', author=buyer, document=invoice)
-            DocumentStatus = Status.objects.create(value='Closed', author=buyer, document=purchase_order)
+            # TODO: Make Invoice "Open", Add Approval process to Invoices
+            DocumentStatus.objects.create(value='Approved', author=buyer, document=invoice)
+            DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
             messages.success(request, 'Invoice created successfully')
             return redirect('invoices')  
         else:
@@ -659,7 +624,7 @@ def invoices(request):
     invoices = Invoice.objects.filter(buyer_co=buyer.company)
     data = {
         'invoices': invoices,
-        'table_headers': ['Invoice No.', 'Amount', 'Date Due', 'Vendor', 'File',]
+        'table_headers': ['Invoice No.', 'Amount ('+buyer.company.currency+')', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
     }
     return render(request, "invoices/invoices.html", data)
 

@@ -10,8 +10,6 @@ $(document).ready(function(){
 
 	    var id = parseInt($(this).data('id'));
 	    var name = $(this).data('name');
-	    console.log(id);
-	    console.log(name);
 	    $.ajax({
 		    url: '/vendor/'+id+'/'+name,
 		    type: 'get',
@@ -59,13 +57,16 @@ $(document).ready(function(){
 	**** REQ: ADD/DELETE ORDER ITEM DETAILS  ****
 	********************************************/
 
+	var prefix = 'order_items';
+	var id_regex = new RegExp('(' + prefix + '-\\d+)');
+
 	function updateElementIndex(el, prefix, ndx) {
-	    var id_regex = new RegExp('(' + prefix + '-\\d+-)');
-	    var replacement = prefix + '-' + ndx + '-';
-	    if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex,
-	    replacement));
-	    if (el.id) el.id = el.id.replace(id_regex, replacement);
-	    if (el.name) el.name = el.name.replace(id_regex, replacement);
+	    var replacement = prefix + '-' + ndx;
+
+	    $(el).find('[id]').attr('id', $(el).find('[id]').attr('id').replace(id_regex, replacement));
+	    $(el).find('label').attr('for', $(el).find('label').attr('for').replace(id_regex, replacement));
+	    $(el).find('[name]').attr('name', $(el).find('[name]').attr('name').replace(id_regex, replacement));
+
 	}
 
 	function deleteForm(btn, prefix) {
@@ -90,36 +91,42 @@ $(document).ready(function(){
 
 	function addForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
+	    console.log(formCount);
 
         // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
-        var row = $(".item:first").clone(false).get(0);
-        $(row).removeAttr('id').hide().insertAfter(".item:last").slideDown(300);
+        var row = $(".item:first").clone(false).get(0);	
+        row = $(row).attr('id', $(row).attr('id').replace(id_regex, prefix+'-'+formCount));
+        $(row).hide().insertAfter(".item:last").slideDown(300);
 
-        // Remove the bits we don't want in the new row/form e.g. error messages
-        $(".errorlist", row).remove();
-        $(row).children().removeClass("error");
-
-        // Relabel or rename all the relevant bits
-        $(row).children().children().each(function () {
-            updateElementIndex(this, prefix, formCount);
-            $(this).val("");
-        });
+        // Update the total form count
+        $("#id_" + prefix + "-TOTAL_FORMS").val(formCount + 1);
 
         // Add an event handler for the delete item/form link 
         $(row).find(".delete").click(function () {
             return deleteForm(this, prefix);
         });
-        // Update the total form count
-        $("#id_" + prefix + "-TOTAL_FORMS").val(formCount + 1);
+        
+        // Remove the bits we don't want in the new row/form e.g. error messages
+        $(".errorlist", row).remove();
+        $(row).children().removeClass("error");
+
+        // Relabel or rename all the relevant bits of the new row
+        $(row).children().children().each(function () {
+        	console.log(formCount);
+            updateElementIndex(this, prefix, formCount);
+            $(this).val("");
+        });
+
 	}
 
 	// Register the click event handlers
 	$("#add").click(function () {
-	    return addForm(this, "order_items");
+	    return addForm(this, prefix);
 	});
 
 	$(".delete").click(function () {
-	    return deleteForm(this, "order_items");
+		console.log('delete');
+	    return deleteForm(this, prefix);
 	});
 
 

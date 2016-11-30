@@ -376,9 +376,9 @@ class InvoiceForm(ModelForm):
         model = Invoice
         fields = ("number", "date_issued", "date_due", "comments", "purchase_order", "vendor_co")
 
-class FileForm(ModelForm):
-    name = forms.CharField(required=False, label='Invoice name or notes')
+class FileForm(ModelForm):    
     file = forms.FileField(required=True, label="Upload Invoice from Vendor")
+    comments = forms.CharField(required=False, label='Invoice notes')
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)
@@ -387,12 +387,12 @@ class FileForm(ModelForm):
 
     class Meta:
         model = File
-        fields = ("name", "file", )
+        fields = ("file", "comments", )
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
-    quantity = forms.IntegerField(required=True)
+    quantity = forms.IntegerField(required=True, min_value=1)
     comments = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -419,7 +419,9 @@ class OrderItemForm(ModelForm):
 class UploadCSVForm(forms.Form):
     file = forms.FileField(required=True)
 
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(UploadCSVForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False      
 
 

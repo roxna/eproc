@@ -20,7 +20,7 @@
         </div> 
 
          <div class="box-body">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
                 <div class="row">
         	       <div class="col-xs-12 col-md-8 col-lg-8">
@@ -30,7 +30,9 @@
                     </div>
                     <div class="col-xs-12 col-md-4 col-lg-4">
                         <div class="box-body no-padding">
+                            <div class="callout callout-info">
                             {% crispy file_form file_form.helper %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -52,19 +54,19 @@
 <script src="{% static 'dist/js/custom.js' %}"></script> 
 <script>
     $(document).ready(function(){
-        $('#div_id_purchase_order').hide();
+        // $('#div_id_purchase_order').hide();
+        $("#id_purchase_order").prop("disabled", true);
         $('#selectVendor').on('click', function(){ 
-            $('#div_id_purchase_order').show();           
+            // $('#div_id_purchase_order').show();           
+            $("#id_purchase_order").prop("disabled", false);
             var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
             $.ajax({
                 url: '/invoices/'+vendor_id,
                 type: 'get',
                 success: function(data){
-                    console.log(data);
                     $('select[id=id_purchase_order]').html('');
                     $.each(data, function(key, value){
-                        console.log( value);
-                    $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>');
+                        $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>');
                     });
                 },
                 error: function(data){

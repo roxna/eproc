@@ -173,22 +173,23 @@ class PurchaseOrder(Document, SalesOrder):
 	pass	
 
 class Invoice(Document, SalesOrder):
-	# is_paid = models.BooleanField(default=False) CHANGE THIS TO STATUS INSTEAD
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
 
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
-	    return '{0}/docs/{1}'.format(instance.user.buyer_profile.company.name, filename)
+	    return '{0}/docs/{1}'.format(instance.document.buyer_co.name, filename)
 
 class File(models.Model):
 	name = models.CharField(max_length=50, blank=True, null=True)
 	file = models.FileField(upload_to=file_directory_path)
+	comments = models.CharField(max_length=100, blank=True, null=True)
 	document = models.ForeignKey(Document, related_name='files', blank=True, null=True)
 	# company = models.ForeignKey(BuyerCo, related_name="attachments")
 
 	def __unicode__(self):
-		return "{}".format(self.name)	
+		return "{}".format(self.name)
+
 
 ######### PRODUCT & ORDER LINE ITEMS #########
 class Category(models.Model):
