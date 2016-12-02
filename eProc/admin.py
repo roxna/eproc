@@ -24,8 +24,8 @@ class RequisitionAdmin(admin.ModelAdmin):
 
 class POAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'grand_total']
-    # search_fields = ['number', 'department']
-    # list_filter = ['number', 'sub_total']
+    search_fields = ['number', 'department']
+    list_filter = ['number', 'sub_total']
 
 class CatalogItemAdmin(admin.ModelAdmin):
 	list_display = ['name', 'unit_price', 'category']
@@ -47,6 +47,7 @@ class AccountCodeAdmin(admin.ModelAdmin):
 
 class DocumentStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'document']
+    list_filter = ['document']
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'order_item']       

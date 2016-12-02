@@ -1,6 +1,5 @@
 {% load staticfiles %}
 
-<!-- REQUISITIONS: All / Pending / Approved / Denied -->
   <thead class="basic-teal">
     <tr>
       <th>Request Order</th>                        
@@ -15,20 +14,7 @@
   {% for requisition in requisitions %}    
     <tr>
       <td>
-        <a href="{% url 'view_requisition' requisition_id=requisition.id %}">
-          {% with requisition.get_latest_status.value as latest_status %}
-            {% if latest_status == 'Approved' %}
-              <span class="label label-large label-success">
-            {% elif latest_status == 'Pending' %}
-              <span class="label label-large label-warning">
-            {% elif latest_status == 'Denied' %}
-              <span class="label label-large label-danger">
-            {% else %}
-              <span class="label label-large label-primary">
-            {% endif %}
-            {{ requisition.number }}</span>
-          {% endwith %}
-        </a><br>
+        {% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=requisition.number %} <br>      
         <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
       </td>
       <td><b> {{ requisition.date_due | date:"M d, Y" }} </b><br>

@@ -180,7 +180,7 @@ class CatalogItemForm(ModelForm):
     name = forms.CharField(required=True)
     desc = forms.CharField()
     sku = forms.CharField(required=True)
-    unit_price = forms.DecimalField(required=True)
+    unit_price = forms.DecimalField(required=True, min_value=0)
     unit_type = forms.CharField(required=True)
     # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
     category = forms.ModelChoiceField(queryset=Category.objects.all())
@@ -228,8 +228,10 @@ class VendorCoForm(ModelForm):
         fields = ("name", "contact_rep", "website", "vendorID", "comments")
 
 class CategoryForm(ModelForm):
-    helper = FormHelper()
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False        
 
     class Meta:
         model = Category
@@ -283,7 +285,7 @@ class LocationForm(ModelForm):
 
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
-    date_due = forms.DateField(initial=timezone.now, required=True)
+    date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     # currency = forms.ChoiceField(settings.CURRENCIES, initial='USD')
     comments = forms.CharField(required=False, max_length=500,)
     department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
@@ -315,20 +317,20 @@ class RequisitionForm(ModelForm):
 
 class PurchaseOrderForm(ModelForm):    
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    date_due = forms.DateField(initial=timezone.now, required=True)
+    date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'} ))
     comments = forms.CharField(max_length=500, required=False,)
-    # next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
 
-    cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
-    cost_other = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
-    # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2)
-    discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0)
+    cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
+    cost_other = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
+    # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
-    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, widget=forms.NumberInput(attrs={ "placeholder": 0}))
+    tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     terms = forms.CharField(max_length=5000, required=False)
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all())
-    billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
-    shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True)
+    billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Billing Address")
+    shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Shipping Address")
 
     def __init__(self, *args, **kwargs):
         super(PurchaseOrderForm, self).__init__(*args, **kwargs)
@@ -337,13 +339,13 @@ class PurchaseOrderForm(ModelForm):
 
     class Meta:
         model = PurchaseOrder
-        fields = ("number", "date_due", "comments", "cost_shipping", "cost_other", 
+        fields = ("number", "date_due", "date_issued", "comments", "cost_shipping", "cost_other", "next_approver",
                   "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label="Invoice Number")
-    date_issued = forms.DateField(initial=timezone.now, label="Invoice Date")
-    date_due = forms.DateField(initial=timezone.now, label="Date Due")
+    date_issued = forms.DateField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_due = forms.DateField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")    
 
     def __init__(self, *args, **kwargs):

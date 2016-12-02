@@ -317,13 +317,13 @@ def categories(request):
             category.buyer_co = request.user.buyer_profile.company
             category.save()
             messages.success(request, "Category added successfully")
-            return redirect('categories')
+            return redirect('categories')   
         else:
             messages.error(request, 'Error. Category list not updated.')
     data = {
         'categories': categories,
         'category_form': category_form,
-        'table_headers': ['Code', 'Name']
+        'table_headers': ['Code', 'Name',]
     }
     return render(request, "settings/categories.html", data)   
 
@@ -420,8 +420,9 @@ def new_requisition(request):
 @login_required()
 def requisitions(request):
     buyer = request.user.buyer_profile
-    all_requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(all_requisitions)
+    requisitions = Requisition.objects.filter(buyer_co=buyer.company)
+    # pdb.set_trace()
+    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(requisitions)    
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -438,12 +439,12 @@ def view_requisition(request, requisition_id):
     if request.method == 'POST':
         if 'approve' in request.POST:
             DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
-            for order_item in requisition.order_items:
+            for order_item in requisition.order_items.all():
                 OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition approved')
         if 'deny' in request.POST:
             DocumentStatus.objects.create(value='Denied', author=buyer, document=requisition)
-            for order_item in requisition.order_items:
+            for order_item in requisition.order_items.all():
                 OrderItemStatus.objects.create(value='Denied', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition denied')
         else:
@@ -462,6 +463,7 @@ def new_purchaseorder(request):
     approved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
     po_form = PurchaseOrderForm(request.POST or None,
                                 initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})
+    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
     po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
@@ -495,16 +497,16 @@ def new_purchaseorder(request):
         'approved_order_items': approved_order_items,
         'po_form': po_form,
         'currency': currency,
-        'item_header': ['', 'Order No.', 'Item', 'Vendor', 'Date Required', 'Total Cost ('+currency+')'],
-        'po_header': ['Item', 'Qty', 'Vendor', 'Total Cost ('+currency+')'],
+        'item_header': ['', 'Order No.', 'Item', 'Quantity', 'Vendor', 'Date Required', 'Total Cost ('+currency+')'],
+        'po_header': ['Item', 'Qty', 'Vendor', 'Total Cost ('+currency+')', ''],
     }
     return render(request, "pos/new_purchaseorder.html", data)
 
 @login_required
 def purchaseorders(request):
     buyer = request.user.buyer_profile
-    all_pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(all_pos)
+    pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
+    all_pos, open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(pos)
     data = {
         'all_pos': all_pos,
         'open_pos': open_pos,
@@ -535,8 +537,8 @@ def view_purchaseorder(request, po_id):
 
 @login_required
 def receive_pos(request):
-    all_pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
-    open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(all_pos)
+    pos = PurchaseOrder.objects.filter(buyer_co=request.user.buyer_profile.company)
+    all_pos, open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(pos)
     data = {
         'all_pos': all_pos,
         'open_pos': open_pos,

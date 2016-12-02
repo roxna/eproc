@@ -29,7 +29,7 @@
             Preparer: <b>{{ purchase_order.preparer }}</b><br>
             Promise Date: <b>{{ purchase_order.date_due }}</b><br>
 
-            Status: <b>{{ purchase_order.get_latest_status.value }}</b>
+            Status: <b>{% include "_includes/po_status_formatting.html" with po=purchase_order value_to_display=purchase_order.get_latest_status.value href='view_purchaseorder' %}</b>
           <br>
         </div>
       </div><br><br>

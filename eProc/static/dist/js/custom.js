@@ -135,31 +135,28 @@ $(document).ready(function(){
 	***************************************/
 
 	// Show/hide content as 1st/2nd page of PO Creation Form 
-		$('#page2').hide();
-		$('#prevPage').hide();
-		$('.navigation').on('click', function(){
+	$('#page2').hide();
+	$('#prevPage').hide();
+	$('.navigation').on('click', function(){
 		$('.pages').toggle();
 		$('.navigation').toggle();
 	});
 
 	// Set up
 	var POSubTotal, POTotal;	
-		$('#nextPage').prop('disabled', true);
+	$('#nextPage').prop('disabled', true);
 
-		$( "form input:checkbox" ).change(function() {
-
-		 	// Disable/Enable 'Add Items' step based on if items are selected
+	$( "form input:checkbox" ).change(function() {
+		 // Disable/Enable 'Add Items' step based on if items are selected
 		if(!$('input[type="checkbox"]').is(':checked')){
 	  		$('#nextPage').prop('disabled', true);
-	  	}
-	  	else{
+	  	}else{
 	  		$('#nextPage').prop('disabled', false);	
 	  	}
 	  		      	
 	  	POSubTotal = 0;
 	  	$('#orderPOTable tbody').empty();
 		$('#orderTable input[type="checkbox"]:checked').each(function(){
-
 			// Update SUBTOTAL from list of order_items checked
 			var itemSubTotal =  parseInt($(this).closest("tr").find('.itemSubTotal').text());
 			POSubTotal += itemSubTotal;
@@ -170,7 +167,8 @@ $(document).ready(function(){
 					'<td>' + $(this).closest('tr').find('.itemName').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemQty').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemVendor').text() + '</td>' +
-					'<td>' + $(this).closest('tr').find('.itemSubTotal').text() + '</td>' +				    
+					'<td>' + $(this).closest('tr').find('.itemSubTotal').text() + '</td>' +
+					'<td>' + '<a href=""><i class="fa fa-pencil"></i></a>' + '</td>' +
 				'</tr>'
 			)
 
@@ -178,7 +176,6 @@ $(document).ready(function(){
 		$('#POSubTotal').html(POSubTotal);
 		POTotal = POSubTotal;
 		$('#POTotal').html(POTotal);
-
 	});
 
 	// Update GRAND TOTAL from costs and sub_total       

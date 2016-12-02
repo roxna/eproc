@@ -1,0 +1,16 @@
+{% load staticfiles %}
+
+{% with po.get_latest_status.value as latest_status %}
+  <a href="{% url href po_id=po.id %}">        
+    {% if latest_status == 'Paid' or latest_status == 'Closed' %}
+    <span class="label label-large label-success">
+    {% elif latest_status == 'Open' %}
+    <span class="label label-large label-warning">
+    {% elif latest_status == 'Cancelled' %}
+    <span class="label label-large label-danger">
+    {% else %}
+    <span class="label label-large label-primary">
+    {% endif %}
+  {{ value_to_display }}</span>      
+</a>
+{% endwith %}

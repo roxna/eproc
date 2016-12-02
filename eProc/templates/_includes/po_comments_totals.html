@@ -1,8 +1,8 @@
   <div class="row">
       <div class="col-xs-6">
         <p class="lead">Other</p>
-        <p>COMMENTS: {{form.comments}}</p>
-        <p>TERMS: {{form.terms}}</p>
+        <p>COMMENTS: <br>{{form.comments}}</p>
+        <p>TERMS: <br>{{form.terms}}</p>
       </div>
       <div class="col-xs-6 pull-right">
         <p class="lead">Totals</p>
@@ -10,32 +10,32 @@
           <table class="table" id="{{tableID}}">
             <tbody>
                 <tr>
-                  <th style="width:50%">Subtotal:</th>
+                  <td>Subtotal:</td>
                   <td id="POSubTotal">{{sub_total}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
-                  <th>Tax:</th>
+                  <td>Tax:</td>
                   <td class="amount">{{form.tax_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
-                  <th>Shipping:</th>
+                  <td>Shipping:</td>
                   <td class="amount">{{form.cost_shipping}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
-                  <th>Discount:</th>
+                  <td>Discount:</td>
                   <td class="amount discount">{{form.discount_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
-                  <th>Other costs:</th>
+                  <td>Other costs:</td>
                   <td class="amount">{{form.cost_other}}</td>
                   <td>{{currency}}</td>
                 </tr>    
                 <tr class="lead">
-                  <th>Total Cost</th>
+                  <td>Total Cost</td>
                   <td id="POTotal">{{grand_total}}</td>
                   <td>{{currency}}</td>
                 </tr>	
@@ -43,5 +43,5 @@
           </table>
         </div>
       </div>
-  </div
+  </div>
 

@@ -23,27 +23,28 @@
 		        	<div class="box-header with-border">
 		          		<h3 class="box-title">Select Order Items to Add to PO</h3>
 		          	</div>        	
-		        	<div class="box-body">        	
-		        		{% include "_includes/table_header.html" with tableID="orderTable" header_class="basic-teal" table_headers=item_header %}
-						<tbody>					
-						  {% for item in approved_order_items %} 
-						  <tr>
-						  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
-						    <td><span class="btn basic-grey">{{ item.number }}</span></a><br>
-						      <small><b>Requested by:</b> {{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
-						    </td>
-						    <td> 
-						    	<span class="itemName">{{ item.product.name }}</span> <br>
-						    	<em><small><b>Qty:</b> <span class="itemQty">{{ item.quantity }}</span></small></em>
-						    </td>
-						    <td class="itemVendor"> {{ item.product.vendor_co }}</td>                      
-						    <td> {{ item.date_due }}</td>
-						    <td> <span class="itemSubTotal">{{ item.sub_total }}</span><br>
-						    </td>				    
-						  </tr>
-						  {% endfor %}					
-						</tbody>
-				  	  </table>		  
+		        	<div class="box-body">  
+		        		<table id="orderTable" class="table table-striped">      	
+			        		{% include "_includes/table_header.html" with header_class="basic-teal" table_headers=item_header %}
+							<tbody>					
+							  {% for item in approved_order_items %} 
+							  <tr>
+							  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
+							    <td><span class="btn basic-grey">{{ item.number }}</span></a><br>
+							      <small><b>Requested by:</b> {{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
+							    </td>
+							    <td><span class="itemName">{{ item.product.name }}</span> <br></td>
+							    <td>
+							    	<span class="itemQty">{{ item.quantity }}</span><br>
+							    	<em><small>@ {{item.product.currency|upper}} <span class="itemUnitPrice">{{ item.unit_price }}</span> / unit
+							    </td>						    
+							    <td class="itemVendor"> {{ item.product.vendor_co }}</td>                      
+							    <td> {{ item.date_due }}</td>
+							    <td> <span class="itemSubTotal">{{ item.sub_total }}</span><br></td>				    
+							  </tr>
+							  {% endfor %}					
+							</tbody>
+				  	  	</table>		  
 					<!-- Button to go toggle on 2nd page of form -->					
 					<button type="button" class="button btn basic-teal pull-right navigation" id="nextPage">Add Items to PO <i class="fa fa-angle-right"> </i> </button>					
 					</div>					
@@ -63,7 +64,7 @@
 				      		<p class="lead">PO Information</p>
 				      	</div>
 		        	  </div>
-				      <div class="row invoice-info">				      	
+				      <div class="row invoice-info">		      	
 				      	<div class="col-sm-3 invoice-col">
 				          Vendor <br> {{po_form.vendor_co}}
 				        </div>
@@ -86,7 +87,8 @@
 				      </div>
 				      <div class="row">
 				      	<div class="col-xs-12"> 
-			        			{% include "_includes/table_header.html" with tableID="orderPOTable" header_class="basic-grey" table_headers=po_header %}
+				      		<table id="orderPOTable" class="table table-striped">
+			        			{% include "_includes/table_header.html" with header_class="basic-grey" table_headers=po_header %}
 								<tbody>	
 								</tbody>
 							</table>
@@ -96,13 +98,24 @@
 
 				        <!-- Comments, Terms &&&&& Sub Total & Grand Total tables -->
 				        {% include "_includes/po_comments_totals.html" with tableID="POTable" form=po_form currency=currency %}
-
-						<!-- Button to go toggle on 1st page of form -->
-			        	<button type="button" class="button btn basic-grey pull-left navigation" id="prevPage"><i class="fa fa-angle-left"></i> Go back</button>
+						<div class="row">
+					      	<div class="col-xs-12 col-lg-6"> </div>
+					      	<div class="col-xs-6 col-lg-3"> 
+					      		<p class="lead">Next approver</p>
+					      	</div>
+					        <div class="col-xs-6 col-lg-3"> {{po_form.next_approver}}<br></div>
+				        </div><br><br>
 						
-						<input type="submit" value="Create Purchase Order" name="createPO" class="button btn basic-teal pull-right"/>						
-						<a href="{% url 'new_purchaseorder' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
-
+						<!-- BUTTONS -->
+						<div class="row">
+							<div class="col-xs-12">
+								<!-- Button to go toggle on 1st page of form -->
+					        	<button type="button" class="button btn basic-grey pull-left navigation" id="prevPage"><i class="fa fa-angle-left"></i> Go back</button>
+								
+								<input type="submit" value="Create Purchase Order" name="createPO" class="button btn basic-teal pull-right"/>						
+								<a href="{% url 'new_purchaseorder' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
+							</div>
+						</div>
 		        	</div>
 				</div>    
 

@@ -11,19 +11,41 @@ def send_verific_email(user,random_id):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
-# TO FIX THESE QUERIES
-def get_requisitions(all_requisitions):
-    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
-    approved_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
-    denied_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Denied')
-    return pending_requisitions, approved_requisitions, denied_requisitions
+# TODO CLEANER IMPLEMENTATION OF QUERIES
+def get_requisitions(requisitions):    
+    pending_requisitions, approved_requisitions, denied_requisitions = [], [], []
+    for requisition in requisitions:
+        if requisition.get_latest_status().value == 'Pending':            
+            pending_requisitions.append(requisition)
+        elif requisition.get_latest_status().value == 'Approved':
+            approved_requisitions.append(requisition)
+        elif requisition.get_latest_status().value == 'Denied':
+            denied_requisitions.append(requisition)   
+    all_requisitions = pending_requisitions + approved_requisitions + denied_requisitions
+    
+    # latest_statuses = DocumentStatus.objects.filter(latest_update)    
+    # pending_status_list = DocumentStatus.objects.filter(latest_update)
+    # pending_requisitions = requisitions.filter(status_updates__in=pending_status_list)
+    # DocumentStatus.objects.annotate(latest_update=Max('date')).filter()
+    # all_requisitions = requisitions.annotate(latest_update=Max('status_updates__date'))
+    # pending_requisitions = all_requisitions.filter(status_updates__value='Pending')    
+    return all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions
 
-def get_pos(all_pos):
-    open_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__exact='Open')
-    closed_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Closed')
-    cancelled_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Cancelled')
-    paid_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Paid')
-    return open_pos, closed_pos, cancelled_pos, paid_pos
+
+# TODO: See Get_requisitions
+def get_pos(pos):
+    open_pos, closed_pos, cancelled_pos, paid_pos = [], [], [], []
+    for po in pos:
+        if po.get_latest_status().value == 'Open':            
+            open_pos.append(po)
+        elif po.get_latest_status().value == 'Closed':
+            closed_pos.append(po)
+        elif po.get_latest_status().value == 'Cancelled':
+            cancelled_pos.append(po)
+        elif po.get_latest_status().value == 'Paid':
+            paid_pos.append(po)       
+    all_pos = open_pos + closed_pos + cancelled_pos + paid_pos
+    return all_pos, open_pos, closed_pos, cancelled_pos, paid_pos
 
 ################################
 ###     NEW REQUISITION     ### 

@@ -1,5 +1,6 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
+{% load crispy_forms_tags %}
 
 {% block title %} Categories {% endblock title %}
 
@@ -14,13 +15,14 @@
         <div class="box">
 
             <div class="box-body">
-              {% include "_includes/table_header.html" with tableID="categoryTable" header_class="basic-teal" header=table_headers %}            
+              <table id="categoryTable" class="table table-striped">
+              {% include "_includes/table_header.html" with header_class="basic-teal" header=table_headers %}            
                 <tbody>
-                    {% for category in categories %}           
+                 {% for category in categories %}           
                     <tr>
                       <td>{{ category.code }}</td>
                       <td>{{ category.name }}</td>
-                      <!-- <td>
+                     <!--  <td>
                         <form method="POST">
                           {% csrf_token %}
                           {% if user.buyer_profile.role == 'SuperUser' %}

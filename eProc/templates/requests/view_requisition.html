@@ -38,12 +38,7 @@
         <div class="col-sm-6 invoice-col">
           <b>Request Number:</b> {{ requisition.number }}<br>
           <b>Date Due:</b> {{ requisition.date_due }}<br>
-          <b>Status:</b>           
-            {% if latest_status.value == 'Approved' %} <span class="label label-success"> 
-            {% elif latest_status.value == 'Pending' %} <span class="label label-warning">
-            {% elif latest_status.value == 'Denied' %}<span class="label label-danger">
-            {% endif %} {{ latest_status }}  </span>          
-          <br><br>
+          <b>Status:</b>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=requisition.get_latest_status %}<br><br>
         </div>
       </div>
 
@@ -70,8 +65,7 @@
       
       <div class="row no-print">
         <div class="col-xs-12">
-          {% if latest_status == 'Pending' %}
-            <!-- TODO: GET THE == statements working -->
+          {% if latest_status.value == 'Pending' %}
             <!-- Show only if Approver Role -->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
                 <form method="post">
@@ -81,10 +75,12 @@
                 </form>
             {% endif %}
           {% else %}
-              <div class="label" style="color:grey">Status: <em><b>{{latest_status}}</b> [Submitted by {{latest_status.author}} on {{latest_status.date|date}}]</div></em>
+              <div class="label" style="color:grey">Status: <em>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %} [By {{latest_status.author}} on {{latest_status.date|date}}]</div></em>
           {% endif %}          
         </div>
       </div>
+
+      <!-- {#{% include "_includes/print_or_email.html" with href='print_requisition' document=requisition %}#} -->
 
       {% endwith %}
     </section>
