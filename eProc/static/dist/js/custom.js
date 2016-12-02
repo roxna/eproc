@@ -48,7 +48,7 @@ $(document).ready(function(){
 		        }
 		    },
 		    failure: function(data) { 
-		        alert('Got an error dude');
+		        console.log('Got an error dude');
 		    }
 		});
 	});
@@ -155,17 +155,18 @@ $(document).ready(function(){
 	  	}
 	  		      	
 	  	POSubTotal = 0;
-	  	$('#orderPOTable tbody').empty();
+	  	$('#POOrdersTable tbody').empty();
 		$('#orderTable input[type="checkbox"]:checked').each(function(){
 			// Update SUBTOTAL from list of order_items checked
 			var itemSubTotal =  parseInt($(this).closest("tr").find('.itemSubTotal').text());
 			POSubTotal += itemSubTotal;
 
 			// Show Order Items on 2nd page
-			$('#orderPOTable tbody').append(
+			$('#POOrdersTable tbody').append(
 				'<tr>' +
 					'<td>' + $(this).closest('tr').find('.itemName').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemQty').text() + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemUnitPrice').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemVendor').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemSubTotal').text() + '</td>' +
 					'<td>' + '<a href=""><i class="fa fa-pencil"></i></a>' + '</td>' +

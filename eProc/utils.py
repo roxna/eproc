@@ -31,7 +31,6 @@ def get_requisitions(requisitions):
     # pending_requisitions = all_requisitions.filter(status_updates__value='Pending')    
     return all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions
 
-
 # TODO: See Get_requisitions
 def get_pos(pos):
     open_pos, closed_pos, cancelled_pos, paid_pos = [], [], [], []
@@ -46,6 +45,21 @@ def get_pos(pos):
             paid_pos.append(po)       
     all_pos = open_pos + closed_pos + cancelled_pos + paid_pos
     return all_pos, open_pos, closed_pos, cancelled_pos, paid_pos
+
+# TODO: See Get_requisitions
+def get_invoices(invoices):
+    all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices = [], [], [], [], []
+    for invoice in invoices:
+        if invoice.get_latest_status().value == 'Pending':
+            pending_invoices.append(invoice)
+        elif invoice.get_latest_status().value == 'Approved':
+            approved_invoices.append(invoice)
+        elif invoice.get_latest_status().value == 'Cancelled':
+            cancelled_invoices.append(invoice)
+        elif invoice.get_latest_status().value == 'Paid':
+            paid_invoices.append(invoice)       
+    all_invoices = pending_invoices + approved_invoices + cancelled_invoices + paid_invoices
+    return all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices
 
 ################################
 ###     NEW REQUISITION     ### 

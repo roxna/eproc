@@ -1,30 +1,30 @@
   <!-- Order Item in Request -->
   <div class="row">
     <div class="col-xs-12">
-  	 <p class="lead">PO Line Items</p>
+  	 <p class="lead">Line Items</p>
     </div>
     <div class="col-xs-12 table-responsive">
       <table class="table table-striped">
         <thead>
-        <tr>
-          <th>Product</th>
-          <th>Quantity</th>
-          <th>Cost Per Unit</th>
-          <th>Sub-total</th>
-          <th>Comments</th>
-        </tr>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Cost Per Unit</th>
+            <th>Sub-total</th>
+            <th>Comments</th>
+          </tr>
         </thead>
 
         <tbody>
-        {% for order_item in order_items %}
-        <tr>
-          <td>{{ order_item.product.name }}</td>
-          <td>{{ order_item.quantity }}</td>
-          <td>{{ order_item.product.unit_price }}</td>
-          <td>{{ order_item.sub_total }}</td>
-          <td>{{ order_item.comments }}</td>
-        </tr>
-        {% endfor %}
+          {% for order_item in order_items %}
+          <tr id="orderItemList">
+            <td id="">{{ order_item.product.name }}</td>
+            <td>{{ order_item.quantity }}</td>
+            <td>{{ order_item.product.unit_price }}</td>
+            <td>{{ order_item.sub_total }}</td>
+            <td>{{ order_item.comments }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>

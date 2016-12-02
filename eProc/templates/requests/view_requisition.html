@@ -3,87 +3,23 @@
 
 {% block title %}Requests{% endblock title %}
 
-{% block header %}Requisition{% endblock header %}
+{% block header %}Requisition Details{% endblock header %}
 
 
 {% block content %}
 
-  {% with requisition.get_latest_status as latest_status %} 
-    <section class="invoice">
+  <section class="invoice">
+
     <div class="row">
       <div class="col-xs-12">
         <a href="{% url 'requisitions' %}"><i class="fa fa-angle-left"></i> Back</a>
+        {% include "_includes/print_or_email.html" with href='print_requisition' document=requisition %}    
       </div>
     </div>
-
-      <div class="row">
-        <div class="col-xs-12">
-          <h2 class="page-header">
-            <i class="fa fa-globe"></i> {{ requisition.buyerCo }}
-            <small class="pull-right">Date Requested: <em>{{ requisition.date_issued }}</em></small>
-          </h2>
-        </div>
-      </div>
-
-      <!-- Request Details -->
-      <div class="row invoice-info">
-      	<div class="col-xs-12">
-          <p class="lead">Requisition Details</p>
-        </div>
-        <div class="col-sm-6 invoice-col">
-          	<b>Department:</b> {{ requisition.department }}<br>
-			      <b>Preparer:</b> {{ requisition.preparer }}<br>
-          	<b>Next Approver:</b> {{ requisition.next_approver }}<br>
-        </div>
-        <div class="col-sm-6 invoice-col">
-          <b>Request Number:</b> {{ requisition.number }}<br>
-          <b>Date Due:</b> {{ requisition.date_due }}<br>
-          <b>Status:</b>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=requisition.get_latest_status %}<br><br>
-        </div>
-      </div>
-
-      <!-- Order Items Table-->
-      {% include "_includes/order_item_table.html" with order_items=requisition.order_items.all %}
-
-	    <!-- Comments & Total -->
-      <div class="row">              
-        <div class="col-xs-12 col-md-8">
-          <p class="lead" style="margin-bottom: 0px;">Comments</p>
-          <p> 
-            {% if requisition.comments %}
-              {{ requisition.comments }}
-            {% else %}
-              -
-            {% endif %}
-          </p>
-        </div>        
-
-        <div class="col-xs-12 col-md-4">
-          <p class="lead">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
-        </div>
-      </div><br>
       
-      <div class="row no-print">
-        <div class="col-xs-12">
-          {% if latest_status.value == 'Pending' %}
-            <!-- Show only if Approver Role -->
-            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-                <form method="post">
-                  {% csrf_token %}
-                  <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
-                  <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
-                </form>
-            {% endif %}
-          {% else %}
-              <div class="label" style="color:grey">Status: <em>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %} [By {{latest_status.author}} on {{latest_status.date|date}}]</div></em>
-          {% endif %}          
-        </div>
-      </div>
-
-      <!-- {#{% include "_includes/print_or_email.html" with href='print_requisition' document=requisition %}#} -->
-
-      {% endwith %}
-    </section>
-   
+    {% include "_includes/requisition_template.html" with requisition=requisition %}    
+    
+    </section>       
     <div class="clearfix"></div>
+
 {% endblock content %}

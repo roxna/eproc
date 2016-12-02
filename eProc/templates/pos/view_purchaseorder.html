@@ -14,19 +14,16 @@
     <div class="row">
       <div class="col-xs-12">
         <a href="{% url 'purchaseorders' %}"><i class="fa fa-angle-left"></i> Back</a>
+        {% include "_includes/print_or_email.html" with href='print_purchaseorder' document=purchase_order %}
       </div>
     </div>
 
     {% include "_includes/po_template.html" with purchase_order=purchase_order %}
 
-    {% include "_includes/print_or_email.html" with href='print_purchaseorder' document=purchase_order %}
+    
+    <!-- {#{% include "_includes/print_or_email.html" with href='print_purchaseorder' document=purchase_order subject="Purchase Order "+purchase_order.id %}#} -->
 
   </section>
   <div class="clearfix"></div>
    
 {% endblock content %}
-
-
-{% block js %}
-  {% include "_includes/dataTablesNotifications.html" %}
-{% endblock js %}

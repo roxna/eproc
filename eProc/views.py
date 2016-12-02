@@ -66,11 +66,14 @@ def get_started(request):
 def dashboard(request):
     buyer = request.user.buyer_profile
     
-    all_requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    requisitions = Requisition.objects.filter(buyer_co=buyer.company)
+    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(requisitions)
     
-    all_pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    pending_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
+    pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
+    all_pos, open_pos, closed_pos, cancelled_pos, paid_pos = get_pos(pos)
+    
+    # pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')    
+    # pending_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
     
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     items_received = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
@@ -457,6 +460,14 @@ def view_requisition(request, requisition_id):
     return render(request, "requests/view_requisition.html", data)
 
 @login_required
+def print_requisition(request, requisition_id):
+    requisition = Requisition.objects.get(pk=requisition_id)
+    data = {
+        'requisition': requisition,        
+    }
+    return render(request, "requests/print_requisition.html", data)
+
+@login_required
 def new_purchaseorder(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company).exclude(purchase_order__isnull=False)
@@ -468,7 +479,6 @@ def new_purchaseorder(request):
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
     if request.method == 'POST':
-        # pdb.set_trace()
         if po_form.is_valid():
             purchase_order = po_form.save(commit=False)
             purchase_order.preparer = buyer
@@ -529,7 +539,17 @@ def print_purchaseorder(request, po_id):
 
 @login_required
 def view_purchaseorder(request, po_id):
+    buyer = request.user.buyer_profile
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    if request.method == 'POST':
+        if 'cancel' in request.POST:
+            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=purchase_order)
+            for order_item in purchase_order.order_items.all():
+                OrderItemStatus.objects.create(value='Cancelled', author=buyer, order_item=order_item)
+            messages.success(request, 'PO Cancelled')
+        else:
+            messages.error(request, 'Error. PO not updated')
+        return redirect('purchaseorders')
     data = {
         'purchase_order': purchase_order,
     }
@@ -575,6 +595,19 @@ def receive_purchaseorder(request, po_id):
     return render(request, "pos/receive_purchaseorder.html", data)
 
 @login_required
+def po_orderitems(request, po_id):
+    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    buyer_co = request.user.buyer_profile.company
+    try:
+        order_items = OrderItem.objects.filter(purchase_order=purchase_order)
+        product_ids = [order.product.id for order in order_items]
+        products = CatalogItem.objects.filter(id__in=product_ids)
+        data = serializers.serialize('json', list(order_items)+list(products))
+    except TypeError:
+        data = []
+    return HttpResponse(data, content_type='application/json')
+
+@login_required
 def new_invoice(request):
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
@@ -594,12 +627,14 @@ def new_invoice(request):
             invoice.date_issued = timezone.now()
             invoice.buyer_co = request.user.buyer_profile.company
             purchase_order = invoice_form.cleaned_data['purchase_order']
-            # TODO: ADD ORDER ITEMS AND UPDATE TOTALS
             invoice.sub_total = purchase_order.sub_total
             invoice.grand_total = purchase_order.grand_total
             invoice.billing_add = purchase_order.billing_add
             invoice.shipping_add = purchase_order.shipping_add
             invoice.save()
+            for order_item in purchase_order.order_items.all():
+                order_item.invoice = invoice
+                order_item.save()
 
             upload_file = file_form.save(commit=False)
             upload_file.name = request.FILES['file'].name
@@ -622,14 +657,44 @@ def new_invoice(request):
 
 @login_required
 def invoices(request):
-    buyer = request.user.buyer_profile
+    buyer = request.user.buyer_profile    
     invoices = Invoice.objects.filter(buyer_co=buyer.company)
+    all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices = get_invoices(invoices)
     data = {
-        'invoices': invoices,
+        'all_invoices': all_invoices,
+        'pending_invoices': pending_invoices,
+        'approved_invoices': approved_invoices,
+        'cancelled_invoices': cancelled_invoices,
+        'paid_invoices': paid_invoices,
         'table_headers': ['Invoice No.', 'Amount ('+buyer.company.currency+')', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
     }
     return render(request, "invoices/invoices.html", data)
 
+@login_required
+def print_invoice(request, invoice_id):
+    invoice = Invoice.objects.get(pk=invoice_id)
+    data = {
+        'invoice': invoice,        
+    }
+    return render(request, "invoices/print_invoice.html", data)
+
+@login_required
+def view_invoice(request, invoice_id):
+    buyer = request.user.buyer_profile
+    invoice = Invoice.objects.get(pk=invoice_id)
+    if request.method == 'POST':
+        if 'paid' in request.POST:
+            DocumentStatus.objects.create(value='Paid', author=buyer, document=invoice)
+            for order_item in invoice.order_items.all():
+                OrderItemStatus.objects.create(value='Paid', author=buyer, order_item=order_item)
+            messages.success(request, 'Invoice marked as Paid')
+        else:
+            messages.error(request, 'Error. Invoice not updated')
+        return redirect('invoices')
+    data = {
+        'invoice': invoice,
+    }
+    return render(request, "invoices/view_invoice.html", data)
 
 @login_required
 def vendor_invoices(request, vendor_id):

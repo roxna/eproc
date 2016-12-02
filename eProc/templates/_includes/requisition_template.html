@@ -1,0 +1,77 @@
+{% with requisition.get_latest_status as latest_status %} 
+<div class="row">
+  <div class="col-xs-12">
+    <h2 class="page-header">
+      <i class="fa fa-globe"></i> {{ requisition.buyer_co }}
+      <small class="pull-right">
+        <b>{{requisition.number}} {% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %}</b>
+      </small><br> 
+    </h2>
+  </div>
+</div>
+
+<!-- Request Details -->
+<div class="row invoice-info">
+	<div class="col-sm-6 invoice-col">
+    <p class="lead">Requester Info</p>
+    Department: <b>{{ requisition.department }}</b><br>      
+    Preparer:<b> {{ requisition.preparer }}</b><br>
+    Next Approver:<b> {{ requisition.next_approver }}</b><br>
+  </div>
+<div class="col-sm-6 invoice-col">
+    <p class="lead">Details</p>
+    Number:<b> {{ requisition.number }}</b><br>
+    Date Requested:<b> {{ requisition.date_issued | date }}</b><br>
+    Date Due:<b> {{ requisition.date_due }}</b><br>        
+  </div>  
+</div><br><br>
+
+<!-- Order Items Table-->
+{% include "_includes/order_item_table.html" with order_items=requisition.order_items.all %}
+
+<!-- Comments & Total -->
+<div class="row">              
+  <div class="col-xs-12 col-md-8">
+    <p class="lead">Other</p>
+    <p>COMMENTS: <br>{{requisition.comments}}</p>
+  </div>        
+
+  <div class="col-xs-12 col-md-4">
+    <p class="lead">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
+  </div>
+</div><br>
+
+<!-- Footer -->
+<div class="row no-print">
+  <div class="col-xs-12">
+    {% if latest_status.value == 'Pending' %}
+      <!-- Show only if Approver Role -->
+      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
+            <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
+          </form>
+      {% endif %}
+    {% else %}
+        <div class="label" style="color:grey">
+          Status: <em>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %} [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+        </div>
+    {% endif %}          
+  </div>
+</div>
+{% endwith %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

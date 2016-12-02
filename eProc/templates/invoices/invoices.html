@@ -13,11 +13,49 @@
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
-          <div class="box-body">          
-             <table id="allInvoicesTable" class="table table-striped">
-                {% include "_includes/invoice_table.html" with headers=table_headers invoices=invoices %}
-              </table>
+
+          <div class="nav-tabs-custom">
+
+            <!-- TABS -->
+            <ul class="nav nav-tabs">
+              <li><a href="#all" data-toggle="tab">All</a></li>
+              <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
+              <li><a href="#approved" data-toggle="tab">Approved</a></li>
+              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
+              <li><a href="#paid" data-toggle="tab">Paid</a></li>
+            </ul>          
+
+            <!-- TABLES -->
+            <div class="tab-content">
+              <div class="tab-pane" id="all">
+                 <table id="allTable" class="table table-striped">
+                 {% include "_includes/invoice_table.html" with invoices=all_invoices headers=table_headers %}
+                  </table>
+              </div>
+              <div class="tab-pane active" id="pending"> 
+                 <table id="pendingTable" class="table table-striped">
+                 {% include "_includes/invoice_table.html" with invoices=pending_invoices headers=table_headers %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="approved">
+                 <table id="approvedTable" class="table table-striped">
+                 {% include "_includes/invoice_table.html" with invoices=approved_invoices headers=table_headers %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="cancelled">
+                 <table id="cancelledTable" class="table table-striped">
+                 {% include "_includes/invoice_table.html" with invoices=cancelled_invoices headers=table_headers %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="paid">
+                 <table id="paidTable" class="table table-striped">
+                 {% include "_includes/invoice_table.html" with invoices=paid_invoices headers=table_headers %}
+                  </table>
+              </div>              
+            </div>
+
           </div>
+
         </div>
       </div>
     </div>
@@ -25,5 +63,14 @@
 {% endblock content %}
 
 {% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID="allInvoicesTable" %}
+  {% include "_includes/dataTablesNotifications.html" %}
+  <script type="text/javascript">
+  $(function () {
+    $('#allTable').DataTable();
+    $("#pendingTable").DataTable();
+    $("#approvedTable").DataTable();
+    $("#cancelledTable").DataTable();
+    $("#paidTable").DataTable();
+  });
+</script>
 {% endblock js %}

@@ -297,7 +297,6 @@ class RequisitionForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(            
             Div(
-                # Field('date_due', css_class='datepicker'),
                 Div('number', css_class='col-md-3'),
                 Div('department', css_class='col-md-3'),
                 Div('date_due', css_class='col-md-3'),
@@ -365,7 +364,11 @@ class InvoiceForm(ModelForm):
                         '<button type="button" id="selectVendor" class="label label-warning">Select</button>' +
                      '</div>'
                 ),
-                Div('purchase_order', css_class='col-md-6', css_id="po_list"),
+                Div('purchase_order', css_class='col-md-5', css_id="po_list"),
+                HTML('<div class="col-md-1" style="margin-top:28px;">'+
+                        '<button type="button" id="selectPO" class="label label-warning">Select</button>' +
+                     '</div>'
+                ),
                 css_class='row'
             ),
             Div(

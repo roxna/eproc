@@ -1,9 +1,11 @@
 {% load staticfiles %}
-<div class="row">
-  <div class="row">
-    <div class="col-xs-12">                      
-        <a href="{% url href document.id %}"><button type="input" class="btn basic-teal pull-right"><i class="fa fa-print"></i> Print</button></a>
-        <a href="mailto:{{user.email}}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email</button></a>
-    </div>
-  </div>
+<div class="pull-right">
+	<div class="row">
+	  <div class="row">
+	    <div class="col-xs-12">                      
+	        <a href="{% url href document.id %}"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-print"></i> Print</button></a>
+	        <!-- {#<a href="mailto:{{user.email}}?subject={{subject}}&"><button type="input" class="btn basic-grey pull-right"><i class="fa fa-envelope"></i> Email</button></a>#} -->
+	    </div>
+	  </div>
+	</div>
 </div>

@@ -133,22 +133,28 @@ EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense'))
 STATUSES = (
     #### Order Items  ####
     ('Requested', 'Requested'),
-    # ('Approved', 'Approved'),
+    # ('Approved', 'Approved'), # Updated on view_req - if req is approved
     # ('Denied', 'Denied'),
-    ('Ordered', 'Ordered'),
-    ('Delivered', 'Delivered'),
+    # ('Cancelled', 'Cancelled'), # Updated on view_po - if po is cancelled
+    ('Ordered', 'Ordered'), # Updated on new_po - if po is created
+    ('Delivered', 'Delivered'), # Updated on receive_items
 
     #### Requisitions ####
-    ('Draft', 'Draft'),
     ('Pending', 'Pending'),
     ('Approved', 'Approved'),
     ('Denied', 'Denied'),
 
     #### POs ####
     ('Open', 'Open'),
-    ('Closed', 'Closed'),
-    ('Cancelled', 'Cancelled'),
-    ('Paid', 'Paid'),
+    ('Closed', 'Closed'),  #Taken care of when all items are received
+    ('Cancelled', 'Cancelled'), # Updated on view_po
+    ('Paid', 'Paid'),  #when?
+
+    #### Invoices ####
+    ('Pending', 'Pending'), #To update: On invoice creation
+    ('Approved', 'Approved'),  #On invoice creation right now - to change this when approval process added
+    ('Cancelled', 'Cancelled'), 
+    ('Paid', 'Paid'),  #Updated on view_invoice/1
     
     #### ALL #### 
     ('Archived', 'Archived'),

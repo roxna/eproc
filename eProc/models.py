@@ -131,6 +131,7 @@ class Document(models.Model):
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=100, null=True, blank=True)
+	terms = models.CharField(max_length=5000, blank=True, null=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
@@ -156,8 +157,7 @@ class SalesOrder(models.Model):
 	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-	grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-	terms = models.CharField(max_length=5000, blank=True, null=True)	
+	grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s_orders")
@@ -225,7 +225,8 @@ class OrderItem(models.Model):
 	account_code = models.ForeignKey(AccountCode, related_name="order_items")
 	product = models.ForeignKey(CatalogItem, related_name='order_items')
 	requisition = models.ForeignKey(Requisition, related_name='order_items')
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True) # If order_item is part of a PO, no longer 'pending'
+	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
+	invoice = models.ForeignKey(Invoice, related_name='order_items', null=True, blank=True)
 	# objects = models.Manager()
 	# latest_status_objects = LatestStatusManager()
 	
@@ -240,7 +241,7 @@ class OrderItem(models.Model):
 
 ######### OTHER DETAILS #########
 class Status(models.Model):
-	value = models.CharField(max_length=15, choices=settings.STATUSES, default='Draft')
+	value = models.CharField(max_length=15, choices=settings.STATUSES, default='Pending')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")	
 

@@ -5,7 +5,6 @@
 {% block title %}New Invoice{% endblock title %}
 
 {% block css %}
-    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
 {% endblock css %}
 
 {% block header %}Create an Invoice Record{% endblock header %}
@@ -22,6 +21,7 @@
          <div class="box-body">
             <form method="POST" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
+                <p class="lead">Invoice Details</p>
                 <div class="row">
         	       <div class="col-xs-12 col-md-8 col-lg-8">
         			     <div class="box-body no-padding">
@@ -36,13 +36,26 @@
                         </div>
                     </div>
                 </div>
+                <table id="invoiceOrdersTable" class="table table-striped">
+                     <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Quantity</th>
+                          <th>Cost Per Unit</th>
+                          <th>Sub-total</th>
+                          <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody> 
+                    </tbody>
+                </table>
                 <div class="row">
                     <div class="col-xs-12">
                         <input type="submit" value="CREATE INVOICE" class="button btn basic-teal pull-right"/>
                     </div>
                 </div>
-            </form>
-        </div> 
+            </form>            
+        </div>             
 
     </div>
 
@@ -54,19 +67,22 @@
 <script src="{% static 'dist/js/custom.js' %}"></script> 
 <script>
     $(document).ready(function(){
-        // $('#div_id_purchase_order').hide();
+
+        $('#invoiceOrdersTable').hide();
         $("#id_purchase_order").prop("disabled", true);
-        $('#selectVendor').on('click', function(){ 
-            // $('#div_id_purchase_order').show();           
+
+        $('#selectVendor').on('click', function(){             
+            $("#id_vendor_co").prop("disabled", true);
             $("#id_purchase_order").prop("disabled", false);
             var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
             $.ajax({
                 url: '/invoices/'+vendor_id,
                 type: 'get',
                 success: function(data){
+                    console.log(data);                    
                     $('select[id=id_purchase_order]').html('');
                     $.each(data, function(key, value){
-                        $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>');
+                        $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>'); 
                     });
                 },
                 error: function(data){
@@ -74,6 +90,39 @@
                 }
             })
         })
+
+        $('#selectPO').on('click', function(){ 
+            var po_id = $('#id_purchase_order option:selected').val(); 
+            $.ajax({
+                url: '/purchase-order/items/'+po_id,
+                type: 'get',
+                success: function(data){
+                    console.log(data);                    
+                    $('#invoiceOrdersTable').show(); 
+                    var response_length = data.length/2;
+                    for (var i=0; i<response_length; i++){
+                        var j = (response_length - i);
+                        console.log(data);
+                        console.log(response_length);
+                        console.log(data[j]['fields']['name']);
+                        console.log(data[i]['fields']['quantity']);
+                        $('#invoiceOrdersTable tbody').append(
+                            '<tr>'+
+                                '<td>'+data[j]['fields']['name']+'</td>'+
+                                '<td>'+data[i]['fields']['quantity']+'</td>'+
+                                '<td>'+data[j]['fields']['unit_price']+'</td>'+
+                                '<td>'+data[i]['fields']['sub_total']+'</td>'+
+                                '<td>'+data[i]['fields']['comments']+'</td>'+
+                            '<tr>'
+                        );
+                    } 
+                },
+                error: function(data){
+                    console.log(data);
+                }
+            })            
+        })
+
     })
 </script>  
 {% endblock js %}

@@ -1,0 +1,25 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Invoices{% endblock title %}
+
+{% block header %}Invoice Details{% endblock header %}
+
+
+{% block content %}
+
+  <section class="invoice">
+
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{% url 'invoices' %}"><i class="fa fa-angle-left"></i> Back</a>
+        {% include "_includes/print_or_email.html" with href='print_invoice' document=invoice %}    
+      </div>
+    </div>
+      
+    {% include "_includes/invoice_template.html" with invoice=invoice %}    
+    
+    </section>       
+    <div class="clearfix"></div>
+
+{% endblock content %}
