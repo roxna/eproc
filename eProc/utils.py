@@ -88,7 +88,7 @@ def save_newreq_orderitems(requisition, orderitem_formset):
         if orderitem_form.is_valid():
             order_item = orderitem_form.save(commit=False)
             order_item.number = requisition.number + "-" + str(index+1)
-            order_item.requisition = requisition                    
+            order_item.requisition = requisition
             order_item.date_due = requisition.date_due                    
             order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
             requisition.sub_total += order_item.sub_total            

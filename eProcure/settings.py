@@ -21,7 +21,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -33,6 +32,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',    
+    'rest_framework',
     'crispy_forms',
 )
 
@@ -138,6 +138,7 @@ STATUSES = (
     # ('Cancelled', 'Cancelled'), # Updated on view_po - if po is cancelled
     ('Ordered', 'Ordered'), # Updated on new_po - if po is created
     ('Delivered', 'Delivered'), # Updated on receive_items
+    ('Paid', 'Paid'), # Updated on view_invoice/1
 
     #### Requisitions ####
     ('Pending', 'Pending'),

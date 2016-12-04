@@ -239,6 +239,7 @@ class OrderItem(models.Model):
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')		
 
+
 ######### OTHER DETAILS #########
 class Status(models.Model):
 	value = models.CharField(max_length=15, choices=settings.STATUSES, default='Pending')

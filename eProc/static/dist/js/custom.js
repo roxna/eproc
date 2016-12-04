@@ -130,9 +130,9 @@ $(document).ready(function(){
 	});
 
 
-	/***************************************
-	****     PURCHASE ORDER DETAILS      ***
-	***************************************/
+	/*******************************************
+	****     NEW PURCHASE ORDER DETAILS      ***
+	*******************************************/
 
 	// Show/hide content as 1st/2nd page of PO Creation Form 
 	$('#page2').hide();
@@ -197,6 +197,58 @@ $(document).ready(function(){
 	// Dynamically updated the PO list based on Invoice selected on new_invoice
 
 
+
+	/***************************************
+	****      NEW INVOICE DETAILS        ***
+	***************************************/
+
+	$('#invoiceOrdersTable').hide();
+    $("#id_purchase_order").attr("readonly", true);  // Note: jQuery 1.9+ --> .prop (not .attr)    
+
+    $('#selectVendor').on('click', function(){             
+        $("#id_vendor_co").attr("readonly", true);
+        $("#id_purchase_order").attr("readonly", false);
+        var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
+        $.ajax({
+            url: '/invoices/'+vendor_id,
+            type: 'get',
+            success: function(data){              
+                $('select[id=id_purchase_order]').html('');
+                $.each(data, function(key, value){
+                    $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>'); 
+                });
+            },
+            error: function(data){
+                console.log(data);
+            }
+        })
+    })
+
+    $('#selectPO').on('click', function(){ 
+        var po_id = $('#id_purchase_order option:selected').val(); 
+        $("#id_purchase_order").attr("readonly", true);
+        $.ajax({
+            url: '/purchase-order/items/'+po_id,
+            type: 'get',
+            success: function(data){
+                $('#invoiceOrdersTable').show(); 
+                $.each(data, function(key, value){                
+                    $('#invoiceOrdersTable tbody').append(
+                        '<tr>'+
+                            '<td>'+this['product']+'</td>'+
+                            '<td>'+this['quantity']+'</td>'+
+                            '<td>'+this['unit_price']+'</td>'+
+                            '<td>'+this['sub_total']+'</td>'+
+                            '<td>'+this['comments']+'</td>'+
+                        '<tr>'
+                    );
+                }); 
+            },
+            error: function(data){
+                console.log(data);
+            }
+        })            
+    })
 
 
 

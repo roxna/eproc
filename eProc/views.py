@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.forms import UserChangeForm
-from django.core import serializers
+from django.core.serializers import serialize
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Sum, Max, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
@@ -17,7 +17,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils import timezone
 from django.utils.http import is_safe_url
+from rest_framework.renderers import JSONRenderer
 from eProc.models import *
+from eProc.serializers import *
 from eProc.forms import *
 from eProc.utils import *
 import csv
@@ -266,9 +268,9 @@ def view_vendor(request, vendor_id, vendor_name):
     company = Company.objects.get(pk=vendor_id)    
     try:
         location = Location.objects.filter(company=company)
-        data = serializers.serialize('json', list(vendor) + list(company) + list(location))
+        data = serialize('json', list(vendor) + list(company) + list(location))
     except TypeError: # No Location has been determined for Vendor
-        data = serializers.serialize('json', list(vendor) + list(company))
+        data = serialize('json', list(vendor) + list(company))
     return HttpResponse(data, content_type='application/json')
 
 @login_required
@@ -283,6 +285,7 @@ def upload_vendor_csv(request):
             try:
                 buyer_co = request.user.buyer_profile.company
                 for row in reader: 
+                    # TODO: Update to include reader based on headers eg row['name']
                     name = row[0]
                     vendorID = row[1]
                     contact_rep = row[2]
@@ -599,13 +602,12 @@ def po_orderitems(request, po_id):
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
     buyer_co = request.user.buyer_profile.company
     try:
+        # Get relevant PO orderItems and serialize the data into json for ajax request
         order_items = OrderItem.objects.filter(purchase_order=purchase_order)
-        product_ids = [order.product.id for order in order_items]
-        products = CatalogItem.objects.filter(id__in=product_ids)
-        data = serializers.serialize('json', list(order_items)+list(products))
+        data = OrderItemSerializer(order_items, many=True).data
     except TypeError:
         data = []
-    return HttpResponse(data, content_type='application/json')
+    return HttpResponse(JSONRenderer().render(data), content_type='application/json')
 
 @login_required
 def new_invoice(request):
@@ -619,12 +621,10 @@ def new_invoice(request):
     file_form = FileForm(request.POST or None, request.FILES or None)
     if request.method == 'POST':
         file_form = FileForm(request.POST, request.FILES)
-        # pdb.set_trace()
         if invoice_form.is_valid() and file_form.is_valid():            
-            invoice = invoice_form.save(commit=False)
+            invoice = invoice_form.save(commit=False)       
             invoice.preparer = request.user.buyer_profile
             invoice.currency = request.user.buyer_profile.company.currency
-            invoice.date_issued = timezone.now()
             invoice.buyer_co = request.user.buyer_profile.company
             purchase_order = invoice_form.cleaned_data['purchase_order']
             invoice.sub_total = purchase_order.sub_total
@@ -698,13 +698,13 @@ def view_invoice(request, invoice_id):
 
 @login_required
 def vendor_invoices(request, vendor_id):
-    vendor_co = VendorCo.objects.get(pk=vendor_id)
     buyer_co = request.user.buyer_profile.company
+    vendor_co = VendorCo.objects.get(pk=vendor_id)    
     try:
         purchase_orders = PurchaseOrder.objects.filter(buyer_co=buyer_co, vendor_co=vendor_co)
         po_numbers = [order.number for order in purchase_orders]
         documents = Document.objects.filter(number__in=po_numbers)
-        data = serializers.serialize('json', list(documents))
+        data = serialize('json', list(documents))
     except TypeError:
         pass
     return HttpResponse(data, content_type='application/json')

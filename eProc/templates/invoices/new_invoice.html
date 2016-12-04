@@ -65,66 +65,11 @@
 
 {% block js %}  
 <script src="{% static 'dist/js/custom.js' %}"></script> 
-<script>
+<!-- <script>
     $(document).ready(function(){
 
-        $('#invoiceOrdersTable').hide();
-        $("#id_purchase_order").prop("disabled", true);
-
-        $('#selectVendor').on('click', function(){             
-            $("#id_vendor_co").prop("disabled", true);
-            $("#id_purchase_order").prop("disabled", false);
-            var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
-            $.ajax({
-                url: '/invoices/'+vendor_id,
-                type: 'get',
-                success: function(data){
-                    console.log(data);                    
-                    $('select[id=id_purchase_order]').html('');
-                    $.each(data, function(key, value){
-                        $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>'); 
-                    });
-                },
-                error: function(data){
-                    console.log(data);
-                }
-            })
-        })
-
-        $('#selectPO').on('click', function(){ 
-            var po_id = $('#id_purchase_order option:selected').val(); 
-            $.ajax({
-                url: '/purchase-order/items/'+po_id,
-                type: 'get',
-                success: function(data){
-                    console.log(data);                    
-                    $('#invoiceOrdersTable').show(); 
-                    var response_length = data.length/2;
-                    for (var i=0; i<response_length; i++){
-                        var j = (response_length - i);
-                        console.log(data);
-                        console.log(response_length);
-                        console.log(data[j]['fields']['name']);
-                        console.log(data[i]['fields']['quantity']);
-                        $('#invoiceOrdersTable tbody').append(
-                            '<tr>'+
-                                '<td>'+data[j]['fields']['name']+'</td>'+
-                                '<td>'+data[i]['fields']['quantity']+'</td>'+
-                                '<td>'+data[j]['fields']['unit_price']+'</td>'+
-                                '<td>'+data[i]['fields']['sub_total']+'</td>'+
-                                '<td>'+data[i]['fields']['comments']+'</td>'+
-                            '<tr>'
-                        );
-                    } 
-                },
-                error: function(data){
-                    console.log(data);
-                }
-            })            
-        })
-
     })
-</script>  
+</script -->>  
 {% endblock js %}
 
 

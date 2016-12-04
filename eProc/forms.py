@@ -7,6 +7,7 @@ from eProc.models import *
 from django.utils import timezone
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML
+# import pytz
 
 class RegisterUserForm(UserCreationForm):
     first_name = forms.CharField(required=True)
@@ -343,8 +344,8 @@ class PurchaseOrderForm(ModelForm):
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label="Invoice Number")
-    date_issued = forms.DateField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
-    date_due = forms.DateField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_issued = forms.DateTimeField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")    
 
     def __init__(self, *args, **kwargs):
@@ -376,6 +377,25 @@ class InvoiceForm(ModelForm):
                 css_class='row',
             )
         ) 
+
+    # Add basic form validation to clean method
+    def clean(self):
+        cleaned_data = super(InvoiceForm, self).clean()
+        date_due = self.cleaned_data['date_due']
+        date_issued = self.cleaned_data['date_issued']
+        if date_issued > date_due:
+            raise forms.ValidationError('Date due must be after issue date')
+        # TODO: Add more checks
+        # TODO: Make {{form.errors}} show in {{messages}}
+    
+    # Override save to make datetime objects timezone aware    
+    def save(self, commit=True):
+        instance = super(InvoiceForm, self).save(commit=False)
+        instance.date_due = timezone.make_aware(self.cleaned_data['date_due'], timezone.now())
+        instance.date_issued = timezone.make_aware(self.cleaned_data['date_issued'], timezone.now())
+        if commit:
+            instance.save()
+        return instance
 
     class Meta:
         model = Invoice
