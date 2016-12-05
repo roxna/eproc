@@ -4,7 +4,6 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'plugins/morris/morris.css' %}">
 {% endblock css %}
 
 {% block header %}Dashboard{% endblock header %}
@@ -16,7 +15,7 @@
   <div class="row">
     {% include "_includes/dashboard_widget.html" with color="bg-yellow" value=pending_req_count title="Pending Requests" href='requisitions' icon='book' %}
     {% include "_includes/dashboard_widget.html" with color="bg-blue" value=pending_po_count title="Open Purchase Orders" href='purchaseorders' icon='shopping-cart' %}
-    {% include "_includes/dashboard_widget.html" with color="bg-red" value=items_recd_count title="Items Received" href='purchaseorders' icon='truck' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-red" value=items_recd_count title="Items Received" href='inventory' icon='truck' %}
   </div>
   
   <!-- CHARTS -->

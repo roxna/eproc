@@ -249,7 +249,6 @@ $(document).ready(function(){
             }
         })            
     })
-
-
+	
 
 })

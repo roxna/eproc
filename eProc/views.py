@@ -85,7 +85,7 @@ def dashboard(request):
     product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     data = {
         'pending_req_count': len(pending_requisitions),
-        'pending_po_count': len(pending_pos),
+        'pending_po_count': len(open_pos),
         'items_recd_count': len(items_received),
         'dept_spend': dept_spend,
         'categ_spend': categ_spend,
@@ -211,22 +211,12 @@ def products(request):
 @login_required
 def upload_product_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
+    buyer = request.user.buyer_profile
     if request.method == "POST":
         if csv_form.is_valid():       
-            csv_file = request.FILES['file']
-            reader = csv.reader(csv_file, delimiter=',')
-            header = next(reader) #Ignore header row
-            try:
-                buyer_co = request.user.buyer_profile.company  
-                for row in reader:
-                    name = row[0]
-                    desc = row[1]
-                    sku = row[2]
-                    unit_price = float(row[3])
-                    unit_type = row[4]
-                    category, categ_created = Category.objects.get_or_create(name=row[5], buyer_co=buyer_co)
-                    vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row[6], buyer_co=buyer_co, currency=buyer_co.currency)
-                    CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, vendor_co=vendor_co, buyer_co=buyer_co)
+            reader = csv.DictReader(request.FILES['file'])
+            try:                
+                handle_product_upload(reader, buyer.company)                
                 messages.success(request, 'Products successfully uploaded.')
                 return redirect('products')
             except:
@@ -265,45 +255,26 @@ def vendors(request):
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
     vendor = VendorCo.objects.get(pk=vendor_id)
-    company = Company.objects.get(pk=vendor_id)    
+    # company = Company.objects.get(pk=vendor_id)    
+    locations = Location.objects.filter(company=vendor)
     try:
-        location = Location.objects.filter(company=company)
-        data = serialize('json', list(vendor) + list(company) + list(location))
+        # data = LocationSerializer(locations, many=True).data
+        data = VendorCoSerializer(vendor)
     except TypeError: # No Location has been determined for Vendor
-        data = serialize('json', list(vendor) + list(company))
-    return HttpResponse(data, content_type='application/json')
+        data = []
+    return HttpResponse(JSONRenderer().render(data), content_type='application/json')
+
 
 @login_required
 def upload_vendor_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
-    currency = request.user.buyer_profile.company.currency.upper()
+    buyer = request.user.buyer_profile
+    currency = buyer.company.currency.upper()
     if request.method == "POST":
         if csv_form.is_valid():
-            csv_file = request.FILES['file']
-            reader = csv.reader(csv_file, delimiter=',')
-            header = next(reader) #Ignore header row
-            try:
-                buyer_co = request.user.buyer_profile.company
-                for row in reader: 
-                    # TODO: Update to include reader based on headers eg row['name']
-                    name = row[0]
-                    vendorID = row[1]
-                    contact_rep = row[2]
-                    website = row[3]
-                    comments = row[4]
-
-                    address1 = row[5]
-                    address2 = row[6]
-                    city = row[7]
-                    state = row[8]
-                    zipcode = row[9]
-                    country = row[9]
-                    email = row[10]
-                    phone = row[11]
-                    vendor_co, vendor_created = VendorCo.objects.get_or_create(name=name, currency=currency, website=website, vendorID=vendorID,
-                                                                               contact_rep=contact_rep, comments=comments, buyer_co=buyer_co)
-                    location = Location.objects.get_or_create(address1=address1, address2=address2, city=city, state=state, zipcode=zipcode, 
-                                                              country=country, phone=phone, email=email, company=vendor_co)
+            reader = csv.DictReader(request.FILES['file'])
+            try:                
+                handle_vendor_upload(reader, buyer.company, currency)
                 messages.success(request, 'Vendor list successfully uploaded.')
                 return redirect('vendors')
             except:

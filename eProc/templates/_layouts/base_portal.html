@@ -29,30 +29,30 @@
     <header class="main-header">
       <!-- Logo -->
       <a href="{%url 'dashboard' %}" class="logo">      
-        <span class="logo-mini"><b>e</b>Proc</span><!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-lg"><b>e</b>Procurement</span><!-- logo for regular state and mobile devices -->
+          <span class="logo-mini"><b>e</b>Proc</span><!-- mini logo for sidebar mini 50x50 pixels -->
+          <span class="logo-lg"><b>e</b>Procurement</span><!-- logo for regular state and mobile devices -->
       </a>
 
       <nav class="navbar navbar-static-top">
-        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-          <span class="sr-only">Toggle navigation</span>
-        </a>
+          <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+            <span class="sr-only">Toggle navigation</span>
+          </a>
 
-        <div class="navbar-custom-menu">
-          <ul class="nav navbar-nav">            
-            <li class="dropdown user user-menu">
-              <a href="{% url 'get_started' %}" id="get-started">
-                <span class="pull-right-container">GET STARTED</span>
-              </a>
-            </li>            
-            <li class="dropdown user user-menu">
-              <a href="{% url 'logout' %}">
-                <span class="hidden-xs">Sign out</span>
-                <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
-              </a>
-            </li>
-          </ul>
-        </div>
+          <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">            
+              <li class="dropdown user user-menu">
+                <a href="{% url 'get_started' %}" id="get-started">
+                  <span class="pull-right-container">GET STARTED</span>
+                </a>
+              </li>            
+              <li class="dropdown user user-menu">
+                <a href="{% url 'logout' %}">
+                  <span class="hidden-xs">Sign out</span>
+                  <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
+                </a>
+              </li>
+            </ul>
+          </div>
       </nav>
     </header>
 
@@ -73,24 +73,40 @@
 
         <!-- menu:-->
         <ul class="sidebar-menu">
-          <li class="active treeview">
-            <a href="{%url 'dashboard' %}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a>
-          </li>        
+            <li class="active treeview">
+              <a href="{%url 'dashboard' %}">
+                <i class="fa fa-dashboard"></i> 
+                <span>Dashboard</span>
+              </a>
+            </li>        
           
-          <!-- REQUISITIONS -->
-          {% if user.buyer_profile.role == 'Requester' %}
-            <li><a href="{%url 'new_requisition' %}"><i class="fa fa-book"></i> <span>Request an Order</span></a></li>
-          {% elif user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+            <!-- REQUISITIONS -->
+            {% if user.buyer_profile.role == 'Requester' %}
+            <li>
+              <a href="{%url 'new_requisition' %}">
+                <i class="fa fa-book"></i> 
+                <span>Request an Order</span>
+              </a>
+            </li>
+
+            {% elif user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
             <li class="treeview">
               <a href="#">
-                <i class="fa fa-book"></i> <span>Requests</span>
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
+                <i class="fa fa-book"></i> 
+                <span>Requests</span>
+                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
               </a>
               <ul class="treeview-menu">
-                <li><a href="{%url 'new_requisition' %}"><i class="fa fa-pencil-square-o"></i> New Order</a></li>
-                <li><a href="{%url 'requisitions' %}"><i class="fa fa-book"></i> View/Approve Order</a></li>
+                <li>
+                  <a href="{%url 'new_requisition' %}">
+                    <i class="fa fa-pencil-square-o"></i> New Order
+                  </a>
+                </li>
+                <li>
+                  <a href="{%url 'requisitions' %}">
+                    <i class="fa fa-book"></i> View/Approve Order
+                  </a>
+                </li>
               </ul>
             </li>          
           {% endif %}
@@ -112,8 +128,14 @@
           {% endif %}
 
           {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-            <li><a href="{%url 'receive_pos' %}"><i class="fa fa-truck"></i> <span>Receive Items</span></a></li>
-             <li class="treeview">
+            <li>
+              <a href="{%url 'receive_pos' %}">
+                <i class="fa fa-truck"></i> 
+                <span>Receive Items</span>
+              </a>
+            </li>
+
+            <li class="treeview">
               <a href="#">
                 <i class="fa fa-money"></i> <span>Invoices</span>
                 <span class="pull-right-container">
@@ -121,13 +143,23 @@
                 </span>
               </a>
               <ul class="treeview-menu">
-                <li><a href="{%url 'new_invoice' %}"><i class="fa fa-pencil-square-o"></i> New Invoice</a></li>
-                <li><a href="{%url 'invoices' %}"><i class="fa fa-money"></i>View Invoices</a></li>
+                <li>
+                  <a href="{%url 'new_invoice' %}">
+                    <i class="fa fa-pencil-square-o"></i> New Invoice
+                  </a>
+                </li>
+                <li>
+                  <a href="{%url 'invoices' %}">
+                    <i class="fa fa-money"></i>View Invoices
+                  </a>
+                </li>
               </ul>
             </li>   
             <li><a href="{%url 'inventory' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
           {% endif %}
+
           <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-line-chart"></i> <span>Reports</span></a></li> -->
+
           <li class="treeview">
             <a href="#">
               <i class="fa fa-gear"></i> <span>Settings</span>
@@ -149,7 +181,8 @@
               <li><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></li>              
             {% endif %}
             </ul>
-          </li>     
+          </li> 
+
         </ul>
       </section>
       <!-- /.sidebar -->
@@ -175,8 +208,11 @@
   <script src="{% static 'jQuery/jquery-ui.min.js' %}"></script>  <!-- jQuery UI 1.11.4 -->
   <script>$.widget.bridge('uibutton', $.ui.button);</script> <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
   <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
-  <script src="{% static 'dist/js/app.min.js' %}"></script>
   <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
+  <script src="{% static 'dist/js/app.js' %}"></script>
+  <!-- <script src="{% static 'dist/js/custom.js' %}"></script> -->
+
+  
   <!-- Success/Error Notifications -->
   <script>
     $(function() {

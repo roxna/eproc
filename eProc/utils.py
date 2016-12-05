@@ -106,3 +106,49 @@ def save_newreq_statuses(buyer, requisition):
         DocumentStatus.objects.create(value='Pending', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
             OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
+
+
+################################
+###    NEW PURCHASE ORDER    ### 
+################################ 
+
+
+
+
+
+################################
+###        UPLOAD CSVs       ### 
+################################ 
+
+def handle_product_upload(reader, buyer_co):
+    for row in reader:
+        name = row['PRODUCT_NAME']
+        desc = row['DESCRIPTION']
+        sku = row['SKU']
+        unit_price = float(row['UNIT_PRICE'])
+        unit_type = row['UNIT_TYPE']
+        category, categ_created = Category.objects.get_or_create(name=row['CATEGORY'], buyer_co=buyer_co)
+        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR'], buyer_co=buyer_co, currency=buyer_co.currency)
+        CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, vendor_co=vendor_co, buyer_co=buyer_co)
+
+def handle_vendor_upload(reader, buyer_co, currency):
+    for row in reader:
+        name = row['VENDOR_NAME']
+        vendorID = row['VENDOR_ID']
+        contact_rep = row['CONTACT_PERSON']
+        website = row['WEBSITE']
+        comments = row['NOTES']
+        address1 = row['ADDRESS_LINE1']
+        address2 = row['ADDRESS_LINE2']
+        city = row['CITY']
+        state = row['STATE']
+        zipcode = row['ZIP']
+        country = row['COUNTRY']
+        email = row['EMAIL']
+        phone = row['PHONE']     
+        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=name, currency=currency, website=website, vendorID=vendorID,
+                                                                   contact_rep=contact_rep, comments=comments, buyer_co=buyer_co)        
+        location = Location.objects.get_or_create(address1=address1, address2=address2, city=city, state=state, zipcode=zipcode, 
+                                                  country=country, phone=phone, email=email, company=vendor_co)
+
+
