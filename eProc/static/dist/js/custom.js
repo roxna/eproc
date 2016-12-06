@@ -166,10 +166,10 @@ $(document).ready(function(){
 				'<tr>' +
 					'<td>' + $(this).closest('tr').find('.itemName').text() + '</td>' +
 					'<td>' + $(this).closest('tr').find('.itemQty').text() + '</td>' +
-					'<td>' + $(this).closest('tr').find('.itemUnitPrice').text() + '</td>' +
-					'<td>' + $(this).closest('tr').find('.itemVendor').text() + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemUnitPrice').text() + '</td>' +					
 					'<td>' + $(this).closest('tr').find('.itemSubTotal').text() + '</td>' +
-					'<td>' + '<a href=""><i class="fa fa-pencil"></i></a>' + '</td>' +
+					'<td>' + $(this).closest('tr').find('.itemVendor').text() + '</td>' +
+					// '<td>' + '<a href=""><i class="fa fa-pencil"></i></a>' + '</td>' +
 				'</tr>'
 			)
 

@@ -125,6 +125,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "static", *MEDIA_URL.strip("/").split("/"))
 
 
+SCALAR = 570
 ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'Approver'),('Purchaser', 'Purchaser'),('Receiver', 'Receiver'),('Payer', 'Payer'))  
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
@@ -132,30 +133,34 @@ COUNTRIES = (('India', 'India'),('USA', 'USA'))
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (
     #### Order Items  ####
-    ('Requested', 'Requested'),
-    # ('Approved', 'Approved'), # Updated on view_req - if req is approved
-    # ('Denied', 'Denied'),
-    # ('Cancelled', 'Cancelled'), # Updated on view_po - if po is cancelled
-    ('Ordered', 'Ordered'), # Updated on new_po - if po is created
-    ('Delivered', 'Delivered'), # Updated on receive_items
+    ('Open', 'Open'), #new_req
+    ('Requested', 'Requested'), #view_req --> approve req
+    ('Approved', 'Approved'), #view_po --> approve po
+    # ('Denied', 'Denied'), #view_po --> deny po
+    # ('Cancelled', 'Cancelled'), #view_po --> cancel po
+    ('Ordered', 'Ordered'), #new_po --> create po
+    ('Delivered', 'Delivered'), #receive_items
     ('Paid', 'Paid'), # Updated on view_invoice/1
+    ('Drawndown', 'Drawndown'), #TODO
 
     #### Requisitions ####
-    ('Pending', 'Pending'),
-    ('Approved', 'Approved'),
-    ('Denied', 'Denied'),
+    ('Pending', 'Pending'), #new_req
+    ('Approved', 'Approved'), #view_req 
+    ('Denied', 'Denied'), #view_req 
 
     #### POs ####
-    ('Open', 'Open'),
-    ('Closed', 'Closed'),  #Taken care of when all items are received
-    ('Cancelled', 'Cancelled'), # Updated on view_po
-    ('Paid', 'Paid'),  #when?
+    # ('Pending', 'Pending'), #new_po
+    ('Open', 'Open'), #view_po
+    ('Closed', 'Closed'),  #TODO: receive_items --> all items received OR explicit CLOSE button
+    # ('Denied', 'Denied'), #view_po
+    ('Cancelled', 'Cancelled'), #view_po
+    ('Paid', 'Paid'),  #new_invoice   
 
     #### Invoices ####
-    ('Pending', 'Pending'), #To update: On invoice creation
-    ('Approved', 'Approved'),  #On invoice creation right now - to change this when approval process added
-    ('Cancelled', 'Cancelled'), 
-    ('Paid', 'Paid'),  #Updated on view_invoice/1
+    ('Pending', 'Pending'), #TODO Update: On invoice creation
+    ('Approved', 'Approved'),  #new_invoice
+    ('Cancelled', 'Cancelled'), #TODO
+    ('Paid', 'Paid'),  #TODO: Updated on view_invoice/1
     
     #### ALL #### 
     ('Archived', 'Archived'),

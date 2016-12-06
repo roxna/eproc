@@ -97,18 +97,27 @@ class AddUserForm(forms.Form):
             User.objects.get(username=self.get_username())
         except User.DoesNotExist:
             return self.get_username()
-        raise forms.ValidationError('duplicate_username')
+        raise forms.ValidationError('Username already in use')
+
+    def clean_email(self):
+        try:
+            User.objects.get(email=self.cleaned_data['email'])
+        except User.DoesNotExist:
+            return self.cleaned_data['email']
+        raise forms.ValidationError('Email already in use')
 
     def save(self):
-        user = User.objects.create_user(username=self.clean_username(),
-                                        email=self.cleaned_data['email'],
-                                        password='temppw',
-                                        )
-        user.first_name=self.cleaned_data['first_name']
-        user.last_name=self.cleaned_data['last_name']
-        user.is_active=False
-        user.save()
-        return user
+        # Check that there isn't another user with same username or email
+        if user.clean_username and user.clean_email:
+            user = User.objects.create_user(username=self.clean_username(),
+                                            email=self.cleaned_data['email'],
+                                            password='temppw',)        
+            user.first_name=self.cleaned_data['first_name']
+            user.last_name=self.cleaned_data['last_name']
+            user.is_active=False
+            user.save()
+            return user
+
 
 ####################################
 ###        COMPANY FORMS         ### 
@@ -331,7 +340,7 @@ class RequisitionForm(ModelForm):
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     # currency = forms.ChoiceField(settings.CURRENCIES, initial='USD')
-    comments = forms.CharField(required=False, max_length=500,)
+    comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
     department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
 
@@ -361,7 +370,7 @@ class RequisitionForm(ModelForm):
 class PurchaseOrderForm(ModelForm):    
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'} ))
-    comments = forms.CharField(max_length=500, required=False,)
+    comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':60}))
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
 
     cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
@@ -370,7 +379,7 @@ class PurchaseOrderForm(ModelForm):
     discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
-    terms = forms.CharField(max_length=5000, required=False)
+    terms = forms.CharField(max_length=5000, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':60}))
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all())
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Billing Address")
     shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Shipping Address")
@@ -434,8 +443,8 @@ class InvoiceForm(ModelForm):
     # Override save to make datetime objects timezone aware    
     def save(self, commit=True):
         instance = super(InvoiceForm, self).save(commit=False)
-        instance.date_due = timezone.make_aware(self.cleaned_data['date_due'], timezone.now())
-        instance.date_issued = timezone.make_aware(self.cleaned_data['date_issued'], timezone.now())
+        # instance.date_due = timezone.make_aware(self.cleaned_data['date_due'], timezone.now())
+        # instance.date_issued = timezone.make_aware(self.cleaned_data['date_issued'], timezone.now())
         if commit:
             instance.save()
         return instance
@@ -451,7 +460,7 @@ class InvoiceForm(ModelForm):
 
 class FileForm(ModelForm):    
     file = forms.FileField(required=True, label="Upload Invoice from Vendor")
-    comments = forms.CharField(required=False, label='Invoice notes')
+    comments = forms.CharField(required=False, label='Invoice notes', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)

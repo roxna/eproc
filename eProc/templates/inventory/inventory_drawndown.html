@@ -1,0 +1,5 @@
+{% include '_includes/inventory_template.html' with title='Outgoing Items' subtitle='List of Items Drawndown' items=drawndown_order_items tableID='drawnInventoryTable' %}
+
+{% block js %}    
+  {% include "_includes/dataTablesNotifications.html" with tableID='drawnInventoryTable' %}
+{% endblock js %}

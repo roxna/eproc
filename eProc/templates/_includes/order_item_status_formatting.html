@@ -1,0 +1,7 @@
+  {% with item.get_latest_status.value as latest_status %}
+    {% if latest_status == 'Approved' %}<span class="label label-large label-success">
+    {% elif latest_status == 'Pending' %}<span class="label label-large label-warning">
+    {% elif latest_status == 'Denied' %}<span class="label label-large label-danger">
+    {% else %} <span class="label label-large label-primary">
+    {% endif %} {{ value_to_display }}</span>
+  {% endwith %}

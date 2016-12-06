@@ -18,40 +18,52 @@
 
             <!-- TABS -->
             <ul class="nav nav-tabs">
-              <li><a href="#all" data-toggle="tab">All</a></li>
-              <li class="active"><a href="#open" data-toggle="tab">Open</a></li>
+              <li class="active"><a href="#all" data-toggle="tab">All</a></li>
+              <li><a href="#pending" data-toggle="tab">Pending</a></li>
+              <li><a href="#open" data-toggle="tab">Open</a></li>
               <li><a href="#closed" data-toggle="tab">Closed</a></li>
-              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
               <li><a href="#paid" data-toggle="tab">Paid</a></li>
+              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
+              <li><a href="#denied" data-toggle="tab">Denied</a></li>              
             </ul>
 
             <!-- TABLES -->
             <div class="tab-content">
-              <div class="tab-pane" id="all">
+              <div class="tab-pane active" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include po_table_template with purchaseorders=all_pos href=href %}
+                 {% include '_includes/po_table.html' with purchaseorders=all_pos href=href currency=currency %}
                   </table>
               </div>
-              <div class="tab-pane active" id="open"> 
+              <div class="tab-pane" id="pending"> 
+                 <table id="pendingTable" class="table table-striped">
+                 {% include '_includes/po_table.html' with purchaseorders=pending_pos href=href currency=currency %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="open"> 
                  <table id="openTable" class="table table-striped">
-                 {% include po_table_template with purchaseorders=open_pos href=href %}
+                 {% include '_includes/po_table.html' with purchaseorders=open_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
-                 {% include po_table_template with purchaseorders=closed_pos href=href %}
-                  </table>
-              </div>
-              <div class="tab-pane" id="cancelled">
-                 <table id="cancelledTable" class="table table-striped">
-                 {% include po_table_template with purchaseorders=cancelled_pos href=href %}
+                 {% include '_includes/po_table.html' with purchaseorders=closed_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include po_table_template with purchaseorders=paid_pos href=href %}
+                 {% include '_includes/po_table.html' with purchaseorders=paid_pos href=href currency=currency %}
                   </table>
-              </div>              
+              </div>  
+              <div class="tab-pane" id="cancelled">
+                 <table id="cancelledTable" class="table table-striped">
+                 {% include '_includes/po_table.html' with purchaseorders=cancelled_pos href=href currency=currency %}
+                  </table>
+              </div>                          
+              <div class="tab-pane" id="denied">
+                 <table id="deniedTable" class="table table-striped">
+                 {% include '_includes/po_table.html' with purchaseorders=denied_pos href=href currency=currency %}
+                  </table>
+              </div>
 
             </div>
           </div>
@@ -66,10 +78,12 @@
 <script type="text/javascript">
   $(function () {
     $('#allTable').DataTable();
+    $("#pendingTable").DataTable();
     $("#openTable").DataTable();
     $("#closedTable").DataTable();
     $("#cancelledTable").DataTable();
     $("#paidTable").DataTable();
+    $("#deniedTable").DataTable();
   });
 </script>
 {% endblock js %}

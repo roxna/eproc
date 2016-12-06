@@ -72,7 +72,10 @@ urlpatterns=[
     url(r'^invoice/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
     url(r'^invoices/print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
     url(r'^invoices/(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
-    url(r'^inventory/$', eProc_views.inventory, name='inventory'),
+    
+    url(r'^inventory/$', eProc_views.inventory_current, name='inventory_current'),
+    url(r'^inventory/received$', eProc_views.inventory_received, name='inventory_received'),
+    url(r'^inventory/drawndown$', eProc_views.inventory_drawndown, name='inventory_drawndown'),    
     
     url(r'^vendors/$', eProc_views.vendors, name='vendors'),
     url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),

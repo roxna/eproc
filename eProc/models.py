@@ -249,6 +249,9 @@ class Status(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.value)
 
+	def get_status_details(self):
+		return "{} ({})".format(self.author, self.date.date())
+
 	class Meta:
 		abstract = True
 		get_latest_by = 'date'

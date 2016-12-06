@@ -10,13 +10,15 @@
 		<h4>
 			<!-- 	If SUPERUSER, redirect to get_started
 					If REGUSER, redirect to create/updatePW -->
-			{% if user.buyer_profile.role == 'SuperUser' %}
-				<a href="{% url 'login' %}?next=/get-started/">
-			{% else %}
-				<a href="{% url 'login' %}?next=/get-started/">
-			{% endif %}
-					<button type="button" class="button button-outline">LOGIN</button>
-				</a>  &nbsp; now to view your account
+			<form method="post">
+				{% if user.buyer_profile.role == 'SuperUser' %}
+					<a href="{% url 'login' %}?next=/get-started/">
+				{% else %}
+					<a href="{% url 'login' %}?next=/get-started/">
+				{% endif %}
+						<button type="button" class="button button-outline">LOGIN</button>			
+					</a>  &nbsp; now to view your account
+			</form>
 		</h4><br>
 	</div>
 {% endblock header %}

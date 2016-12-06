@@ -155,7 +155,32 @@
                 </li>
               </ul>
             </li>   
-            <li><a href="{%url 'inventory' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li>
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-list-alt"></i> <span>Inventory</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                <li>
+                  <a href="{%url 'inventory_current' %}">
+                    <i class="fa fa-list"></i> Current Inventory
+                  </a>
+                </li>
+                <li>
+                  <a href="{%url 'inventory_received' %}">
+                    <i class="fa fa-sign-in"></i> Received Items
+                  </a>
+                </li>                
+                <li>
+                  <a href="{%url 'inventory_drawndown' %}">
+                    <i class="fa fa-sign-out"></i>Drawdowns
+                  </a>
+                </li>
+              </ul>
+            </li>   
+            <!-- <li><a href="{%url 'inventory_current' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li> -->
           {% endif %}
 
           <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-line-chart"></i> <span>Reports</span></a></li> -->
@@ -219,6 +244,11 @@
         setTimeout(function() {
             $("#messageNotification").hide('fade', 500)
         }, 2000);
+
+        $('a').on('click', function(){
+          $(this).parent().children('a').removeClass('active');
+          $(this).addClass('active');
+        })
     });
   </script>
   {% block js %}{% endblock js %}

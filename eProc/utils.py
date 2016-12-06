@@ -33,18 +33,22 @@ def get_requisitions(requisitions):
 
 # TODO: See Get_requisitions
 def get_pos(pos):
-    open_pos, closed_pos, cancelled_pos, paid_pos = [], [], [], []
+    pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos  = [], [], [], [], [], []
     for po in pos:
+        if po.get_latest_status().value == 'Pending':
+            pending_pos.append(po)
         if po.get_latest_status().value == 'Open':            
             open_pos.append(po)
         elif po.get_latest_status().value == 'Closed':
             closed_pos.append(po)
+        elif po.get_latest_status().value == 'Paid':
+            paid_pos.append(po)           
         elif po.get_latest_status().value == 'Cancelled':
             cancelled_pos.append(po)
-        elif po.get_latest_status().value == 'Paid':
-            paid_pos.append(po)       
-    all_pos = open_pos + closed_pos + cancelled_pos + paid_pos
-    return all_pos, open_pos, closed_pos, cancelled_pos, paid_pos
+        elif po.get_latest_status().value == 'Denied':
+            denied_pos.append(po)                   
+    all_pos = pending_pos + open_pos + closed_pos + cancelled_pos + paid_pos + denied_pos
+    return all_pos, pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos
 
 # TODO: See Get_requisitions
 def get_invoices(invoices):
@@ -101,11 +105,11 @@ def save_newreq_statuses(buyer, requisition):
     if buyer.role == 'SuperUser':
         DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
+            OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
     else:
         DocumentStatus.objects.create(value='Pending', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
+            OrderItemStatus.objects.create(value='Open', author=buyer, order_item=order_item)
 
 
 ################################

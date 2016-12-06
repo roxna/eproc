@@ -1,13 +1,19 @@
 {% load staticfiles %}
 
 {% with po.get_latest_status.value as latest_status %}
-  <a href="{% url href po_id=po.id %}">        
-    {% if latest_status == 'Paid' or latest_status == 'Closed' %}
-    <span class="label label-large label-success">
+  <a href="{% url href po_id=po.id %}">      
+    {% if latest_status == 'Pending' %}
+    <span class="label label-large label-pending">
     {% elif latest_status == 'Open' %}
-    <span class="label label-large label-warning">
+    <span class="label label-large label-open">
+    {% elif latest_status == 'Closed' %}
+    <span class="label label-large label-closed">
+    {% elif latest_status == 'Paid' %}
+    <span class="label label-large label-paid">    
     {% elif latest_status == 'Cancelled' %}
-    <span class="label label-large label-danger">
+    <span class="label label-large label-cancelled">
+    {% elif latest_status == 'Denied' %}
+    <span class="label label-large label-denied">
     {% else %}
     <span class="label label-large label-primary">
     {% endif %}
