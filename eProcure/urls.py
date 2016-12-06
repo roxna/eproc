@@ -34,7 +34,7 @@ urlpatterns=[
     ###### REGISTRATION URLS (in eProc) ######
     url(r'^register/$', eProc_views.register, name='register'),
     url(r'^activate/$', eProc_views.activate, name='activate'),
-    url(r'^login/$', login, {'authentication_form': LoginForm}, name='login'),
+    url(r'^login/$', login, {'authentication_form': LoginForm, }, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     url(r'^thankyou/$', eProc_views.thankyou, name='thankyou'),
     

@@ -27,6 +27,10 @@ import pdb
 
 scalar = 570
 
+####################################
+###         REGISTRATION         ### 
+####################################
+
 def register(request):
     user_form = RegisterUserForm(request.POST or None)  
     buyer_company_form = BuyerCoForm(request.POST or None)      
@@ -57,9 +61,13 @@ def activate(request):
     user.save()
     return render(request,'registration/activate.html')
 
+####################################
+###         MAIN PAGES           ### 
+####################################
+
 def thankyou(request):
     return render(request, 'registration/thankyou.html')
-
+    
 @login_required()
 def get_started(request):
     return render(request, "main/get_started.html")
@@ -92,6 +100,10 @@ def dashboard(request):
         'product_spend': product_spend,        
     }
     return render(request, "main/dashboard.html", data)
+
+####################################
+###           SETTINGS           ### 
+####################################
 
 @login_required
 def users(request):    
@@ -254,16 +266,14 @@ def vendors(request):
 
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
-    vendor = VendorCo.objects.get(pk=vendor_id)
-    # company = Company.objects.get(pk=vendor_id)    
-    locations = Location.objects.filter(company=vendor)
+    vendor = VendorCo.objects.filter(pk=vendor_id)
+    company = Company.objects.filter(pk=vendor_id)    
     try:
-        # data = LocationSerializer(locations, many=True).data
-        data = VendorCoSerializer(vendor)
+        location = Location.objects.filter(company=company)
+        data = serialize('json', list(vendor) + list(company) + list(location))
     except TypeError: # No Location has been determined for Vendor
-        data = []
-    return HttpResponse(JSONRenderer().render(data), content_type='application/json')
-
+        data = serialize('json', list(vendor) + list(company))
+    return HttpResponse(data, content_type='application/json')
 
 @login_required
 def upload_vendor_csv(request):

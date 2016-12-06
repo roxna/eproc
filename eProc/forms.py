@@ -9,6 +9,10 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 # import pytz
 
+####################################
+###         REGISTRATION         ### 
+####################################
+
 class RegisterUserForm(UserCreationForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True) 
@@ -42,11 +46,13 @@ class RegisterUserForm(UserCreationForm):
             code='duplicate_username',
         )
 
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
 class ChangeUserForm(UserChangeForm):
-    password = ReadOnlyPasswordHashField(label= ("Password"),
-        help_text= ("Raw passwords are not stored, so there is no way to see "
-                    "this user's password, but you can change the password "
-                    "using this form."))
 
     def __init__(self, *args, **kwargs):
         super(ChangeUserForm, self).__init__(*args, **kwargs)
@@ -61,7 +67,6 @@ class ChangeUserForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'password')
-
 
 
 # CREATING A USER WITH A TEMP PASSWORD
@@ -85,14 +90,14 @@ class AddUserForm(forms.Form):
     )
 
     def get_username(self):
-        return self.cleaned_data['first_name'].lower()+self.cleaned_data['last_name'].lower()
+        return self.cleaned_data['first_name'].lower()+'_'+self.cleaned_data['last_name'].lower()
 
     def clean_username(self):
         try:
             User.objects.get(username=self.get_username())
-        except User.DoesNotExist :
+        except User.DoesNotExist:
             return self.get_username()
-        raise forms.ValidationError("Duplicate username")
+        raise forms.ValidationError('duplicate_username')
 
     def save(self):
         user = User.objects.create_user(username=self.clean_username(),
@@ -104,6 +109,10 @@ class AddUserForm(forms.Form):
         user.is_active=False
         user.save()
         return user
+
+####################################
+###        COMPANY FORMS         ### 
+####################################
 
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
@@ -142,59 +151,6 @@ class BuyerCoForm(forms.ModelForm):
         model = BuyerCo
         fields = ('name', 'currency')
 
-class LoginForm(AuthenticationForm):
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-
-
-class DepartmentForm(ModelForm):
-    name = forms.CharField(required=True)
-
-    def __init__(self, *args, **kwargs):
-        super(DepartmentForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-
-    class Meta:
-        model = Department
-        fields = ("name", )
-
-class AccountCodeForm(ModelForm):
-    expense_type = forms.ChoiceField(settings.EXPENSE_TYPES, required=True, )
-    departments = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=True, widget=forms.CheckboxSelectMultiple)
-
-    def __init__(self, *args, **kwargs):
-        super(AccountCodeForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-
-    class Meta:
-        model = AccountCode
-        fields = ("code", "name", "expense_type", "departments")
-        widgets = {
-            'departments': forms.CheckboxSelectMultiple(),
-        }
-
-class CatalogItemForm(ModelForm):
-    name = forms.CharField(required=True)
-    desc = forms.CharField()
-    sku = forms.CharField(required=True)
-    unit_price = forms.DecimalField(required=True, min_value=0)
-    unit_type = forms.CharField(required=True)
-    # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
-    category = forms.ModelChoiceField(queryset=Category.objects.all())
-    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Preferred Vendor")
-
-    def __init__(self, *args, **kwargs):
-        super(CatalogItemForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-
-    class Meta:
-        model = CatalogItem
-        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
 class VendorCoForm(ModelForm):
     name = forms.CharField(required=True, label="<i class='fa fa-building'></i> Vendor Name")
@@ -227,16 +183,6 @@ class VendorCoForm(ModelForm):
     class Meta:
         model = VendorCo
         fields = ("name", "contact_rep", "website", "vendorID", "comments")
-
-class CategoryForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(CategoryForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False        
-
-    class Meta:
-        model = Category
-        fields = ("name", "code")
 
 class LocationForm(ModelForm):
     loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Address Type")
@@ -283,6 +229,103 @@ class LocationForm(ModelForm):
     class Meta:
         model = Location
         fields = ('loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
+
+####################################
+###       SETTINGS FORMS         ### 
+####################################
+
+class DepartmentForm(ModelForm):
+    name = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(DepartmentForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
+    class Meta:
+        model = Department
+        fields = ("name", )
+
+class AccountCodeForm(ModelForm):
+    expense_type = forms.ChoiceField(settings.EXPENSE_TYPES, required=True, )
+    departments = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=True, widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        super(AccountCodeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
+    class Meta:
+        model = AccountCode
+        fields = ("code", "name", "expense_type", "departments")
+        widgets = {
+            'departments': forms.CheckboxSelectMultiple(),
+        }
+
+class CategoryForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False        
+
+    class Meta:
+        model = Category
+        fields = ("name", "code")
+
+
+####################################
+###   PRODUCT & ITEM FORMS       ### 
+####################################
+
+class CatalogItemForm(ModelForm):
+    name = forms.CharField(required=True)
+    desc = forms.CharField()
+    sku = forms.CharField(required=True)
+    unit_price = forms.DecimalField(required=True, min_value=0)
+    unit_type = forms.CharField(required=True)
+    # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
+    category = forms.ModelChoiceField(queryset=Category.objects.all())
+    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Preferred Vendor")
+
+    def __init__(self, *args, **kwargs):
+        super(CatalogItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
+    class Meta:
+        model = CatalogItem
+        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendor_co')
+
+
+class OrderItemForm(ModelForm):
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
+    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
+    quantity = forms.IntegerField(required=True, min_value=1)
+    comments = forms.CharField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(OrderItemForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('product', css_class='col-md-3'),                
+                Div('quantity', css_class='col-md-1'),
+                Div('account_code', css_class='col-md-3'),
+                Div('comments', css_class='col-md-4'),
+                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
+                css_class='row',
+            ),
+        )
+
+    class Meta:
+        model = OrderItem
+        fields = ("product", "quantity", "account_code", "comments")
+
+####################################
+###       DOCUMENT FORMS         ### 
+####################################
 
 class RequisitionForm(ModelForm):    
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
@@ -400,6 +443,11 @@ class InvoiceForm(ModelForm):
     class Meta:
         model = Invoice
         fields = ("number", "date_issued", "date_due", "comments", "purchase_order", "vendor_co")
+        
+
+####################################
+###         OTHER FORMS          ### 
+####################################
 
 class FileForm(ModelForm):    
     file = forms.FileField(required=True, label="Upload Invoice from Vendor")
@@ -413,33 +461,6 @@ class FileForm(ModelForm):
     class Meta:
         model = File
         fields = ("file", "comments", )
-
-class OrderItemForm(ModelForm):
-    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
-    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
-    quantity = forms.IntegerField(required=True, min_value=1)
-    comments = forms.CharField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(OrderItemForm, self).__init__(*args, **kwargs)
-        self.empty_permitted = False
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                Div('product', css_class='col-md-3'),                
-                Div('quantity', css_class='col-md-1'),
-                Div('account_code', css_class='col-md-3'),
-                Div('comments', css_class='col-md-4'),
-                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
-                css_class='row',
-            ),
-        )
-
-    class Meta:
-        model = OrderItem
-        fields = ("product", "quantity", "account_code", "comments")
-        
 
 class UploadCSVForm(forms.Form):
     file = forms.FileField(required=True)
