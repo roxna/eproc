@@ -175,6 +175,8 @@ class PurchaseOrder(Document, SalesOrder):
 class Invoice(Document, SalesOrder):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
+class Drawdown(Document):
+	pass
 
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
@@ -222,16 +224,17 @@ class OrderItem(models.Model):
 	comments = models.CharField(max_length=150, blank=True, null=True)
 	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
-	account_code = models.ForeignKey(AccountCode, related_name="order_items")
+	account_code = models.ForeignKey(AccountCode, related_name="order_items", null=True, blank=True)
 	product = models.ForeignKey(CatalogItem, related_name='order_items')
-	requisition = models.ForeignKey(Requisition, related_name='order_items')
+	requisition = models.ForeignKey(Requisition, related_name='order_items', null=True, blank=True)
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
 	invoice = models.ForeignKey(Invoice, related_name='order_items', null=True, blank=True)
+	drawdown = models.ForeignKey(Drawdown, related_name='order_items', null=True, blank=True)
 	# objects = models.Manager()
 	# latest_status_objects = LatestStatusManager()
 	
 	def __unicode__(self):
-		return "{} of {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
+		return "{} {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
 
 	def get_unit_price(self):
 		return self.unit_price
@@ -242,7 +245,7 @@ class OrderItem(models.Model):
 
 ######### OTHER DETAILS #########
 class Status(models.Model):
-	value = models.CharField(max_length=15, choices=settings.STATUSES, default='Pending')
+	value = models.CharField(max_length=20, choices=settings.STATUSES, default='Pending')
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")	
 

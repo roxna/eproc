@@ -1,0 +1,27 @@
+  <!-- Order Item in Request -->
+  <div class="row">
+    <div class="col-xs-12">
+  	 <p class="lead">Drawdown Line Items</p>
+    </div>
+    <div class="col-xs-12 table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Comments</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in items %}
+          <tr id="orderItemList">
+            <td id="">{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.comments }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div><br>

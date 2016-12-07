@@ -132,36 +132,50 @@ LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (
-    #### Order Items  ####
+    #### REQUEST Order Items  ####
     ('Open', 'Open'), #new_req
     ('Requested', 'Requested'), #view_req --> approve req
     ('Approved', 'Approved'), #view_po --> approve po
-    # ('Denied', 'Denied'), #view_po --> deny po
-    # ('Cancelled', 'Cancelled'), #view_po --> cancel po
+    ('Denied', 'Denied'), #view_po --> deny po
+    ('Cancelled', 'Cancelled'), #view_req or #view_po --> cancel po
     ('Ordered', 'Ordered'), #new_po --> create po
     ('Delivered', 'Delivered'), #receive_items
-    ('Paid', 'Paid'), # Updated on view_invoice/1
-    ('Drawndown', 'Drawndown'), #TODO
+    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
+    
+    #### DRAWDOWN Order Items  ####
+    ('Drawdown Requested', 'Drawdown Requested'), #new_drawdown
+    ('Drawdown Approved', 'Drawdown Approved'), #view_drawdown
+    ('Drawdown Denied', 'Drawdown Denied'), #view_drawdown
+    ('Drawdown Cancelled', 'Drawdown Cancelled'), #view_drawdown
+    ('Drawdown Completed', 'Drawdown Completed'), #view_drawdown
 
     #### Requisitions ####
     ('Pending', 'Pending'), #new_req
-    ('Approved', 'Approved'), #view_req 
-    ('Denied', 'Denied'), #view_req 
+    # ('Approved', 'Approved'), #view_req 
+    # ('Denied', 'Denied'), #view_req 
+    # ('Cancelled', 'Cancelled'), #view_req
 
     #### POs ####
     # ('Pending', 'Pending'), #new_po
-    ('Open', 'Open'), #view_po
-    ('Closed', 'Closed'),  #TODO: receive_items --> all items received OR explicit CLOSE button
+    # ('Open', 'Open'), #view_po --> CHANGE TO APPROVED?
     # ('Denied', 'Denied'), #view_po
-    ('Cancelled', 'Cancelled'), #view_po
-    ('Paid', 'Paid'),  #new_invoice   
+    # ('Closed', 'Closed'),  #TODO: receive_items --> all items received OR explicit CLOSE button    
+    # ('Cancelled', 'Cancelled'), #view_po
+    # ('Paid', 'Paid'),  #new_invoice   
 
     #### Invoices ####
-    ('Pending', 'Pending'), #TODO Update: On invoice creation
-    ('Approved', 'Approved'),  #new_invoice
-    ('Cancelled', 'Cancelled'), #TODO
-    ('Paid', 'Paid'),  #TODO: Updated on view_invoice/1
+    # ('Pending', 'Pending'), #TODO Update: On invoice creation
+    # ('Approved', 'Approved'),  #new_invoice
+    # ('Cancelled', 'Cancelled'), #TODO
+    # ('Paid', 'Paid'),  #TODO: Updated on view_invoice/1
     
+    #### DRAWDOWN  ###
+    # ('Pending', 'Pending'), #new_drawdown
+    # ('Approved', 'Approved'),  #view_drawdown
+    # ('Denied', 'Denied'),  #view_drawdown
+    # ('Cancelled', 'Cancelled'), #view_drawdown
+    # ('Completed', 'Completed'), #TODO
+
     #### ALL #### 
     ('Archived', 'Archived'),
 )

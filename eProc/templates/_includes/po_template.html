@@ -4,7 +4,7 @@
       <h2 class="page-header">
         <i class="fa fa-globe"></i> PURCHASE ORDER
         <small class="pull-right">
-          <b>{{purchase_order.number}} {% include "_includes/po_status_formatting.html" with po=purchase_order value_to_display=latest_status href='view_purchaseorder' %}</b>
+          <b>{{purchase_order.number}} {% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}</b>
         </small>
       </h2>
     </div>
@@ -41,20 +41,11 @@
   <!-- Footer -->
   <div class="row no-print">
     <div class="col-xs-12">
-      <form method="post">
-      {% csrf_token %}
-      {% if latest_status.value == 'Pending' %}
-        {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}                                        
-              <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
-              <button type="submit" name="deny" value="deny" class="btn basic-red pull-right"><i class="fa fa-times"></i> Deny Order</button>
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile == purchase_order.preparer %}
-              <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel Order</button>            
-          {% endif %}
-        {% endif %}
-      </form>
+        {% if latest_status.value == 'Pending' %}
+            {% include "_includes/approve_deny_cancel.html" with document=purchase_order user_role='Purchaser' %}
         {% else %}
           <div class="label" style="color:grey">
-            Status: <em>{% include "_includes/po_status_formatting.html" with po=purchase_order value_to_display=latest_status href='view_purchaseorder' %} 
+            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
             [By {{latest_status.author}} on {{latest_status.date|date}}]
             </em>
           </div>

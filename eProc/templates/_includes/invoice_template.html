@@ -4,7 +4,7 @@
     <h2 class="page-header">
       <i class="fa fa-globe"></i> INVOICE
       <small class="pull-right">
-        <b>{{invoice.number}} {% include "_includes/invoice_status_formatting.html" with invoice=invoice value_to_display=latest_status %}</b>
+        <b>{{invoice.number}} {% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
       </small><br> 
     </h2>
   </div>
@@ -48,7 +48,7 @@
         {% endif %}
       {% else %}
           <div class="label" style="color:grey">
-            Status: <em>{% include "_includes/invoice_status_formatting.html" with invoice=invoice value_to_display=latest_status %} 
+            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
             [By {{latest_status.author}} on {{latest_status.date|date}}]
             </em>
           </div>

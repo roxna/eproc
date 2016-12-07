@@ -1,0 +1,25 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Drawdowns{% endblock title %}
+
+{% block header %}Drawdown Details{% endblock header %}
+
+
+{% block content %}
+
+  <section class="invoice">   
+
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{% url 'drawdowns' %}"><i class="fa fa-angle-left"></i> Back</a>
+      </div>
+    </div>
+
+    {% include "_includes/drawdown_template.html" with drawdown=drawdown %}  
+  
+  </section>       
+  
+  <div class="clearfix"></div>
+
+{% endblock content %}

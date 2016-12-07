@@ -332,6 +332,30 @@ class OrderItemForm(ModelForm):
         model = OrderItem
         fields = ("product", "quantity", "account_code", "comments")
 
+class DrawdownItemForm(ModelForm):
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
+    quantity = forms.IntegerField(required=True, min_value=1)
+    comments = forms.CharField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DrawdownItemForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('product', css_class='col-md-4'),                
+                Div('quantity', css_class='col-md-2'),
+                Div('comments', css_class='col-md-4'),
+                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
+                css_class='row',
+            ),
+        )
+
+    class Meta:
+        model = OrderItem
+        fields = ("product", "quantity", "comments")
+
 ####################################
 ###       DOCUMENT FORMS         ### 
 ####################################
@@ -452,7 +476,36 @@ class InvoiceForm(ModelForm):
     class Meta:
         model = Invoice
         fields = ("number", "date_issued", "date_due", "comments", "purchase_order", "vendor_co")
-        
+ 
+
+class DrawdownForm(ModelForm):       
+    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+    date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
+    comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(DrawdownForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(            
+            Div(
+                Div('number', css_class='col-md-3'),
+                Div('department', css_class='col-md-3'),
+                Div('date_due', css_class='col-md-3'),
+                Div('next_approver', css_class='col-md-3'),
+                css_class='row',
+            ),
+            Div(
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            )
+        )    
+
+    class Meta:
+        model = Drawdown
+        fields = ("number", "date_due", "comments", "department", "next_approver")      
 
 ####################################
 ###         OTHER FORMS          ### 

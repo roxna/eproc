@@ -4,7 +4,7 @@
     <h2 class="page-header">
       <i class="fa fa-globe"></i> REQUEST ORDER
       <small class="pull-right">
-        <b>{{requisition.number}} {% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %}</b>
+        <b>{{requisition.number}} {% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b>
       </small><br> 
     </h2>
   </div>
@@ -45,17 +45,10 @@
 <div class="row no-print">
   <div class="col-xs-12">
     {% if latest_status.value == 'Pending' %}
-      <!-- Show only if Approver Role -->
-      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-          <form method="post">
-            {% csrf_token %}
-            <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve Order</button>
-            <button type="submit" name="deny" value="deny" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Deny Order</button>
-          </form>
-      {% endif %}
+      {% include "_includes/approve_deny_cancel.html" with document=requisition user_role='Approver' %}
     {% else %}
         <div class="label" style="color:grey">
-          Status: <em>{% include "_includes/requisition_status_formatting.html" with requisition=requisition value_to_display=latest_status %} [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
         </div>
     {% endif %}          
   </div>

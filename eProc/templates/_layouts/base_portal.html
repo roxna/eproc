@@ -128,13 +128,6 @@
           {% endif %}
 
           {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-            <li>
-              <a href="{%url 'receive_pos' %}">
-                <i class="fa fa-truck"></i> 
-                <span>Receive Items</span>
-              </a>
-            </li>
-
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-money"></i> <span>Invoices</span>
@@ -150,11 +143,40 @@
                 </li>
                 <li>
                   <a href="{%url 'invoices' %}">
-                    <i class="fa fa-money"></i>View Invoices
+                    <i class="fa fa-money"></i> View Invoices
                   </a>
                 </li>
               </ul>
-            </li>   
+            </li> 
+
+            <li>
+              <a href="{%url 'receive_pos' %}">
+                <i class="fa fa-truck"></i> 
+                <span>Receive Items</span>
+              </a>
+            </li>
+
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                <li>
+                  <a href="{%url 'new_drawdown' %}">
+                    <i class="fa fa-pencil-square-o"></i> New Drawdown
+                  </a>
+                </li>
+                <li>
+                  <a href="{%url 'drawdowns' %}">
+                    <i class="fa fa-sign-out"></i> Approve Drawdown
+                  </a>
+                </li>
+              </ul>
+            </li>     
+
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-list-alt"></i> <span>Inventory</span>

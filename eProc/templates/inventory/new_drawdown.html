@@ -2,12 +2,12 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
-{% block title %}New Requisition{% endblock title %}
+{% block title %}New Drawdown{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}Create a New Request{% endblock header %}
+{% block header %}Create a New Drawdown{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -24,7 +24,7 @@
               <div class="row">
             	<div class="col-xs-12">
     				<div class="box-body no-padding">
-                        {% crispy requisition_form requisition_form.helper %}
+                        {% crispy drawdown_form drawdown_form.helper %}
     	            </div>
     	        </div>
     		</div> 
@@ -40,9 +40,9 @@
               <div class="row">
             	<div class="col-xs-12">                
     				<div class="box-body">    		        	
-                        {{ orderitem_formset.management_form | crispy }}
+                        {{ drawdownitem_formset.management_form | crispy }}
 
-                        {% for form in orderitem_formset.forms %}                   
+                        {% for form in drawdownitem_formset.forms %}                   
                             {% for hidden in form.hidden_fields %}
                                 {{ hidden }}
                             {% endfor %}

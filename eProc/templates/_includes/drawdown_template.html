@@ -1,0 +1,72 @@
+{% with drawdown.get_latest_status as latest_status %} 
+<div class="row">
+  <div class="col-xs-12">
+    <h2 class="page-header">
+      <i class="fa fa-globe"></i> DRAWDOWN
+      <small class="pull-right">
+        <b>{{drawdown.number}} {% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' href_id=drawdown.id %}</b>
+      </small><br> 
+    </h2>
+  </div>
+</div>
+
+<!-- Request Details -->
+<div class="row invoice-info">
+	<div class="col-sm-6 invoice-col">
+    <p class="lead">Requester Info</p>
+    Preparer:<b> {{ drawdown.preparer }}</b><br>
+    Next Approver:<b> {{ drawdown.next_approver }}</b><br>
+  </div>
+<div class="col-sm-6 invoice-col">
+    <p class="lead">Details</p>
+    Number:<b> {{ drawdown.number }}</b><br>
+    Date Requested:<b> {{ drawdown.date_issued | date }}</b><br>
+    Date Due:<b> {{ drawdown.date_due }}</b><br>        
+  </div>  
+</div><br><br>
+
+<!-- Order Items Table-->
+{% include "_includes/drawdown_item_table.html" with items=drawdown.order_items.all %}
+
+<!-- Comments & Total -->
+<div class="row">              
+  <div class="col-xs-12 col-md-8">
+    <p class="lead">Other</p>
+    <p>COMMENTS: <br>{{drawdown.comments}}</p>
+  </div>        
+
+  <div class="col-xs-12 col-md-4">
+    <p class="lead">Total Cost: {{ drawdown.currency }} {{ drawdown.sub_total }}</p>
+  </div>
+</div><br>
+
+<!-- Footer -->
+<div class="row no-print">
+  <div class="col-xs-12">
+    {% if latest_status.value == 'Pending' %}
+      <!-- Show only if Approver Role -->
+      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+            {% include "_includes/approve_deny_cancel.html" with document=drawdown user_role='Approver' %}
+      {% endif %}
+    {% else %}
+        <div class="label" style="color:grey">
+          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' href_id=drawdown.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+        </div>
+    {% endif %}          
+  </div>
+</div>
+{% endwith %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

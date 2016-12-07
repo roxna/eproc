@@ -16,7 +16,7 @@
   {% for po in purchaseorders %}           
   <tr>
     <td> 
-      {% include "_includes/po_status_formatting.html" with po=po value_to_display=po.number %}
+      {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href=href href_id=po.id %}
     </td>
     <td>
       <b> {{ po.date_due }} </b>

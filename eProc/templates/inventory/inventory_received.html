@@ -1,5 +1,1 @@
-{% include '_includes/inventory_template.html' with title='Incoming Items' subtitle='List of Items Delivered' items=delivered_order_items tableID='receivedInventoryTable' %}
-
-{% block js %}    
-  {% include "_includes/dataTablesNotifications.html" with tableID='receivedInventoryTable' %}
-{% endblock js %}
+{% include '_includes/inventory_template.html' with title='Incoming Items' subtitle='List of Items Delivered' chartID='receivedChart' items=items tableID='receivedInventoryTable' itemCount=itemCount %}

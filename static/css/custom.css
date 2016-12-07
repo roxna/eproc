@@ -35,8 +35,14 @@
 .label-pending{
 	background-color: #f39c12 !important;
 }
-.label-open .label-approved{
+.label-requested{
+	background-color: #f39c12 !important;
+}
+.label-open{
 	background-color: #d2d6de !important;
+}
+.label-approved{
+	background-color: #00a65a !important;
 }
 .label-closed{
 	background-color: #999 !important;
@@ -45,10 +51,25 @@
 	background-color: #00a65a !important;
 }
 .label-cancelled{
+	border: 1px solid #999;
+	color: #999;
+	text-decoration: line-through;
+}
+.label-ordered{
+	background-color: #00a65a !important;
+}
+.label-delivered{
 	background-color: #00a65a !important;
 }
 .label-denied{
 	background-color: #dd4b39 !important;
+}
+.label-drawndown{
+	background-color: black !important;
+}
+.label-archived{
+	background-color: #999 !important;  
+	color: #34282C;
 }
 
 .label-large{

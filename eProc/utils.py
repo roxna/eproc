@@ -65,6 +65,20 @@ def get_invoices(invoices):
     all_invoices = pending_invoices + approved_invoices + cancelled_invoices + paid_invoices
     return all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices
 
+def get_drawdowns(drawdowns):
+    all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns = [], [], [], [], []
+    for drawdown in drawdowns:
+        if drawdown.get_latest_status().value == 'Pending':
+            pending_drawdowns.append(drawdown)
+        elif drawdown.get_latest_status().value == 'Approved':
+            approved_drawdowns.append(drawdown)
+        elif drawdown.get_latest_status().value == 'Denied':
+            denied_drawdowns.append(drawdown)
+        elif drawdown.get_latest_status().value == 'Cancelled':
+            cancelled_drawdowns.append(drawdown)            
+    all_drawdowns = pending_drawdowns + approved_drawdowns + denied_drawdowns + cancelled_drawdowns
+    return all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns
+
 ################################
 ###     NEW REQUISITION     ### 
 ################################ 
@@ -76,31 +90,6 @@ def initialize_newreq_forms(user, requisition_form, orderitem_formset):
         orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=user.buyer_profile.company)
         orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=user.buyer_profile.company)
 
-def save_new_requisition(buyer, requisition_form):
-    requisition = requisition_form.save(commit=False)
-    requisition.preparer = buyer
-    requisition.currency = buyer.company.currency
-    requisition.date_issued = timezone.now()
-    requisition.buyer_co = buyer.company
-    requisition.sub_total = 0
-    requisition.save()
-    return requisition
-
-def save_newreq_orderitems(requisition, orderitem_formset):
-    # Save the data for each form in the order_items formset 
-    for index, orderitem_form in enumerate(orderitem_formset.forms):
-        if orderitem_form.is_valid():
-            order_item = orderitem_form.save(commit=False)
-            order_item.number = requisition.number + "-" + str(index+1)
-            order_item.requisition = requisition
-            order_item.date_due = requisition.date_due                    
-            order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
-            requisition.sub_total += order_item.sub_total            
-            order_item.save()                    
-            order_item.unit_price = order_item.product.unit_price
-            order_item.save()
-    requisition.save()
-
 def save_newreq_statuses(buyer, requisition):
     if buyer.role == 'SuperUser':
         DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
@@ -111,6 +100,59 @@ def save_newreq_statuses(buyer, requisition):
         for order_item in requisition.order_items.all():
             OrderItemStatus.objects.create(value='Open', author=buyer, order_item=order_item)
 
+
+################################
+###     COMMON METHODS     ### 
+################################ 
+
+## Used by both NEW_REQ and NEW_DD
+def save_new_document(buyer, form):
+    instance = form.save(commit=False)
+    instance.preparer = buyer
+    instance.currency = buyer.company.currency
+    instance.date_issued = timezone.now()
+    instance.buyer_co = buyer.company
+    instance.sub_total = 0
+    instance.save()
+    return instance
+
+def save_orderitems(document, orderitem_formset):
+    # Save the data for each form in the order_items formset 
+    for index, orderitem_form in enumerate(orderitem_formset.forms):
+        if orderitem_form.is_valid():
+            order_item = orderitem_form.save(commit=False)
+            order_item.number = document.number + "-" + str(index+1)
+            if isinstance(document, Requisition):
+                order_item.requisition = document
+            elif isinstance(document, Drawdown):
+                order_item.drawdown = document
+            order_item.date_due = document.date_due                    
+            order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
+            document.sub_total += order_item.sub_total            
+            order_item.save()                    
+            order_item.unit_price = order_item.product.unit_price
+            order_item.save()
+    document.save()
+
+################################
+###     NEW DRAWDOWN     ### 
+################################ 
+
+def initialize_newdrawdown_forms(user, drawdown_form, drawdownitem_formset):
+    drawdown_form.fields['department'].queryset = Department.objects.filter(company=user.buyer_profile.company)
+    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=user.buyer_profile.company).exclude(user=user)
+    for drawdownitem_form in drawdownitem_formset: 
+        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=user.buyer_profile.company)
+
+def save_newdrawdown_statuses(buyer, drawdown):
+    if buyer.role == 'SuperUser':
+        DocumentStatus.objects.create(value='Approved', author=buyer, document=drawdown)
+        for order_item in drawdown.order_items.all():
+            OrderItemStatus.objects.create(value='Drawdown Approved', author=buyer, order_item=order_item)
+    else:
+        DocumentStatus.objects.create(value='Pending', author=buyer, document=drawdown)
+        for order_item in drawdown.order_items.all():
+            OrderItemStatus.objects.create(value='Drawdown Requested', author=buyer, order_item=order_item)
 
 ################################
 ###    NEW PURCHASE ORDER    ### 

@@ -383,8 +383,8 @@ def new_requisition(request):
     
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
-            requisition = save_new_requisition(buyer, requisition_form)
-            save_newreq_orderitems(requisition, orderitem_formset)
+            requisition = save_new_document(buyer, requisition_form)
+            save_orderitems(requisition, orderitem_formset)
             save_newreq_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
             return redirect('new_requisition')
@@ -423,11 +423,16 @@ def view_requisition(request, requisition_id):
             for order_item in requisition.order_items.all():
                 OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition approved')
-        if 'deny' in request.POST:
+        elif 'deny' in request.POST:
             DocumentStatus.objects.create(value='Denied', author=buyer, document=requisition)
             for order_item in requisition.order_items.all():
                 OrderItemStatus.objects.create(value='Denied', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition denied')
+        elif 'cancel' in request.POST:
+            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=requisition)
+            for order_item in requisition.order_items.all():
+                OrderItemStatus.objects.create(value='Cancelled', author=buyer, order_item=order_item)
+            messages.success(request, 'Requisition Cancelled')          
         else:
             messages.error(request, 'Error. Requisition not updated')
         return redirect('requisitions')
@@ -521,7 +526,7 @@ def print_purchaseorder(request, po_id):
 def view_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
-    if request.method == 'POST':
+    if request.method == 'POST':        
         if 'approve' in request.POST:
             DocumentStatus.objects.create(value='Approved', author=buyer, document=purchase_order)
             for order_item in purchase_order.order_items.all():
@@ -704,10 +709,10 @@ def inventory_received(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     delivered_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
-    delivered_count = delivered_order_items.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
+    delivered_count = delivered_order_items.values('product__name').annotate(totalCount=Sum('quantity'))
     data = {
-        'delivered_order_items': delivered_order_items,
-        'delivered_count': delivered_count,
+        'items': delivered_order_items,
+        'itemCount': delivered_count,
     }
     return render(request, "inventory/inventory_received.html", data)
 
@@ -716,10 +721,10 @@ def inventory_drawndown(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')
-    drawndown_count = drawndown_order_items.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
+    drawndown_count = drawndown_order_items.values('product__name').annotate(totalCount=Sum('quantity'))    
     data = {
-        'drawndown_order_items':drawndown_order_items,
-        'drawndown_count': drawndown_count,
+        'items':drawndown_order_items,
+        'itemCount': drawndown_count,
     }
     return render(request, "inventory/inventory_drawndown.html", data)
 
@@ -729,7 +734,7 @@ def inventory_current(request):
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     # TODO: CUSTOM MANAGER TO GET LATEST STATUS IN QUERYSET
     delivered_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
-    drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')    
+    drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')
     # TODO: GET THIS COUNT AS THE DIFFERENCE
     inventory_count = delivered_order_items.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
     data = {
@@ -738,4 +743,71 @@ def inventory_current(request):
     return render(request, "inventory/inventory_current.html", data)
 
 
+@login_required
+def new_drawdown(request):
+    buyer = request.user.buyer_profile
+    drawdown_form = DrawdownForm(request.POST or None,
+                                       initial= {'number': 'DD'+str(Drawdown.objects.filter(buyer_co=buyer.company).count()+1)})
+    DrawdownItemFormSet = inlineformset_factory(parent_model=Drawdown, model=OrderItem, form=DrawdownItemForm, extra=1)
+    drawdownitem_formset = DrawdownItemFormSet(request.POST or None)
+    initialize_newdrawdown_forms(request.user, drawdown_form, drawdownitem_formset)    
+    
+    if request.method == "POST":
+        if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
+            drawdown = save_new_document(buyer, drawdown_form)
+            save_orderitems(drawdown, drawdownitem_formset)
+            save_newdrawdown_statuses(buyer, drawdown)
+            messages.success(request, 'Drawdown submitted successfully')
+            return redirect('drawdowns')
+        else:
+            messages.error(request, 'Error. Drawdown not submitted')
+    data = {
+        'drawdown_form': drawdown_form,
+        'drawdownitem_formset': drawdownitem_formset,
+        'table_headers': ['Product', 'Quantity', 'Comments'],
+    }
+    return render(request, "inventory/new_drawdown.html", data)
 
+@login_required
+def view_drawdown(request, drawdown_id):
+    buyer = request.user.buyer_profile
+    drawdown = Drawdown.objects.get(pk=drawdown_id)
+    # pdb.set_trace()
+    if request.method == 'POST':
+        if 'approve' in request.POST:
+            DocumentStatus.objects.create(value='Approved', author=buyer, document=drawdown)
+            for order_item in drawdown.order_items.all():
+                OrderItemStatus.objects.create(value='Drawdown Approved', author=buyer, order_item=order_item)
+            messages.success(request, 'Drawdown Approved')
+        elif 'deny' in request.POST:
+            DocumentStatus.objects.create(value='Denied', author=buyer, document=drawdown)
+            for order_item in drawdown.order_items.all():
+                OrderItemStatus.objects.create(value='Drawdown Denied', author=buyer, order_item=order_item)
+            messages.success(request, 'Drawdown Denied')     
+        elif 'cancel' in request.POST:
+            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=drawdown)
+            for order_item in drawdown.order_items.all():
+                OrderItemStatus.objects.create(value='Drawdown Cancelled', author=buyer, order_item=order_item)
+            messages.success(request, 'Drawdown Cancelled')                        
+        else:
+            messages.error(request, 'Error. Drawdown not updated')
+        return redirect('drawdowns')
+    data = {
+        'drawdown': drawdown,
+    }
+    return render(request, "inventory/view_drawdown.html", data)
+
+@login_required
+def drawdowns(request):
+    buyer = request.user.buyer_profile    
+    drawdowns = Drawdown.objects.filter(buyer_co=buyer.company)
+    all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns = get_drawdowns(drawdowns)
+    data = {
+        'all_drawdowns': all_drawdowns,
+        'pending_drawdowns': pending_drawdowns,
+        'approved_drawdowns': approved_drawdowns,
+        'denied_drawdowns': denied_drawdowns,
+        'cancelled_drawdowns': cancelled_drawdowns,
+        'table_headers': ['Drawdown No.', 'Date Requested', 'Comments']
+    }
+    return render(request, "inventory/drawdowns.html", data)

@@ -68,14 +68,17 @@ urlpatterns=[
     url(r'^purchase-order/items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
 
     url(r'^invoices/$', eProc_views.invoices, name='invoices'),    
-    url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),    
+    url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),   
     url(r'^invoice/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
     url(r'^invoices/print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
     url(r'^invoices/(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
     
     url(r'^inventory/$', eProc_views.inventory_current, name='inventory_current'),
     url(r'^inventory/received$', eProc_views.inventory_received, name='inventory_received'),
-    url(r'^inventory/drawndown$', eProc_views.inventory_drawndown, name='inventory_drawndown'),    
+    url(r'^inventory/drawndown$', eProc_views.inventory_drawndown, name='inventory_drawndown'),
+    url(r'^drawdowns/$', eProc_views.drawdowns, name='drawdowns'),
+    url(r'^drawdown/new/$', eProc_views.new_drawdown, name='new_drawdown'),
+    url(r'^drawdown/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
     
     url(r'^vendors/$', eProc_views.vendors, name='vendors'),
     url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),

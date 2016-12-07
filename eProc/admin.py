@@ -27,14 +27,20 @@ class POAdmin(admin.ModelAdmin):
     search_fields = ['number', 'department']
     list_filter = ['number', 'sub_total']
 
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'grand_total']
+
+class DrawdownAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'buyer_co' ]
+
 class CatalogItemAdmin(admin.ModelAdmin):
-	list_display = ['name', 'unit_price', 'category']
+	list_display = ['id', 'name', 'unit_price', 'category']
 
 class CategoryAdmin(admin.ModelAdmin):
-	list_display = ['code', 'name']	
+	list_display = ['id', 'code', 'name']	
 
 class OrderItemAdmin(admin.ModelAdmin):
-	list_display = ['product', 'quantity', 'unit_price']	
+	list_display = ['id', 'product', 'quantity', 'unit_price']	
 
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
@@ -70,7 +76,8 @@ admin.site.register(Location)
 admin.site.register(Document)
 admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder, POAdmin)
-admin.site.register(Invoice)
+admin.site.register(Invoice, InvoiceAdmin)
+admin.site.register(Drawdown, DrawdownAdmin)
 admin.site.register(Rating)
 admin.site.register(DocumentStatus, DocumentStatusAdmin)
 admin.site.register(OrderItemStatus, OrderItemStatusAdmin)
