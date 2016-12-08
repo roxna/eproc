@@ -26,8 +26,8 @@
                   <tr>
                     <th>Product</th>                        
                     <th>Quantity</th>
-                    <th>Latest Status</th>
-                    <th>By</th>
+                    <!-- <th>Latest Status</th> -->
+                    <th>Updated By</th>
                   </tr>
                 </thead>
                 
@@ -36,7 +36,7 @@
                   <tr>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>{% include "_includes/status_formatting_wo_href.html" with item=item value_to_display=item.get_latest_status %}</td>
+                    <!-- {#<td>{% include "_includes/status_formatting_wo_href.html" with item=item value_to_display=item.get_latest_status %}</td>#} -->
                     <td>{{ item.get_latest_status.get_status_details }}</td>
                   </tr>
                   {% endfor %}
@@ -54,7 +54,7 @@
           <h3 class="box-title">Items</h3>
         </div>       
         <div class="box-body">
-          <canvas id="{{chartID}}" height="300" width="300"></canvas>
+          <canvas id="{{chartID}}" height="350" width="350"></canvas>
         </div>
       </div>   
     </div>
@@ -70,19 +70,20 @@
 
   <script>
     $(function () {
-      var chartCtx = $("#{{chardID}}").get(0).getContext("2d");      
+      var chartCtx = $("#{{chartID}}").get(0).getContext("2d");
       var chartData = [];
-      {% for item in itemCount %}
-        deptData[{{forloop.counter0}}] = {
-          value: {{item.total_cost}},
+      {% for item in item_count %}
+        chartData[{{forloop.counter0}}] = {
+          value: {{item.total_qty}},
           label: '{{item.product__name}}',
           color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
         };
       {% endfor %}
       var chartOptions = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
+        tooltipTemplate: "<%= label %> (<%= value %>)",
         animation : false,
       };
       var inventoryChart = new Chart(chartCtx).Pie(chartData, chartOptions);
     }); 
+  </script>
 {% endblock js %}

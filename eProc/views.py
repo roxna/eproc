@@ -709,11 +709,17 @@ def inventory_received(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     delivered_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
-    delivered_count = delivered_order_items.values('product__name').annotate(totalCount=Sum('quantity'))
+    delivered_count = delivered_order_items.values('product__name').annotate(total_qty=Sum('quantity'))
     data = {
-        'items': delivered_order_items,
-        'itemCount': delivered_count,
+        'delivered_order_items': delivered_order_items,
+        'delivered_count': delivered_count,
     }
+    # TODO: SUM QUNTITY ISN"T ADDING UP RIGHT
+    for item in delivered_order_items:
+        print item.product.name, item.quantity
+    for item in delivered_count:
+        print item
+    pdb.set_trace()
     return render(request, "inventory/inventory_received.html", data)
 
 @login_required
@@ -721,11 +727,12 @@ def inventory_drawndown(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')
-    drawndown_count = drawndown_order_items.values('product__name').annotate(totalCount=Sum('quantity'))    
+    drawndown_count = drawndown_order_items.values('product__name').annotate(total_qty=Sum('quantity'))
+    # TODO: SUM QUNTITY ISN"T ADDING UP RIGHT
     data = {
-        'items':drawndown_order_items,
-        'itemCount': drawndown_count,
-    }
+        'drawndown_order_items':drawndown_order_items,
+        'drawndown_count': drawndown_count,
+    }    
     return render(request, "inventory/inventory_drawndown.html", data)
 
 @login_required
