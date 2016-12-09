@@ -13,15 +13,19 @@ def send_verific_email(user,random_id):
 
 # TODO CLEANER IMPLEMENTATION OF QUERIES
 def get_requisitions(requisitions):    
-    pending_requisitions, approved_requisitions, denied_requisitions = [], [], []
+    pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = [], [], [], []
+    
+    # requisition.get_latest_status().value.lower + '_requisitions'.append(req) for req in requisitions
     for requisition in requisitions:
         if requisition.get_latest_status().value == 'Pending':            
             pending_requisitions.append(requisition)
         elif requisition.get_latest_status().value == 'Approved':
             approved_requisitions.append(requisition)
         elif requisition.get_latest_status().value == 'Denied':
-            denied_requisitions.append(requisition)   
-    all_requisitions = pending_requisitions + approved_requisitions + denied_requisitions
+            denied_requisitions.append(requisition) 
+        elif requisition.get_latest_status().value == 'Cancelled':
+            cancelled_requisitions.append(requisition)               
+    all_requisitions = pending_requisitions + approved_requisitions + denied_requisitions + cancelled_requisitions
     
     # latest_statuses = DocumentStatus.objects.filter(latest_update)    
     # pending_status_list = DocumentStatus.objects.filter(latest_update)
@@ -29,7 +33,7 @@ def get_requisitions(requisitions):
     # DocumentStatus.objects.annotate(latest_update=Max('date')).filter()
     # all_requisitions = requisitions.annotate(latest_update=Max('status_updates__date'))
     # pending_requisitions = all_requisitions.filter(status_updates__value='Pending')    
-    return all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions
+    return all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions
 
 # TODO: See Get_requisitions
 def get_pos(pos):
@@ -37,7 +41,7 @@ def get_pos(pos):
     for po in pos:
         if po.get_latest_status().value == 'Pending':
             pending_pos.append(po)
-        if po.get_latest_status().value == 'Open':            
+        if po.get_latest_status().value == 'Approved':            
             open_pos.append(po)
         elif po.get_latest_status().value == 'Closed':
             closed_pos.append(po)

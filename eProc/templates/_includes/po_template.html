@@ -1,36 +1,10 @@
   {% with purchase_order.get_latest_status as latest_status %}
-  <div class="row">
-    <div class="col-xs-12">
-      <h2 class="page-header">
-        <i class="fa fa-globe"></i> PURCHASE ORDER
-        <small class="pull-right">
-          <b>{{purchase_order.number}} {% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}</b>
-        </small>
-      </h2>
-    </div>
-  </div>
 
+  <!-- PO Header -->
+  {% include "_includes/po_header.html" with purchase_order=purchase_order %}
+  
   <!-- PO Details -->
-  <div class="row invoice-info">
-    <div class="col-sm-4 invoice-col">
-      	<p class="lead">Vendor</p>
-        {{ purchase_order.vendor_co }}<br>
-        {{ purchase_order.vendor_co.locations.get_primary_location }}<br>
-    </div>
-     <div class="col-sm-4 invoice-col">
-        <p class="lead">Address</p>
-        <b>Billing Address</b> <br>{{ purchase_order.billing_add }}<br><br>
-        <b>Shipping Address</b> <br> {{ purchase_order.shipping_add }}<br><br>
-    </div>       
-    <div class="col-sm-4 invoice-col">
-        <p class="lead">Details</p>
-        Number: <b>{{ purchase_order.number }}</b><br>
-        Date Issued: <b>{{ purchase_order.date_issued | date}}</b><br>
-        Preparer: <b>{{ purchase_order.preparer }}</b><br>
-        Date Due: <b>{{ purchase_order.date_due }}</b><br>
-      <br>
-    </div>
-  </div><br><br>
+  {% include "_includes/po_details.html" with purchase_order=purchase_order %}
 
   <!-- Order Items Table-->
   {% include "_includes/order_item_table.html" with order_items=purchase_order.order_items.all %}
@@ -44,7 +18,7 @@
         {% if latest_status.value == 'Pending' %}
             {% include "_includes/approve_deny_cancel.html" with document=purchase_order user_role='Purchaser' %}
         {% else %}
-          <div class="label" style="color:grey">
+          <div class="label text-grey">
             Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
             [By {{latest_status.author}} on {{latest_status.date|date}}]
             </em>

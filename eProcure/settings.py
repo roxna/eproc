@@ -5,6 +5,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+# NOTES:
+# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -135,12 +139,12 @@ STATUSES = (
     #### REQUEST Order Items  ####
     ('Open', 'Open'), #new_req
     ('Requested', 'Requested'), #view_req --> approve req
-    ('Approved', 'Approved'), #view_po --> approve po
-    ('Denied', 'Denied'), #view_po --> deny po
-    ('Cancelled', 'Cancelled'), #view_req or #view_po --> cancel po
-    ('Ordered', 'Ordered'), #new_po --> create po
+    ('Approved', 'Approved'), #new_po
+    ('Ordered', 'Ordered'), #view_po --> po approved
+    ('Denied', 'Denied'), #view_po --> po denied
+    ('Cancelled', 'Cancelled'), #view_req or #view_po --> po/req cancelled
     ('Delivered', 'Delivered'), #receive_items
-    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
+#??    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
     ('Drawdown Requested', 'Drawdown Requested'), #new_drawdown
@@ -157,11 +161,11 @@ STATUSES = (
 
     #### POs ####
     # ('Pending', 'Pending'), #new_po
-    # ('Open', 'Open'), #view_po --> CHANGE TO APPROVED?
+    # ('Approved', 'Approved'), #view_po --> CHANGED FROM OPEN
     # ('Denied', 'Denied'), #view_po
-    # ('Closed', 'Closed'),  #TODO: receive_items --> all items received OR explicit CLOSE button    
+    ('Closed', 'Closed'),  #receive_po --> all items received OR explicit CLOSE 
     # ('Cancelled', 'Cancelled'), #view_po
-    # ('Paid', 'Paid'),  #new_invoice   
+ #??   # ('Paid', 'Paid'),  #new_invoice   
 
     #### Invoices ####
     # ('Pending', 'Pending'), #TODO Update: On invoice creation

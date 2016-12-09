@@ -1,0 +1,10 @@
+  <div class="row">
+    <div class="col-xs-12">
+      <h2 class="page-header">
+        <i class="fa fa-globe"></i> PURCHASE ORDER [{{purchase_order.number}}]
+        <small class="pull-right">
+          <b>{{purchase_order.number}} {% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}</b>
+        </small>
+      </h2>
+    </div>
+  </div>

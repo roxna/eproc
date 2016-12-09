@@ -218,7 +218,10 @@ class CatalogItem(models.Model):
 
 class OrderItem(models.Model):
 	number = models.CharField(max_length=20)
-	quantity = models.IntegerField(default=1)
+	quantity = models.IntegerField(default=1) #TODO change to qty_requested
+	qty_approved = models.IntegerField(default=0)
+	qty_ordered = models.IntegerField(default=0)
+	qty_delivered = models.IntegerField(default=0)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
 	comments = models.CharField(max_length=150, blank=True, null=True)
@@ -230,7 +233,7 @@ class OrderItem(models.Model):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
 	invoice = models.ForeignKey(Invoice, related_name='order_items', null=True, blank=True)
 	drawdown = models.ForeignKey(Drawdown, related_name='order_items', null=True, blank=True)
-	# objects = models.Manager()
+	# objects = OrderItemManager()
 	# latest_status_objects = LatestStatusManager()
 	
 	def __unicode__(self):
@@ -240,7 +243,8 @@ class OrderItem(models.Model):
 		return self.unit_price
 
 	def get_latest_status(self):
-	    return self.status_updates.latest('date')		
+	    return self.status_updates.latest('date')	
+
 
 
 ######### OTHER DETAILS #########

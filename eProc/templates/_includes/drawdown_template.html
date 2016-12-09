@@ -49,7 +49,7 @@
             {% include "_includes/approve_deny_cancel.html" with document=drawdown user_role='Approver' %}
       {% endif %}
     {% else %}
-        <div class="label" style="color:grey">
+        <div class="label text-grey">
           Status: <em>{% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' href_id=drawdown.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
         </div>
     {% endif %}          

@@ -30,7 +30,9 @@
 .add-space{
 	padding-left: 5px;
 }
-
+.text-grey{
+	color:grey !important;
+}
 /*LABELS*/
 .label-pending{
 	background-color: #f39c12 !important;

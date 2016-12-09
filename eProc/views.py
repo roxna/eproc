@@ -6,7 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.forms import UserChangeForm
 from django.core.serializers import serialize
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db.models import Sum, Max, F, Q
+from django.db.models import Sum, Max, Avg, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms import inlineformset_factory,BaseModelFormSet
 from django.shortcuts import render, redirect, resolve_url
@@ -76,7 +76,7 @@ def dashboard(request):
     buyer = request.user.buyer_profile
     
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(requisitions)
+    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = get_requisitions(requisitions)
     
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     all_pos, pending_pos, open_pos, closed_pos,  paid_pos, cancelled_pos, denied_pos = get_pos(pos)
@@ -403,12 +403,13 @@ def requisitions(request):
     buyer = request.user.buyer_profile
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
     # pdb.set_trace()
-    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions = get_requisitions(requisitions)    
+    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = get_requisitions(requisitions)    
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
         'approved_requisitions': approved_requisitions,
         'denied_requisitions': denied_requisitions,
+        'cancelled_requisitions': cancelled_requisitions,
     }
     return render(request, "requests/requisitions.html", data)
 
@@ -477,7 +478,7 @@ def new_purchaseorder(request):
             for item in items:
                 item.purchase_order = purchase_order          
                 item.save()
-                OrderItemStatus.objects.create(value='Ordered', author=buyer, order_item=item)
+                OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=item)
                 purchase_order.sub_total += item.sub_total
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()
@@ -556,16 +557,9 @@ def receive_pos(request):
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     all_pos, pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_pos(pos)
     data = {
-        'all_pos': all_pos,
-        'pending_pos': pending_pos,
         'open_pos': open_pos,
-        'closed_pos': closed_pos,        
-        'paid_pos': paid_pos,
-        'cancelled_pos': cancelled_pos,
-        'denied_pos': denied_pos,
         'currency': buyer.company.currency,
         'href': 'receive_purchaseorder',
-        'title': 'Receive Purchase Orders',
     }
     return render(request, "pos/receive_pos.html", data)
 
@@ -574,19 +568,23 @@ def receive_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
     if request.method == 'POST':
-        item_ids = request.POST.getlist('order_items')
-        approved_items = OrderItem.objects.filter(id__in=item_ids)
-        try:
-            for item in approved_items:
-                OrderItemStatus.objects.create(value='Delivered', author=buyer, order_item=item)
-            all_items = OrderItem.objects.filter(purchase_order=purchase_order)
-            unapproved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(~Q(status_updates__value='Delivered'))    
-            if len(unapproved_order_items) == 0:            
-                DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
-            messages.success(request, 'Orders updated successfully')            
-            return redirect('receive_pos')
-        except:
-            messages.error(request, 'Error updating items')        
+        if 'close' in request.POST:
+            DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
+            messages.success(request, 'Purchase Order closed')
+        else:
+            item_ids = request.POST.getlist('order_items')
+            approved_items = OrderItem.objects.filter(id__in=item_ids)
+            try:
+                for item in approved_items:
+                    OrderItemStatus.objects.create(value='Delivered', author=buyer, order_item=item)
+                all_items = OrderItem.objects.filter(purchase_order=purchase_order)
+                unapproved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(~Q(status_updates__value='Delivered'))    
+                if len(unapproved_order_items) == 0:            
+                    DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
+                messages.success(request, 'Orders updated successfully')            
+            except:
+                messages.error(request, 'Error updating items')        
+        return redirect('receive_pos')
     data = {
         'purchase_order': purchase_order,
     }
@@ -708,43 +706,58 @@ def vendor_invoices(request, vendor_id):
 def inventory_received(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    delivered_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
-    delivered_count = delivered_order_items.values('product__name').annotate(total_qty=Sum('quantity'))
+    available_for_drawdown = ['Delivered', 'Drawdown Requested', 'Drawdown Requested', 'Drawdown Denied', 'Drawdown Cancelled']
+    delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown]
+    delivered_list = all_items.filter(id__in=delivered_ids)
+    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))
     data = {
-        'delivered_order_items': delivered_order_items,
+        'delivered_list': delivered_list,
         'delivered_count': delivered_count,
     }
-    # TODO: SUM QUNTITY ISN"T ADDING UP RIGHT
-    for item in delivered_order_items:
-        print item.product.name, item.quantity
-    for item in delivered_count:
-        print item
-    pdb.set_trace()
     return render(request, "inventory/inventory_received.html", data)
 
 @login_required
 def inventory_drawndown(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')
-    drawndown_count = drawndown_order_items.values('product__name').annotate(total_qty=Sum('quantity'))
-    # TODO: SUM QUNTITY ISN"T ADDING UP RIGHT
+    drawndown_order_items_ids = [item.id for item in all_items if item.get_latest_status().value == 'Drawndown']
+    drawndown_list = all_items.filter(id__in=drawndown_order_items_ids)
+    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum('quantity'))
     data = {
-        'drawndown_order_items':drawndown_order_items,
+        'drawndown_list':drawndown_list,
         'drawndown_count': drawndown_count,
     }    
     return render(request, "inventory/inventory_drawndown.html", data)
+
+from itertools import chain
 
 @login_required
 def inventory_current(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    # TODO: CUSTOM MANAGER TO GET LATEST STATUS IN QUERYSET
-    delivered_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
-    drawndown_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Drawndown')
-    # TODO: GET THIS COUNT AS THE DIFFERENCE
-    inventory_count = delivered_order_items.values('product__name', 'product__category__name').annotate(totalCount=Sum('quantity'))
+    
+    available_for_drawdown = ['Delivered', 'Drawdown Requested', 'Drawdown Requested', 'Drawdown Denied', 'Drawdown Cancelled']
+    delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown]
+    delivered_list = all_items.filter(id__in=delivered_ids)
+    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))    
+
+    drawndown_order_items_ids = [item.id for item in all_items if item.get_latest_status().value == 'Drawndown']
+    drawndown_list = all_items.filter(id__in=drawndown_order_items_ids)    
+    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum(F('quantity'))*-1) # Negate drawdown items
+
+    inventory_list = []
+    inventory_count = []
+    # TODO: THE SUMMATION DOESNT WORK :(
+    # inventory_list = delivered_count | drawndown_count  
+    # inventory_list = list(chain(delivered_count, drawndown_count)) # Chain/combine the two querysets        
+    # Aggregate values of common products. Can't use annotate because this is a list, not a QuerySet
+    # inventory_count = {}
+    # for i in inventory_list:
+    #     inventory_count[i['product__name']] += i['total_qty']
+    
+    # pdb.set_trace()
     data = {
+        'inventory_list': inventory_list,
         'inventory_count': inventory_count,
     }
     return render(request, "inventory/inventory_current.html", data)

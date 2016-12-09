@@ -40,7 +40,9 @@ class CategoryAdmin(admin.ModelAdmin):
 	list_display = ['id', 'code', 'name']	
 
 class OrderItemAdmin(admin.ModelAdmin):
-	list_display = ['id', 'product', 'quantity', 'unit_price']	
+    list_display = ['id', 'product', 'quantity', 'unit_price', 'get_latest_status']
+    search_fields = ['product']
+    list_filter = ['product',]
 
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
@@ -56,7 +58,8 @@ class DocumentStatusAdmin(admin.ModelAdmin):
     list_filter = ['document']
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
-    list_display = ['id', 'value', 'date', 'author', 'order_item']       
+    list_display = ['id', 'value', 'date', 'author', 'order_item']    
+    list_filter = ['order_item__product', 'order_item__product__buyer_co']   
 
 class FileAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'file', 'document']    

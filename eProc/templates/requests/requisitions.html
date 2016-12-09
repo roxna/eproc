@@ -21,6 +21,7 @@
               <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
               <li><a href="#approved" data-toggle="tab">Approved</a></li>
               <li><a href="#denied" data-toggle="tab">Denied</a></li>
+              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
             </ul>
 
             <!-- TABLES -->
@@ -45,7 +46,11 @@
                  {% include "_includes/requisitions_table.html" with requisitions=denied_requisitions %}
                   </table>
               </div>
-
+              <div class="tab-pane" id="cancelled">
+                 <table id="cancelledTable" class="table table-striped">
+                 {% include "_includes/requisitions_table.html" with requisitions=cancelled_requisitions %}
+                  </table>
+              </div>
             </div>
           </div>
         </div>
@@ -62,6 +67,7 @@
     $("#pendingTable").DataTable();
     $("#approvedTable").DataTable();
     $("#deniedTable").DataTable();
+    $("#cancelledTable").DataTable();
   });
 </script>
 {% endblock js %}

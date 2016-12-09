@@ -9,6 +9,7 @@
 
 {% block content %}
 
+  {% with purchase_order.get_latest_status as latest_status %}
   <section class="invoice">
 
     <div class="row">
@@ -19,23 +20,12 @@
 
     <div class="row">
         <div class="col-xs-12">
-          <h2 class="page-header no-border">{{purchase_order.number}}</h2>
+          <h2 class="page-header border">PURCHASE ORDER [{{purchase_order.number}}]</h2>
         </div>
     </div>
-    <div class="row invoice-info">
-        <div class="col-sm-12 invoice-col">
-            <table>
-              <tr>
-                <td>PURCHASED BY: </td>
-                <td style="padding-left:3em">{{ purchase_order.preparer }}</td>
-              </tr>
-              <tr>
-                <td>VENDOR: </td>
-                <td style="padding-left:3em">{{ purchase_order.vendor_co.name }}</td>
-              </tr>
-            </table> <br>
-        </div>
-    </div>
+    
+    <!-- PO Details -->
+    {% include "_includes/po_details.html" with purchase_order=purchase_order %}
 
     <!-- Order Item Form in Request -->
     <form method="POST">
@@ -64,7 +54,7 @@
               <td>{{ item.product.name }}</td>
               <td>{{ item.product.sku }}</td>
               <td>{{ item.quantity }}</td> 
-              {% if item.get_latest_status.value == 'Delivered' %}        
+              {% if latest_status.value == 'Delivered' %}        
                 <td class="label label-success" style="vertical-align: bottom;">Delivered </td>
                 {% else %}
                 <td class="approvedToggle"><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/> &nbsp;Delivered?</td>   
@@ -75,30 +65,34 @@
           </table>
         </div>
       </div><br>
+
+      <!-- Footer -->
       <div class="row">
         <div class="row">
           <div class="col-xs-12">
-            {% with purchase_order.get_latest_status as latest_status %} 
-              {% if latest_status.value == 'Open' %}
-                <button type="submit" class="btn basic-teal pull-right">Save Changes</button>
-              {% elif latest_status.value == 'Closed' %}
-                <div class="label" style="color:grey"><b>PO Closed: <em></b>
-                {{latest_status.date}} by {{latest_status.author}}</div></em>
-              {% endif %}
-            {% endwith %}            
+            
+            <div class="label text-grey">
+                <form method="post">
+                {% csrf_token %}
+                    {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                                        
+                        <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>
+                    {% endif %}            
+                </form>
+            </div>
+
+           </div>           
           </div>
         </div>
+
       </div>
     </form>
 
   </section>
   <div class="clearfix"></div>
    
+   {% endwith %}
 {% endblock content %}
 
 
 {% block js %}
-<script>
-  
-</script>
 {% endblock js %}

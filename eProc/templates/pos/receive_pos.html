@@ -1,1 +1,35 @@
-{% include "pos/purchaseorders.html" %}
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Receive POs {% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Receive Purchase Orders{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box box-default">
+        
+	        <div class="box-header with-border">
+	          <h3 class="box-title">List of Open / Approved POs</h3>
+	        </div>     
+
+	        <div class="box-body">
+		         <table id="openTable" class="table table-striped">
+		         {% include '_includes/po_table.html' with purchaseorders=open_pos href=href currency=currency %}
+		          </table>            
+		    </div>
+
+          </div>
+        </div>
+      </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html"  with tableID="openTable" %}
+{% endblock js %}
