@@ -41,8 +41,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['id', 'product', 'quantity', 'unit_price', 'get_latest_status']
-    search_fields = ['product']
-    list_filter = ['product',]
+    search_fields = ['product',  ]
+    list_filter = ['product', 'purchase_order',]
 
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']

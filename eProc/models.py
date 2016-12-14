@@ -109,6 +109,25 @@ class BuyerProfile(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.user.username)
 
+# class Requester(BuyerProfile):
+# 	approvers = models.ManyToManyField(Approver, related_name='requesters')
+	
+# class Approver(BuyerProfile):	
+# 	threshold = models.IntegerField(null=True, blank=True)
+
+# class Purchaser(BuyerProfile):	
+# 	pass
+
+# class Receiver(BuyerProfile):	
+# 	pass
+
+# class Payer(BuyerProfile):	
+# 	pass
+
+# class SuperUser(BuyerProfile):	
+# 	pass
+
+
 # KILL FOR FIRST PASS - VENDOR USERS DONT HAVE A LOG IN/PW ETC
 class VendorProfile(models.Model):
 	user = models.OneToOneField(User, related_name="vendor_profile")
@@ -208,6 +227,7 @@ class CatalogItem(models.Model):
 	sku = models.CharField(max_length=20, null=True, blank=True)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
+	threshold = models.IntegerField(null=True, blank=True) # Altert if inventory drops below
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendor_co = models.ForeignKey(VendorCo, related_name="catalog_items")
@@ -222,9 +242,12 @@ class OrderItem(models.Model):
 	qty_approved = models.IntegerField(default=0)
 	qty_ordered = models.IntegerField(default=0)
 	qty_delivered = models.IntegerField(default=0)
+	qty_returned = models.IntegerField(default=0)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
-	comments = models.CharField(max_length=150, blank=True, null=True)
+	comments = models.CharField(max_length=150, blank=True, null=True) #Change to comments_request
+	comments_order = models.CharField(max_length=150, blank=True, null=True)
+	comments_delivery = models.CharField(max_length=150, blank=True, null=True)
 	date_due = models.DateField(default=timezone.now)
 	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="order_items", null=True, blank=True)
@@ -244,7 +267,6 @@ class OrderItem(models.Model):
 
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')	
-
 
 
 ######### OTHER DETAILS #########
@@ -280,5 +302,4 @@ class Rating(models.Model):
 	score = models.IntegerField(choices=SCORES)
 	company = models.ForeignKey(Company, related_name="ratings")
 	comments = models.CharField(max_length=100)
-
 

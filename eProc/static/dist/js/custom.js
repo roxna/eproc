@@ -62,7 +62,10 @@ $(document).ready(function(){
 
 	function updateElementIndex(el, prefix, ndx) {
 	    var replacement = prefix + '-' + ndx;
-
+	    console.log($(el));
+	    // console.log($(el).find('[id]').attr('id'));
+		x = $(el).find('[id]').attr('id', $(el).find('[id]').attr('id').replace(id_regex, replacement));
+	    console.log(x);
 	    $(el).find('[id]').attr('id', $(el).find('[id]').attr('id').replace(id_regex, replacement));
 	    $(el).find('label').attr('for', $(el).find('label').attr('for').replace(id_regex, replacement));
 	    $(el).find('[name]').attr('name', $(el).find('[name]').attr('name').replace(id_regex, replacement));
@@ -91,10 +94,11 @@ $(document).ready(function(){
 
 	function addForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
-	    console.log(formCount);
+	    
 
         // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
         var row = $(".item:first").clone(false).get(0);	
+        console.log(row);
         row = $(row).attr('id', $(row).attr('id').replace(id_regex, prefix+'-'+formCount));
         $(row).hide().insertAfter(".item:last").slideDown(300);
 
@@ -114,7 +118,7 @@ $(document).ready(function(){
         $(row).children().children().each(function () {
         	console.log(formCount);
             updateElementIndex(this, prefix, formCount);
-            $(this).val("");
+            $(this).val('');
         });
 
 	}

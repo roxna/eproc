@@ -290,6 +290,7 @@ class CatalogItemForm(ModelForm):
     name = forms.CharField(required=True)
     desc = forms.CharField()
     sku = forms.CharField(required=True)
+    threshold = forms.IntegerField(label="Threshold quantity", help_text='Min. inventory level before alert is triggered.', required=False)
     unit_price = forms.DecimalField(required=True, min_value=0)
     unit_type = forms.CharField(required=True)
     # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
@@ -300,10 +301,32 @@ class CatalogItemForm(ModelForm):
         super(CatalogItemForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-sm-12 col-md-8'),                
+                Div('sku', css_class='col-md-4'),
+                css_class='row',
+            ),
+            Div(
+                Div('desc', css_class='col-md-12'),                
+                css_class='row',
+            ),            
+            Div(
+                Div('unit_price', css_class='col-md-4'),
+                Div('unit_type', css_class='col-md-4'),
+                Div('category', css_class='col-md-4'),
+                css_class='row',
+            ),
+            Div(
+                Div('vendor_co', css_class='col-md-4'),
+                Div('threshold', css_class='col-md-8'),                
+                css_class='row',
+            ),                        
+        )
 
     class Meta:
         model = CatalogItem
-        fields = ('name', 'desc', 'sku', 'unit_price', 'unit_type', 'category', 'vendor_co')
+        fields = ('name', 'desc', 'sku', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
 
 class OrderItemForm(ModelForm):
@@ -323,7 +346,9 @@ class OrderItemForm(ModelForm):
                 Div('quantity', css_class='col-md-1'),
                 Div('account_code', css_class='col-md-3'),
                 Div('comments', css_class='col-md-4'),
-                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
+                HTML('<div class="col-md-1 delete" style="margin-top: 2em;">' +
+                        '<a href="#"><i class="fa fa-trash"></i></a>' +
+                    '</div>'),
                 css_class='row',
             ),
         )
@@ -532,4 +557,42 @@ class UploadCSVForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False      
 
+class ReceivePOForm(ModelForm):
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    quantity = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Requested')
+    qty_delivered = forms.IntegerField(required=True, label='Delivered')
+    qty_returned = forms.IntegerField(required=True, label='Returned')
+    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
 
+
+    def __init__(self, *args, **kwargs):
+        super(ReceivePOForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('number', css_class='col-md-1'),   
+                Div('product', css_class='col-md-2'),
+                Div('quantity', css_class='col-md-2'),
+                Div('qty_delivered', css_class='col-md-2'),
+                Div('qty_returned', css_class='col-md-2'),
+                Div('comments_delivery', css_class='col-md-3'),
+                css_class='row',
+            ),
+        )
+
+    class Meta:
+        model = OrderItem
+        fields = ('number', 'product', 'quantity', 'qty_delivered', 'qty_returned', 'comments_delivery')
+
+class ApprovalRoutingForm(forms.Form):
+    qty_delivered = forms.IntegerField(required=True)
+    qty_returned = forms.IntegerField(required=True)
+    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}))
+
+
+    def __init__(self, *args, **kwargs):
+        super(ApprovalRoutingForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False

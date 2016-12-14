@@ -126,6 +126,7 @@ DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 MEDIA_URL = "/media/"
+# TODO: Get media path correct
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "static", *MEDIA_URL.strip("/").split("/"))
 
 
@@ -137,13 +138,13 @@ COUNTRIES = (('India', 'India'),('USA', 'USA'))
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (
     #### REQUEST Order Items  ####
-    ('Open', 'Open'), #new_req
-    ('Requested', 'Requested'), #view_req --> approve req
-    ('Approved', 'Approved'), #new_po
+    ('Requested', 'Requested'), #view_req --> req not yet approved
+    ('Approved', 'Approved'), #req approved or req created by superuser
     ('Ordered', 'Ordered'), #view_po --> po approved
-    ('Denied', 'Denied'), #view_po --> po denied
+    ('Denied', 'Denied'), #view_req . view_po --> po/req denied
     ('Cancelled', 'Cancelled'), #view_req or #view_po --> po/req cancelled
-    ('Delivered', 'Delivered'), #receive_items
+    ('Delivered Partial', 'Delivered Partial'), #receive_po
+    ('Delivered Complete', 'Delivered Complete'), #receive_po
 #??    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
@@ -151,7 +152,8 @@ STATUSES = (
     ('Drawdown Approved', 'Drawdown Approved'), #view_drawdown
     ('Drawdown Denied', 'Drawdown Denied'), #view_drawdown
     ('Drawdown Cancelled', 'Drawdown Cancelled'), #view_drawdown
-    ('Drawdown Completed', 'Drawdown Completed'), #view_drawdown
+    ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
+    ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
 
     #### Requisitions ####
     ('Pending', 'Pending'), #new_req

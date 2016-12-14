@@ -8,7 +8,7 @@ from django.core.serializers import serialize
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Sum, Max, Avg, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
-from django.forms import inlineformset_factory,BaseModelFormSet
+from django.forms import inlineformset_factory,BaseModelFormSet, modelformset_factory
 from django.shortcuts import render, redirect, resolve_url
 from django.template.response import TemplateResponse
 from django.views import generic
@@ -79,7 +79,7 @@ def dashboard(request):
     all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = get_requisitions(requisitions)
     
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, open_pos, closed_pos,  paid_pos, cancelled_pos, denied_pos = get_pos(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
     
     # pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')    
     # pending_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
@@ -115,7 +115,7 @@ def users(request):
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = user_form.save()
                 buyer_profile = buyer_profile_form.save(commit=False)
-                buyer_profile.user = user
+                buyer_profile.user = user                
                 buyer_profile.company = request.user.buyer_profile.company
                 buyer_profile.save()
                 send_verific_email(user, user.id*scalar)
@@ -210,7 +210,7 @@ def products(request):
     data = {
         'products': products,
         'product_form': product_form,
-        'table_headers': ['Name', 'SKU', 'Description', 'Price ('+currency+')', 'Unit', 'Category', 'Vendor'],
+        'table_headers': ['Name', 'SKU', 'Description', 'Price ('+currency+')', 'Unit', 'Threshold', 'Category', 'Vendor'],
     }
     return render(request, "settings/catalog.html", data)
 
@@ -384,6 +384,7 @@ def new_requisition(request):
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = save_new_document(buyer, requisition_form)
+            # Save order_items and OrderItemsStatus --> see utils.py
             save_orderitems(requisition, orderitem_formset)
             save_newreq_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
@@ -403,7 +404,7 @@ def requisitions(request):
     buyer = request.user.buyer_profile
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
     # pdb.set_trace()
-    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = get_requisitions(requisitions)    
+    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(requisitions)
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -455,22 +456,13 @@ def print_requisition(request, requisition_id):
 def new_purchaseorder(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company).exclude(purchase_order__isnull=False)
-    approved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Request Approved')
+    approved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
     po_form = PurchaseOrderForm(request.POST or None,
-                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})
-    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
-    po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
+                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})    
+    initialize_newpo_forms(buyer, po_form)
     if request.method == 'POST':
         if po_form.is_valid():
-            purchase_order = po_form.save(commit=False)
-            purchase_order.preparer = buyer
-            purchase_order.currency = buyer.company.currency
-            purchase_order.date_issued = timezone.now()
-            purchase_order.buyer_co = buyer.company
-            purchase_order.sub_total = 0
-            purchase_order.save()
+            purchase_order = save_new_document(buyer, po_form)
             DocumentStatus.objects.create(value='Pending', author=buyer, document=purchase_order)
 
             item_ids = request.POST.getlist('order_items')
@@ -500,11 +492,11 @@ def new_purchaseorder(request):
 def purchaseorders(request):
     buyer = request.user.buyer_profile
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_pos(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
     data = {
         'all_pos': all_pos,
         'pending_pos': pending_pos,
-        'open_pos': open_pos,
+        'approved_pos': approved_pos,
         'closed_pos': closed_pos,        
         'paid_pos': paid_pos,
         'cancelled_pos': cancelled_pos,
@@ -555,9 +547,9 @@ def view_purchaseorder(request, po_id):
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_pos(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
     data = {
-        'open_pos': open_pos,
+        'approved_pos': approved_pos,
         'currency': buyer.company.currency,
         'href': 'receive_purchaseorder',
     }
@@ -567,26 +559,35 @@ def receive_pos(request):
 def receive_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    ReceivePOFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOForm, extra=0)
+    receive_po_formset = ReceivePOFormSet(request.POST or None, instance=purchase_order)
+
     if request.method == 'POST':
         if 'close' in request.POST:
             DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
             messages.success(request, 'Purchase Order closed')
+        elif 'save' in request.POST:
+            for index, form in enumerate(receive_po_formset.forms):
+                if form.is_valid() and form.has_changed():
+                    quantity = form.cleaned_data['quantity']
+                    qty_delivered = form.cleaned_data['qty_delivered']
+                    qty_returned = form.cleaned_data['qty_returned']
+                    if qty_delivered > quantity or qty_returned > quantity:
+                        messages.error(request, 'Error. Quantity delivered/returned must be less than quantity requested.')
+                    elif qty_delivered + qty_returned == quantity:
+                        item = form.save()
+                        OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, order_item=item)
+                        messages.success(request, 'Orders updated successfully')
+                    else:
+                        item = form.save()
+                        OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, order_item=item)
+                        messages.success(request, 'Orders updated successfully')
         else:
-            item_ids = request.POST.getlist('order_items')
-            approved_items = OrderItem.objects.filter(id__in=item_ids)
-            try:
-                for item in approved_items:
-                    OrderItemStatus.objects.create(value='Delivered', author=buyer, order_item=item)
-                all_items = OrderItem.objects.filter(purchase_order=purchase_order)
-                unapproved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(~Q(status_updates__value='Delivered'))    
-                if len(unapproved_order_items) == 0:            
-                    DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
-                messages.success(request, 'Orders updated successfully')            
-            except:
-                messages.error(request, 'Error updating items')        
+            messages.error(request, 'Error updating items')        
         return redirect('receive_pos')
     data = {
         'purchase_order': purchase_order,
+        'receive_po_formset': receive_po_formset,
     }
     return render(request, "pos/receive_purchaseorder.html", data)
 
@@ -614,11 +615,8 @@ def new_invoice(request):
     file_form = FileForm(request.POST or None, request.FILES or None)
     if request.method == 'POST':
         file_form = FileForm(request.POST, request.FILES)
-        if invoice_form.is_valid() and file_form.is_valid():            
-            invoice = invoice_form.save(commit=False)       
-            invoice.preparer = request.user.buyer_profile
-            invoice.currency = request.user.buyer_profile.company.currency
-            invoice.buyer_co = request.user.buyer_profile.company
+        if invoice_form.is_valid() and file_form.is_valid():
+            invoice = save_new_document(buyer, invoice_form)            
             purchase_order = invoice_form.cleaned_data['purchase_order']
             invoice.sub_total = purchase_order.sub_total
             invoice.grand_total = purchase_order.grand_total
@@ -652,7 +650,7 @@ def new_invoice(request):
 def invoices(request):
     buyer = request.user.buyer_profile    
     invoices = Invoice.objects.filter(buyer_co=buyer.company)
-    all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices = get_invoices(invoices)
+    all_invoices, pending_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents(invoices)
     data = {
         'all_invoices': all_invoices,
         'pending_invoices': pending_invoices,
@@ -821,7 +819,8 @@ def view_drawdown(request, drawdown_id):
 def drawdowns(request):
     buyer = request.user.buyer_profile    
     drawdowns = Drawdown.objects.filter(buyer_co=buyer.company)
-    all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns = get_drawdowns(drawdowns)
+    all_drawdowns, pending_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents(drawdowns)
+
     data = {
         'all_drawdowns': all_drawdowns,
         'pending_drawdowns': pending_drawdowns,

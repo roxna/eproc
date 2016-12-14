@@ -35,34 +35,17 @@
          <p class="lead">PO Line Items</p>
         </div>
         
-        <div class="col-xs-12 table-responsive">
-          <table class="table table-striped">
-            <thead>
-            <tr>
-              <th>Number</th>
-              <th>Product</th>
-              <th>SKU</th>
-              <th>Quantity</th>
-              <th>Status</th>
-            </tr>
-            </thead>
+        <div class="col-xs-12">
+            {{ receive_po_formset.management_form | crispy }}
 
-            <tbody>
-            {% for item in purchase_order.order_items.all %}
-            <tr>
-              <td>{{ item.number }}</td>
-              <td>{{ item.product.name }}</td>
-              <td>{{ item.product.sku }}</td>
-              <td>{{ item.quantity }}</td> 
-              {% if latest_status.value == 'Delivered' %}        
-                <td class="label label-success" style="vertical-align: bottom;">Delivered </td>
-                {% else %}
-                <td class="approvedToggle"><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/> &nbsp;Delivered?</td>   
-              {% endif %}
-            </tr>
+            {% for form in receive_po_formset.forms %}                   
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                <div class="item" id="{{form.prefix}}">
+                    {% crispy form form.helper %}                                
+                </div>                            
             {% endfor %}
-            </tbody>
-          </table>
         </div>
       </div><br>
 
@@ -73,10 +56,11 @@
             
             <div class="label text-grey">
                 <form method="post">
-                {% csrf_token %}
+                {% csrf_token %}    
+                    <button type="submit" name="save" value="save" class="btn basic-teal-outline pull-right">Save Changes</button>
                     {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                                        
                         <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>
-                    {% endif %}            
+                    {% endif %}                     
                 </form>
             </div>
 

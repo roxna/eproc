@@ -12,76 +12,62 @@ def send_verific_email(user,random_id):
     msg.send()
 
 # TODO CLEANER IMPLEMENTATION OF QUERIES
-def get_requisitions(requisitions):    
-    pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = [], [], [], []
+def get_documents(documents): 
+    pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], []
     
-    # requisition.get_latest_status().value.lower + '_requisitions'.append(req) for req in requisitions
-    for requisition in requisitions:
-        if requisition.get_latest_status().value == 'Pending':            
-            pending_requisitions.append(requisition)
-        elif requisition.get_latest_status().value == 'Approved':
-            approved_requisitions.append(requisition)
-        elif requisition.get_latest_status().value == 'Denied':
-            denied_requisitions.append(requisition) 
-        elif requisition.get_latest_status().value == 'Cancelled':
-            cancelled_requisitions.append(requisition)               
-    all_requisitions = pending_requisitions + approved_requisitions + denied_requisitions + cancelled_requisitions
-    
-    # latest_statuses = DocumentStatus.objects.filter(latest_update)    
-    # pending_status_list = DocumentStatus.objects.filter(latest_update)
-    # pending_requisitions = requisitions.filter(status_updates__in=pending_status_list)
-    # DocumentStatus.objects.annotate(latest_update=Max('date')).filter()
-    # all_requisitions = requisitions.annotate(latest_update=Max('status_updates__date'))
-    # pending_requisitions = all_requisitions.filter(status_updates__value='Pending')    
-    return all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions
+    # (doc.get_latest_status().value.lower + '_requisitions').append(doc) for doc in documents
+    for doc in documents:
+        if doc.get_latest_status().value == 'Pending':            
+            pending_docs.append(doc)
+        elif doc.get_latest_status().value == 'Approved':
+            approved_docs.append(doc)
+        elif doc.get_latest_status().value == 'Closed':
+            closed_docs.append(doc)
+        elif doc.get_latest_status().value == 'Paid':
+            paid_docs.append(doc)                
+        elif doc.get_latest_status().value == 'Cancelled':
+            cancelled_docs.append(doc)        
+        elif doc.get_latest_status().value == 'Denied':
+            denied_docs.append(doc)  
+                       
+    all_docs = pending_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
+    return all_docs, pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs
 
-# TODO: See Get_requisitions
-def get_pos(pos):
-    pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos  = [], [], [], [], [], []
-    for po in pos:
-        if po.get_latest_status().value == 'Pending':
-            pending_pos.append(po)
-        if po.get_latest_status().value == 'Approved':            
-            open_pos.append(po)
-        elif po.get_latest_status().value == 'Closed':
-            closed_pos.append(po)
-        elif po.get_latest_status().value == 'Paid':
-            paid_pos.append(po)           
-        elif po.get_latest_status().value == 'Cancelled':
-            cancelled_pos.append(po)
-        elif po.get_latest_status().value == 'Denied':
-            denied_pos.append(po)                   
-    all_pos = pending_pos + open_pos + closed_pos + cancelled_pos + paid_pos + denied_pos
-    return all_pos, pending_pos, open_pos, closed_pos, paid_pos, cancelled_pos, denied_pos
 
-# TODO: See Get_requisitions
-def get_invoices(invoices):
-    all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices = [], [], [], [], []
-    for invoice in invoices:
-        if invoice.get_latest_status().value == 'Pending':
-            pending_invoices.append(invoice)
-        elif invoice.get_latest_status().value == 'Approved':
-            approved_invoices.append(invoice)
-        elif invoice.get_latest_status().value == 'Cancelled':
-            cancelled_invoices.append(invoice)
-        elif invoice.get_latest_status().value == 'Paid':
-            paid_invoices.append(invoice)       
-    all_invoices = pending_invoices + approved_invoices + cancelled_invoices + paid_invoices
-    return all_invoices, pending_invoices, approved_invoices, cancelled_invoices, paid_invoices
+################################
+###     COMMON METHODS     ### 
+################################ 
 
-def get_drawdowns(drawdowns):
-    all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns = [], [], [], [], []
-    for drawdown in drawdowns:
-        if drawdown.get_latest_status().value == 'Pending':
-            pending_drawdowns.append(drawdown)
-        elif drawdown.get_latest_status().value == 'Approved':
-            approved_drawdowns.append(drawdown)
-        elif drawdown.get_latest_status().value == 'Denied':
-            denied_drawdowns.append(drawdown)
-        elif drawdown.get_latest_status().value == 'Cancelled':
-            cancelled_drawdowns.append(drawdown)            
-    all_drawdowns = pending_drawdowns + approved_drawdowns + denied_drawdowns + cancelled_drawdowns
-    return all_drawdowns, pending_drawdowns, approved_drawdowns, denied_drawdowns, cancelled_drawdowns
+# Used by NEW_REQ, NEW_PO, NEW_INVOICE, NEW_DD
+def save_new_document(buyer, form):
+    instance = form.save(commit=False)
+    instance.preparer = buyer
+    instance.currency = buyer.company.currency
+    instance.date_issued = timezone.now()
+    instance.buyer_co = buyer.company
+    instance.sub_total = 0
+    instance.save()
+    return instance
+
+# Save the data for each form in the order_items formset 
+# Used by NEW_REQ, NEW_DD
+def save_orderitems(document, orderitem_formset):    
+    for index, orderitem_form in enumerate(orderitem_formset.forms):
+        if orderitem_form.is_valid():
+            order_item = orderitem_form.save(commit=False)
+            order_item.number = document.number + "-" + str(index+1)
+            if isinstance(document, Requisition):
+                order_item.requisition = document
+            elif isinstance(document, Drawdown):
+                order_item.drawdown = document
+            order_item.date_due = document.date_due                    
+            order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
+            document.sub_total += order_item.sub_total            
+            order_item.save()                    
+            order_item.unit_price = order_item.product.unit_price
+            order_item.save()
+    document.save()
+
 
 ################################
 ###     NEW REQUISITION     ### 
@@ -98,45 +84,22 @@ def save_newreq_statuses(buyer, requisition):
     if buyer.role == 'SuperUser':
         DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
+            OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
     else:
         DocumentStatus.objects.create(value='Pending', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Open', author=buyer, order_item=order_item)
-
+            OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
 
 ################################
-###     COMMON METHODS     ### 
+###    NEW PURCHASE ORDER    ### 
 ################################ 
 
-## Used by both NEW_REQ and NEW_DD
-def save_new_document(buyer, form):
-    instance = form.save(commit=False)
-    instance.preparer = buyer
-    instance.currency = buyer.company.currency
-    instance.date_issued = timezone.now()
-    instance.buyer_co = buyer.company
-    instance.sub_total = 0
-    instance.save()
-    return instance
+def initialize_newpo_forms(buyer, po_form):
+    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
+    po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
+    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
+    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
 
-def save_orderitems(document, orderitem_formset):
-    # Save the data for each form in the order_items formset 
-    for index, orderitem_form in enumerate(orderitem_formset.forms):
-        if orderitem_form.is_valid():
-            order_item = orderitem_form.save(commit=False)
-            order_item.number = document.number + "-" + str(index+1)
-            if isinstance(document, Requisition):
-                order_item.requisition = document
-            elif isinstance(document, Drawdown):
-                order_item.drawdown = document
-            order_item.date_due = document.date_due                    
-            order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
-            document.sub_total += order_item.sub_total            
-            order_item.save()                    
-            order_item.unit_price = order_item.product.unit_price
-            order_item.save()
-    document.save()
 
 ################################
 ###     NEW DRAWDOWN     ### 
@@ -158,12 +121,9 @@ def save_newdrawdown_statuses(buyer, drawdown):
         for order_item in drawdown.order_items.all():
             OrderItemStatus.objects.create(value='Drawdown Requested', author=buyer, order_item=order_item)
 
-################################
-###    NEW PURCHASE ORDER    ### 
-################################ 
 
-
-
+# TODO: GET_CURRENT_INVENTORY
+# UPDATE OUT_OF_STOCK highlighting in catalog and inventory pages
 
 
 ################################
@@ -175,6 +135,7 @@ def handle_product_upload(reader, buyer_co):
         name = row['PRODUCT_NAME']
         desc = row['DESCRIPTION']
         sku = row['SKU']
+        threshold = row['MIN_THRESHOLD']
         unit_price = float(row['UNIT_PRICE'])
         unit_type = row['UNIT_TYPE']
         category, categ_created = Category.objects.get_or_create(name=row['CATEGORY'], buyer_co=buyer_co)

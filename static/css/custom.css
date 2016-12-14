@@ -6,6 +6,12 @@
 	color: white;
 	margin: 5px;
 }
+.basic-teal-outline{
+	background: white;
+	border: 1px solid #007777;
+	color: #007777;
+	margin: 5px;
+}
 .basic-grey{
 	background: #d4d8dc;
 	border-color: #d4d8dc;
