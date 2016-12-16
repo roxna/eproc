@@ -1,6 +1,6 @@
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.db.models import Max
+from django.db.models import Max, Sum
 from django.utils import timezone
 from eProc.models import *
 
@@ -102,7 +102,7 @@ def initialize_newpo_forms(buyer, po_form):
 
 
 ################################
-###     NEW DRAWDOWN     ### 
+###       DRAWDOWNS         ### 
 ################################ 
 
 def initialize_newdrawdown_forms(user, drawdown_form, drawdownitem_formset):
@@ -121,9 +121,19 @@ def save_newdrawdown_statuses(buyer, drawdown):
         for order_item in drawdown.order_items.all():
             OrderItemStatus.objects.create(value='Drawdown Requested', author=buyer, order_item=order_item)
 
+def get_inventory_received(all_items):
+    available_for_drawdown_statuses = ['Delivered Partial', 'Delivered Complete']
+    delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown_statuses]
+    delivered_list = all_items.filter(id__in=delivered_ids)
+    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))
+    return delivered_list, delivered_count
 
-# TODO: GET_CURRENT_INVENTORY
-# UPDATE OUT_OF_STOCK highlighting in catalog and inventory pages
+def get_inventory_drawndown(all_items, multiplier=1):    
+    drawndown_statuses = ['Drawdown Approved']
+    drawndown_ids = [item.id for item in all_items if item.get_latest_status().value in drawndown_statuses]
+    drawndown_list = all_items.filter(id__in=drawndown_ids)
+    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum('quantity')*multiplier)    
+    return drawndown_list, drawndown_count
 
 
 ################################
@@ -161,5 +171,6 @@ def handle_vendor_upload(reader, buyer_co, currency):
                                                                    contact_rep=contact_rep, comments=comments, buyer_co=buyer_co)        
         location = Location.objects.get_or_create(address1=address1, address2=address2, city=city, state=state, zipcode=zipcode, 
                                                   country=country, phone=phone, email=email, company=vendor_co)
+
 
 

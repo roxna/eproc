@@ -39,6 +39,7 @@
 						Sign up for the newsletter and we'll inform you of updates, offers and more.
 					</p>
 					<form method="POST">
+						{% csrf_token %}
 						<input type="text" name="email" class="form-control" placeholder="Your email address" />
 						<input type="submit" value="Sign up" />
 					</form>

@@ -2,17 +2,20 @@ from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
 
+
 class Author(models.Model):
-	name = models.CharField(max_length=40)
+	name = models.CharField(max_length=40, null=True, blank=True)
+	SOURCES = (('Blog Author', 'Blog Author'), ('Contact Form', 'Contact Form'), ('Newsletter', 'Newsletter'))
+	source = models.CharField(choices=SOURCES, max_length=40)
 	title = models.CharField(max_length=40, null=True, blank=True)
 	company = models.CharField(max_length=50, null=True, blank=True)
-	email = models.EmailField(max_length=254, null=True, blank=True)
+	email = models.EmailField(max_length=254, null=True, blank=True)	
 
 	def __unicode__(self):
 		return "{}".format(self.name)
 
 class Blog(models.Model):
-	title = models.CharField(max_length=40)
+	title = models.CharField(max_length=100)
 	summary = models.TextField()
 	content = models.TextField()	
 	date = models.DateField(default=timezone.now)

@@ -22,6 +22,8 @@ from eProc.models import *
 from eProc.serializers import *
 from eProc.forms import *
 from eProc.utils import *
+from itertools import chain
+from collections import defaultdict
 import csv
 import pdb
 
@@ -76,23 +78,22 @@ def dashboard(request):
     buyer = request.user.buyer_profile
     
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    all_requisitions, pending_requisitions, approved_requisitions, denied_requisitions, cancelled_requisitions = get_requisitions(requisitions)
+    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(requisitions)
     
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
+    # pending_requisitions = requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    # pending_pos = pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     
-    # pending_requisitions = all_requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')    
-    # pending_pos = all_pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Open')
-    
-    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    items_received = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Delivered')
+    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)    
+    items_received = all_items.annotate(latest_update=Max('status_updates__date')).filter(Q(status_updates__value='Delivered Complete') | Q(status_updates__value='Delivered Partial'))
 
     dept_spend = items_received.values('requisition__department__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     data = {
         'pending_req_count': len(pending_requisitions),
-        'pending_po_count': len(open_pos),
+        'pending_po_count': len(pending_pos),
         'items_recd_count': len(items_received),
         'dept_spend': dept_spend,
         'categ_spend': categ_spend,
@@ -106,9 +107,11 @@ def dashboard(request):
 
 @login_required
 def users(request):    
+    buyer = request.user.buyer_profile
     user_form = AddUserForm(request.POST or None)
     buyer_profile_form = BuyerProfileForm(request.POST or None)
-    buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
+    buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+    buyer_profile_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
     if request.method == "POST":
         # pdb.set_trace()
         if 'add' in request.POST:
@@ -116,13 +119,13 @@ def users(request):
                 user = user_form.save()
                 buyer_profile = buyer_profile_form.save(commit=False)
                 buyer_profile.user = user                
-                buyer_profile.company = request.user.buyer_profile.company
+                buyer_profile.company = buyer.company
                 buyer_profile.save()
-                send_verific_email(user, user.id*scalar)
+                send_verific_email(user, user.id*settings.SCALAR)
                 messages.success(request, 'User successfully invited')
                 return redirect('users')
             else:
-                messages.error(request, 'Error saving user. Please try again.')
+                messages.error(request, 'Error adding user. Please try again.')
         elif 'delete' in request.POST:          
             for key in request.POST:
                 if key == 'delete':
@@ -254,7 +257,7 @@ def vendors(request):
         'vendors': vendors,
         'vendor_form': vendor_form,
         'location_form': location_form,
-        'table_headers': ['Co. Name']
+        'table_headers': ['Name', 'Location']
     }
     return render(request, "settings/vendors.html", data)    
 
@@ -268,6 +271,7 @@ def view_vendor(request, vendor_id, vendor_name):
     except TypeError: # No Location has been determined for Vendor
         data = serialize('json', list(vendor) + list(company))
     return HttpResponse(data, content_type='application/json')
+
 
 @login_required
 def upload_vendor_csv(request):
@@ -423,7 +427,7 @@ def view_requisition(request, requisition_id):
         if 'approve' in request.POST:
             DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
             for order_item in requisition.order_items.all():
-                OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
+                OrderItemStatus.objects.create(value='Pending', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition approved')
         elif 'deny' in request.POST:
             DocumentStatus.objects.create(value='Denied', author=buyer, document=requisition)
@@ -704,10 +708,7 @@ def vendor_invoices(request, vendor_id):
 def inventory_received(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    available_for_drawdown = ['Delivered', 'Drawdown Requested', 'Drawdown Requested', 'Drawdown Denied', 'Drawdown Cancelled']
-    delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown]
-    delivered_list = all_items.filter(id__in=delivered_ids)
-    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))
+    delivered_list, delivered_count = get_inventory_received(all_items)
     data = {
         'delivered_list': delivered_list,
         'delivered_count': delivered_count,
@@ -718,44 +719,37 @@ def inventory_received(request):
 def inventory_drawndown(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    drawndown_order_items_ids = [item.id for item in all_items if item.get_latest_status().value == 'Drawndown']
-    drawndown_list = all_items.filter(id__in=drawndown_order_items_ids)
-    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum('quantity'))
+    drawndown_list, drawndown_count = get_inventory_drawndown(all_items)
     data = {
         'drawndown_list':drawndown_list,
         'drawndown_count': drawndown_count,
     }    
     return render(request, "inventory/inventory_drawndown.html", data)
 
-from itertools import chain
-
 @login_required
 def inventory_current(request):
     buyer = request.user.buyer_profile
     all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
     
-    available_for_drawdown = ['Delivered', 'Drawdown Requested', 'Drawdown Requested', 'Drawdown Denied', 'Drawdown Cancelled']
-    delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown]
-    delivered_list = all_items.filter(id__in=delivered_ids)
-    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))    
+    delivered_list, delivered_count = get_inventory_received(all_items)
+    drawndown_list, drawndown_count = get_inventory_drawndown(all_items, -1) # Negate drawdown items
 
-    drawndown_order_items_ids = [item.id for item in all_items if item.get_latest_status().value == 'Drawndown']
-    drawndown_list = all_items.filter(id__in=drawndown_order_items_ids)    
-    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum(F('quantity'))*-1) # Negate drawdown items
+    #TODO: Make all this more efficient: inventory_list = delivered_count | drawndown_count  
 
-    inventory_list = []
-    inventory_count = []
-    # TODO: THE SUMMATION DOESNT WORK :(
-    # inventory_list = delivered_count | drawndown_count  
-    # inventory_list = list(chain(delivered_count, drawndown_count)) # Chain/combine the two querysets        
-    # Aggregate values of common products. Can't use annotate because this is a list, not a QuerySet
-    # inventory_count = {}
-    # for i in inventory_list:
-    #     inventory_count[i['product__name']] += i['total_qty']
+    # Chain/combine the two querysets into a list, not another Queryset (can't use annotate etc)
+    inventory_list = list(chain(delivered_count, drawndown_count)) 
+    # Convert list of dictionaries to dictionary
+    inventory_dict = defaultdict(int)
+    for item in inventory_list:
+        inventory_dict[item['product__name']] += item['total_qty']
     
-    # pdb.set_trace()
+    # TODO: HANDLE NEGATIVE QUANTITIES IN THE CHART
+    # Convert dictionary back to list of dicts
+    inventory_count = [{'product__name': prod, 'total_qty': qty} for prod, qty in inventory_dict.items()]
+    print inventory_count
+        
     data = {
-        'inventory_list': inventory_list,
+        'inventory_list': inventory_count,
         'inventory_count': inventory_count,
     }
     return render(request, "inventory/inventory_current.html", data)

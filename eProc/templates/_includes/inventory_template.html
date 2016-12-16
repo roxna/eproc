@@ -26,18 +26,37 @@
                   <tr>
                     <th>Product</th>                        
                     <th>Quantity</th>
-                    <!-- <th>Latest Status</th> -->
-                    <th>Updated By</th>
+                    <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
+                    {% if queryset == 'true' %}
+                      <th>Updated By</th>
+                    {% else %}
+                      <th>Status</th>
+                    {% endif %}
                   </tr>
                 </thead>
                 
                 <tbody> 
                   {% for item in items %}           
                   <tr>
-                    <td>{{ item.product.name }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <!-- {#<td>{% include "_includes/status_formatting_wo_href.html" with item=item value_to_display=item.get_latest_status %}</td>#} -->
-                    <td>{{ item.get_latest_status.get_status_details }}</td>
+                  
+                    <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
+                    {% if queryset == 'true' %}
+                      <td>{{ item.product.name }}</td>
+                      <td>{{ item.quantity }}</td>                    
+                      <td>{{ item.get_latest_status.get_status_details }}</td>
+                    {% else %}
+                      <td>{{item.product__name}}</td>
+                      <td>{{item.total_qty}}</td>
+                      
+                      <!-- Flag when inventory stock running low -->
+                      <td>
+                        {% if item.total_qty < item.product.threshold %}
+                          <span class="label label-pending"> Running low</span>                        
+                        {% endif %}
+                      </td>
+
+                    {% endif %}
+
                   </tr>
                   {% endfor %}
                 </tbody>

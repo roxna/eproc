@@ -112,6 +112,10 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'images', *MEDIA_URL.strip("/").split("/"))
+
 AUTH_USER_MODEL = 'eProc.User'
 
 LOGIN_URL = '/login/'
@@ -124,21 +128,17 @@ EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-MEDIA_URL = "/media/"
-# TODO: Get media path correct
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, "static", *MEDIA_URL.strip("/").split("/"))
-
 
 SCALAR = 570
-ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'Approver'),('Purchaser', 'Purchaser'),('Receiver', 'Receiver'),('Payer', 'Payer'))  
+ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'Approver'),('Purchaser', 'Purchaser'),('Receiver', 'Receiver'), ('Payer', 'Payer'), ('Inventory Manager', 'Inventory Manager'))
+# Add Controller: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (
     #### REQUEST Order Items  ####
-    ('Requested', 'Requested'), #view_req --> req not yet approved
+    ('Pending', 'Pending'), #view_req --> req not yet approved
     ('Approved', 'Approved'), #req approved or req created by superuser
     ('Ordered', 'Ordered'), #view_po --> po approved
     ('Denied', 'Denied'), #view_req . view_po --> po/req denied
@@ -152,11 +152,11 @@ STATUSES = (
     ('Drawdown Approved', 'Drawdown Approved'), #view_drawdown
     ('Drawdown Denied', 'Drawdown Denied'), #view_drawdown
     ('Drawdown Cancelled', 'Drawdown Cancelled'), #view_drawdown
-    ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
-    ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
+    # ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
+    # ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
 
     #### Requisitions ####
-    ('Pending', 'Pending'), #new_req
+    # ('Pending', 'Pending'), #new_req
     # ('Approved', 'Approved'), #view_req 
     # ('Denied', 'Denied'), #view_req 
     # ('Cancelled', 'Cancelled'), #view_req

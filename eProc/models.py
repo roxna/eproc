@@ -24,6 +24,9 @@ class Company (models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
+	def get_primary_location(self):
+	    return self.locations.last
+
 class BuyerCo(Company):
 	pass
 
@@ -37,9 +40,9 @@ class VendorCo(Company):
 	comments = models.CharField(max_length=150, null=True, blank=True)
 	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)
 
-
 class Location(models.Model):
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Billing')
+	name = models.CharField(max_length=50)
 	address1 = models.CharField(max_length=40, null=True, blank=True)
 	address2 = models.CharField(max_length=40, null=True, blank=True)
 	city = models.CharField(max_length=20, null=True, blank=True)
@@ -53,10 +56,8 @@ class Location(models.Model):
 	company = models.ForeignKey(Company, related_name="locations", null=True, blank=True)
 
 	def __unicode__(self):
-		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
-
-	def get_primary_location(self):
-		return Location.objects.last()
+		return "{}".format(self.name)
+		# return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 
 ######### ACCOUNTING DETAILS #########
@@ -105,6 +106,7 @@ class BuyerProfile(models.Model):
 	user = models.OneToOneField(User, related_name="buyer_profile")	
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
+	location = models.ForeignKey(Location, related_name="users")
 
 	def __unicode__(self):
 		return "{}".format(self.user.username)

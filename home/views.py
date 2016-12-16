@@ -7,10 +7,28 @@ from home.models import *
 from home.forms import *
 
 def home(request):
-    return render(request, "home.html")
+	plans = Plan.objects.all()
+	testimonials = Testimonial.objects.all().order_by('?')[:2]
+	# Newsletter sign up
+	if request.method == "POST":
+		author, created = Author.objects.get_or_create(email=request.POST.get('email'))
+		if created:
+			author.name = request.POST.get('email')
+			author.source = 'Newsletter'
+			author.save()
+		return redirect('success')
+	data = {
+		'plans': plans,
+		'testimonials': testimonials,
+	}
+	return render(request, "home.html", data)
 
 def pricing(request):
-    return render(request, "pages/pricing.html")
+	plans = Plan.objects.all()
+	data = {
+		'plans': plans,
+	}
+	return render(request, "pages/pricing.html", data)
 
 def features(request):
     return render(request, "pages/features.html")
@@ -21,6 +39,9 @@ def contact(request):
 	if request.method == "POST":
 		if contact_form.is_valid() and author_form.is_valid():
 			author, created = Author.objects.get_or_create(**author_form.cleaned_data)
+			if created:
+				author.source = 'Contact Form'
+				author.save()
 			contact_request = contact_form.save(commit=False)
 			contact_request.author=author
 			contact_request.save()
@@ -44,11 +65,18 @@ def blog(request):
 	return render(request, "pages/blog.html", data)
 
 def view_blog(request, blog_id, blog_slug):
-    blog = Blog.objects.get(pk=blog_id)
+    blog = Blog.objects.get(pk=blog_id)    
+    try:
+    	prevBlog = Blog.objects.get(pk=blog_id-1)
+    	nextBlog = Blog.objects.get(pk=blog_id+1)
+    except:
+    	# TODO: Make this a random blog?
+    	prevBlog = Blog.objects.get(pk=1)
+    	nextBlog = Blog.objects.get(pk=2)
     data = {
     	'blog': blog,
-    	'prevPost': blog,
-    	'nextPost': blog,
+    	'prevBlog': prevBlog,
+    	'nextBlog': nextBlog,
     }
     return render(request, "pages/blogpost.html", data)
 

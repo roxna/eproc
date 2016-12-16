@@ -59,7 +59,10 @@ class DocumentStatusAdmin(admin.ModelAdmin):
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'order_item']    
-    list_filter = ['order_item__product', 'order_item__product__buyer_co']   
+    list_filter = ['value', 'order_item__product', 'order_item__product__buyer_co']   
+
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'loc_type', 'company']  
 
 class FileAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'file', 'document']    
@@ -75,7 +78,7 @@ admin.site.register(Company, CompanyAdmin)
 admin.site.register(BuyerCo, CompanyAdmin)
 admin.site.register(VendorCo, CompanyAdmin)
 admin.site.register(Department, DepartmentAdmin)
-admin.site.register(Location)
+admin.site.register(Location, LocationAdmin)
 admin.site.register(Document)
 admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder, POAdmin)

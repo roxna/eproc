@@ -108,7 +108,7 @@ class AddUserForm(forms.Form):
 
     def save(self):
         # Check that there isn't another user with same username or email
-        if user.clean_username and user.clean_email:
+        if self.clean_username() and self.clean_email():
             user = User.objects.create_user(username=self.clean_username(),
                                             email=self.cleaned_data['email'],
                                             password='temppw',)        
@@ -126,6 +126,7 @@ class AddUserForm(forms.Form):
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
     department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
+    location = forms.ModelChoiceField(queryset=Location.objects.all(), label="<i class='fa fa-building'></i> Location")
 
     def __init__(self, *args, **kwargs):
         super(BuyerProfileForm, self).__init__(*args, **kwargs)
@@ -133,15 +134,16 @@ class BuyerProfileForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('role', css_class='col-md-6'),
+                Div('location', css_class='col-md-6'),
                 Div('department', css_class='col-md-6'),
+                Div('role', css_class='col-md-12'),
                 css_class='row',
             ),
         )
 
     class Meta:
         model = BuyerProfile
-        fields = ("role", "department")
+        fields = ("role", "department", "location")
         
 
 class BuyerCoForm(forms.ModelForm):

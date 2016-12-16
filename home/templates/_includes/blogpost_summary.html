@@ -2,7 +2,7 @@
 
 <div class="post">
 	<a href="{% url 'view_blog' blog.id blog.title|slugify %}" class="pic">
-		<img src="{% static 'images/' %}{{blog.image}}" class="img-responsive" alt="blogpost" />
+		<img src="{% static 'images/' %}{{blog.image.url}}" class="img-responsive" alt="blogpost" />
 	</a>
 	<div class="title"><a href="{% url 'view_blog' blog.id blog.title|slugify %}">{{blog.title}}</a></div>
 	<div class="author">By {{blog.author}}, {{blog.date}}</div>

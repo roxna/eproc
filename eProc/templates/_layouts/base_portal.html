@@ -73,46 +73,52 @@
 
         <!-- menu:-->
         <ul class="sidebar-menu">
-            <li class="active treeview">
-              <a href="{%url 'dashboard' %}">
-                <i class="fa fa-dashboard"></i> 
-                <span>Dashboard</span>
-              </a>
-            </li>        
+
+          <!--************************
+          ********  DASHBOARD  ********   
+          **************************-->
+          <!-- everyone has access -->
+          <li class="active treeview">
+            <a href="{%url 'dashboard' %}">
+              <i class="fa fa-dashboard"></i> 
+              <span>Dashboard</span>
+            </a>
+          </li>        
           
-            <!-- REQUISITIONS -->
-            {% if user.buyer_profile.role == 'Requester' %}
-            <li>
-              <a href="{%url 'new_requisition' %}">
+          <!--************************
+          ******  REQUISITIONS  ******   
+          **************************-->
+          <!-- everyone has access to create req / view status-->          
+          <li class="treeview">
+            <a href="#">
+              <i class="fa fa-book"></i> 
+              <span>Requests</span>
+              <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+            </a>
+            <ul class="treeview-menu">
+              <li>
+                <a href="{%url 'new_requisition' %}">
+                  <i class="fa fa-pencil-square-o"></i> New Order
+                </a>
+              </li>
+              <li>
+                <a href="{%url 'requisitions' %}">
+                <!-- only superuser & approver have access to approve (managed in view_req) -->
                 <i class="fa fa-book"></i> 
-                <span>Request an Order</span>
-              </a>
-            </li>
+                {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+                  View/Approve Orders
+                {% else %}
+                  View Order Status
+                {% endif %}
+                </a>
+              </li>
+            </ul>
+          </li> 
 
-            {% elif user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-            <li class="treeview">
-              <a href="#">
-                <i class="fa fa-book"></i> 
-                <span>Requests</span>
-                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
-              </a>
-              <ul class="treeview-menu">
-                <li>
-                  <a href="{%url 'new_requisition' %}">
-                    <i class="fa fa-pencil-square-o"></i> New Order
-                  </a>
-                </li>
-                <li>
-                  <a href="{%url 'requisitions' %}">
-                    <i class="fa fa-book"></i> View/Approve Order
-                  </a>
-                </li>
-              </ul>
-            </li>          
-          {% endif %}
-
-          <!-- POs -->
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+          <!--***************************
+          ******  PURCHASE ORDERS  ******   
+          *****************************-->
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
@@ -127,7 +133,10 @@
             </li>   
           {% endif %}
 
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
+          <!--****************************
+          ******  INVOICES (Payer)  ******
+          ******************************-->
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-money"></i> <span>Invoices</span>
@@ -148,35 +157,55 @@
                 </li>
               </ul>
             </li> 
+          {% endif %}
 
+          <!--****************************
+          ******  RECEIVE DELIVERY  ******   
+          ******************************-->
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
             <li>
               <a href="{%url 'receive_pos' %}">
                 <i class="fa fa-truck"></i> 
                 <span>Receive Items</span>
               </a>
             </li>
+          {% endif %}
 
-            <li class="treeview">
-              <a href="#">
-                <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
-              </a>
-              <ul class="treeview-menu">
-                <li>
-                  <a href="{%url 'new_drawdown' %}">
-                    <i class="fa fa-pencil-square-o"></i> New Drawdown
-                  </a>
-                </li>
-                <li>
-                  <a href="{%url 'drawdowns' %}">
-                    <i class="fa fa-sign-out"></i> Approve Drawdown
-                  </a>
-                </li>
-              </ul>
-            </li>     
+          <!--************************
+          ******  DRAWDOWNS  ******   
+          **************************-->
+          <!-- everyone has access to create / view status-->             
+          <li class="treeview">
+            <a href="#">
+              <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">
+              <li>
+                <a href="{%url 'new_drawdown' %}">
+                  <i class="fa fa-pencil-square-o"></i> New Request
+                </a>
+              </li>
+              <li>
+                <a href="{%url 'drawdowns' %}">
+                <i class="fa fa-sign-out"></i>
+                <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
+                {% if user.buyer_profile.role == 'SuperUser' or   user.buyer_profile.role == 'Approver' %}
+                  View/Approve Drawdowns
+                {% else %}
+                  View Drawdowns
+                {% endif %}
+                </a>
+              </li>
+            </ul>
+          </li>     
 
+          <!--****************************
+          *********  INVENTORY  **********   
+          ******************************-->
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Inventory Manager' %}           
             <li class="treeview">
               <a href="#">
                 <i class="fa fa-list-alt"></i> <span>Inventory</span>
@@ -201,12 +230,13 @@
                   </a>
                 </li>
               </ul>
-            </li>   
-            <!-- <li><a href="{%url 'inventory_current' %}"><i class="fa fa-list-alt"></i> <span>Inventory</span></a></li> -->
+            </li>               
           {% endif %}
+          
 
-          <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-line-chart"></i> <span>Reports</span></a></li> -->
-
+          <!--****************************
+          *********   SETTINGS  **********   
+          ******************************-->
           <li class="treeview">
             <a href="#">
               <i class="fa fa-gear"></i> <span>Settings</span>
@@ -215,18 +245,22 @@
               </span>
             </a>
             <ul class="treeview-menu">
-              <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
-              <li><a href="{%url 'categories' %}"><i class="fa fa-file-pdf-o"></i> Categories</a></li>
-              <li><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></li>
-              <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>
-              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
+
+              {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+                <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
+                <li><a href="{%url 'categories' %}"><i class="fa fa-file-pdf-o"></i> Categories</a></li>                
+                <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>                
+              {% endif %}              
               
-            {% if user.buyer_profile.role == 'SuperUser' %}
-              <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company</a></li>
-              <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>
-              <!-- <li><a href="{%url 'dashboard' %}"><i class="fa fa-money"></i> Taxes</a></li> -->
-              <li><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></li>              
-            {% endif %}
+              {% if user.buyer_profile.role == 'SuperUser' %}
+                <li><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></li>
+                <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company Profile</a></li>
+                <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>                
+                <li><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></li>              
+              {% endif %}
+              
+              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
+
             </ul>
           </li> 
 

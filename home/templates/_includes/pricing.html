@@ -1,9 +1,11 @@
 <div class="row header">
 	<div class="col-md-12">
-		<h3>No contract. Cancel when you want.</h3>
-		<p>Your plan includes a 7-day free trial</p>
+		<h3>Sign up now!</h3>
+		<p>No contract. Cancel when you want.</p>
 	</div>
 </div>
+
+{% for plan in plans %}
 <div class="row charts">					
 	<div class="col-md-4"></div>
 	<div class="col-md-4">
@@ -11,31 +13,30 @@
 			<!-- <div class="popular">Most popular</div> -->
 			<div class="quantity">
 				<span class="dollar">$</span>
-				<span class="price">10</span>
-				<span class="period">/user/month</span>
+				<span class="price">{{plan.price_per_user}}</span>
+				<span class="period">/ user / month</span>
 			</div>
-			<div class="plan-name">Profesional</div>
+			<div class="plan-name">{{plan.name}}</div>
 			<div class="specs">
 				<div class="spec">
-					<span class="variable">15</span> team members
+					<span class="variable">Unlimited</span> team members
 				</div>
 				<div class="spec">
 					<span class="variable">Digital</span> recurring billing
 				</div>
 				<div class="spec">
-					<span class="variable">Virtual</span> online terminal
+					<span class="variable">Web-based</span> app accessible anywhere
 				</div>
 				<div class="spec">
-					<span class="variable">15</span> total products
-				</div>
-				<div class="spec">
-					<span class="variable">0.5%</span> Transaction fee
+					<span class="variable">24/7</span> online support
 				</div>
 			</div>
-			<a class="btn-signup button-clear" href="{% url 'register' %}">
-				<span>Sign up now</span>
+			<br>
+			<a href="{% url 'register' %}">
+				<button class="button basic-red">Sign up now</button>
 			</a>
 		</div>
 	</div>
 	<div class="col-md-4"></div>						
 </div>
+{% endfor %}

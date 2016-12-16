@@ -18,6 +18,9 @@
 	color: black;
 	margin: 5px;
 }
+.width-100{
+	width:100% !important;
+}
 .basic-red{
 	background: #dd4b39;
 	border-color: #dd4b39;
@@ -32,6 +35,9 @@
 	margin: 5px;
 	padding: 10px;
 	border-radius: 3px;
+}
+.no-margin-top{
+	margin-top: 0px !important;
 }
 .add-space{
 	padding-left: 5px;

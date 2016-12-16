@@ -10,16 +10,15 @@
 	<div id="home">
 		<div id="hero">
 			<div class="container">
-				<h1 class="hero-text animated fadeInDown">
-					Streamline purchasing <br />				
-					in minutes.
+				<h1 class="hero-text">
+					Purchasing. <br />				
+					Streamlined.
 				</h1>
-				<p class="sub-text animated fadeInDown">
+				<p class="sub-text">
 					Request. Approve. Purchase. Track
 				</p>
-				<div class="cta animated fadeInDown">				
-					<a href="{% url 'register' %}" class="button basic-teal">Register now</a>
-					<a href="{% url 'login' %}" class="button-outline">Log In</a>
+				<div class="cta">				
+					<a href="{% url 'register' %}" class="button basic-red">Get started now</a>					
 				</div>
 				<div class="img"></div>
 			</div>
@@ -30,12 +29,12 @@
 
 	<div id="home">			
 		
-		<div id="pricing">
+		<div id="pricing" class="no-margin-top">
 			<div class="container">
-				{% include "_includes/pricing.html" %}
+				{% include "_includes/pricing.html" with plans=plans %}
 			</div>
 		</div>
-		{% include "_includes/testimonials.html" %}	
+		{% include "_includes/testimonials.html" %}
 		{% include "_includes/get_started.html" %}
 		
 	</div>
