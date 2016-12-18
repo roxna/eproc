@@ -7,8 +7,16 @@
         </div>
         <div class="box-footer no-padding">
           <ul class="nav nav-stacked">
-            <li><a href="{{url1}}">{{text1}}</a></li>
-            <li><a href="{{url2}}">{{text2}}</a></li>            
+          {% for url, text, exists in list %} 
+          <li>
+            <a href="{{url}}">
+              {{text}}
+              {% if exists %}
+                <i class="fa fa-check pull-right" style="color:green"></i>
+              {% endif %}
+            </a>
+          </li>
+          {% endfor %}
           </ul>
         </div>
     </div>

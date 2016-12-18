@@ -5,10 +5,11 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block title %}eProcurement{% endblock title %}</title>
+  <title>{% block title %}Genie{% endblock title %}</title>
 
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   
+  <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
   <!-- Shared Stylesheets -->
   <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}"> 
   <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
@@ -29,8 +30,9 @@
     <header class="main-header">
       <!-- Logo -->
       <a href="{%url 'dashboard' %}" class="logo">      
-          <span class="logo-mini"><b>e</b>Proc</span><!-- mini logo for sidebar mini 50x50 pixels -->
-          <span class="logo-lg"><b>e</b>Procurement</span><!-- logo for regular state and mobile devices -->
+          <span class="logo-mini">Genie</span><!-- mini logo for sidebar mini 50x50 pixels -->
+          <img src="{% static 'favicon.ico' %}" alt="User Image" class="logo-custom"/>
+          <span class="logo-lg">Genie</span><!-- logo for regular state and mobile devices -->
       </a>
 
       <nav class="navbar navbar-static-top">
@@ -41,9 +43,11 @@
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">            
               <li class="dropdown user user-menu">
+                {% if user.buyer_profile.role == 'SuperUser' %} 
                 <a href="{% url 'get_started' %}" id="get-started">
                   <span class="pull-right-container">GET STARTED</span>
                 </a>
+                {% endif %}
               </li>            
               <li class="dropdown user user-menu">
                 <a href="{% url 'logout' %}">
@@ -291,8 +295,9 @@
   <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
   <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
   <script src="{% static 'dist/js/app.js' %}"></script>
-  <!-- <script src="{% static 'dist/js/custom.js' %}"></script> -->
+  <script src="{% static 'dist/js/custom.js' %}"></script>
 
+  {% block js %}{% endblock js %}
   
   <!-- Success/Error Notifications -->
   <script>
@@ -301,12 +306,12 @@
             $("#messageNotification").hide('fade', 500)
         }, 2000);
 
-        $('a').on('click', function(){
-          $(this).parent().children('a').removeClass('active');
+        $('li').on('click', function(){
+          console.log('yay');
+          // $(this).parent().children('a').removeClass('active');
           $(this).addClass('active');
         })
     });
-  </script>
-  {% block js %}{% endblock js %}
+  </script>  
 </body>
 </html>

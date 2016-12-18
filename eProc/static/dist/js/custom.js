@@ -1,5 +1,5 @@
 $(document).ready(function(){
-  	
+
 	/***************************************
 	****      VENDOR DETAILS AJAX       ***
 	***************************************/	
@@ -14,7 +14,6 @@ $(document).ready(function(){
 		    url: '/vendor/'+id+'/'+name,
 		    type: 'get',
 		    success: function(data) {
-		    	console.log(data);
 				var vendorCo = data[0]['fields'];
 				$('#vendorContactRep').text(vendorCo['contact_rep']);
 				$('#vendorID').text(vendorCo['vendorID']);
@@ -62,10 +61,7 @@ $(document).ready(function(){
 
 	function updateElementIndex(el, prefix, ndx) {
 	    var replacement = prefix + '-' + ndx;
-	    console.log($(el));
-	    // console.log($(el).find('[id]').attr('id'));
 		x = $(el).find('[id]').attr('id', $(el).find('[id]').attr('id').replace(id_regex, replacement));
-	    console.log(x);
 	    $(el).find('[id]').attr('id', $(el).find('[id]').attr('id').replace(id_regex, replacement));
 	    $(el).find('label').attr('for', $(el).find('label').attr('for').replace(id_regex, replacement));
 	    $(el).find('[name]').attr('name', $(el).find('[name]').attr('name').replace(id_regex, replacement));
@@ -95,10 +91,8 @@ $(document).ready(function(){
 	function addForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
 	    
-
         // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
         var row = $(".item:first").clone(false).get(0);	
-        console.log(row);
         row = $(row).attr('id', $(row).attr('id').replace(id_regex, prefix+'-'+formCount));
         $(row).hide().insertAfter(".item:last").slideDown(300);
 
@@ -116,7 +110,6 @@ $(document).ready(function(){
 
         // Relabel or rename all the relevant bits of the new row
         $(row).children().children().each(function () {
-        	console.log(formCount);
             updateElementIndex(this, prefix, formCount);
             $(this).val('');
         });
@@ -129,7 +122,6 @@ $(document).ready(function(){
 	});
 
 	$(".delete").click(function () {
-		console.log('delete');
 	    return deleteForm(this, prefix);
 	});
 

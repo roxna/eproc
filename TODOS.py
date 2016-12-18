@@ -1,42 +1,45 @@
 # BIG
 # - Tests
-# - Mgr (get_latest_status)
 # - Payment
 # - Refactor
 # - Order_Items into individual entries (new PO)
-# - API - live commodities prices with alerts
-# - Website
+# - Blogs/website
 
 # OTHER
-# - (Bug) New Req/New DD - add Order_Items
-# - Fasclick menu select
-
+# Edit vendor, product price
 # ***- New Req: APproveres only on Dept selected
 # - New Req: Dont show dept unless superuser
 
-# - APPROVAL ROUTING - who requesters can go to, threshold $ APPROVAL
-
-# - Invoices - approvals?
+###### APPROVAL ROUTING - who requesters can go to, threshold $ APPROVAL
 
 # - LOCATIONS 
 # a) Add new LOCATION
 # b) Inventory - by each location (Shipping Add)
 # c) Each location can have multiple addresses
 
-# Invoices- order totals, discounts etc
-
-
 # - Profile no pw
-# - get_started
 # Edit dept formset (see new_dd)
+# Save files uploaded/media elements (invoice, co logo, blogs etc)
 
-
-# DOING
-# **********
-# Edit vendor, product price
-# Blogs/website
+# *****************************
+ 
 
 # QUES:
 # **********
 # Drawdown approved vs completed? where to 'complete'?
 # Pd amount in PO --> impact on invoice?
+# Invoices - approvals?
+# Invoices- order totals, discounts etc
+
+
+# NEW FEATURES
+# **********
+# - API - live commodities prices with alerts
+
+
+
+# REFINEMENTS:
+# **********
+# - Fasclick menu select
+# - Mgr (get_latest_status)
+# - (Bug) New Req/New DD - add Order_Items

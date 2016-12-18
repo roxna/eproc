@@ -335,7 +335,7 @@ class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
     quantity = forms.IntegerField(required=True, min_value=1)
-    comments = forms.CharField(required=False)
+    comments = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
         super(OrderItemForm, self).__init__(*args, **kwargs)
@@ -345,8 +345,8 @@ class OrderItemForm(ModelForm):
         self.helper.layout = Layout(
             Div(
                 Div('product', css_class='col-md-3'),                
-                Div('quantity', css_class='col-md-1'),
-                Div('account_code', css_class='col-md-3'),
+                Div('quantity', css_class='col-md-2'),
+                Div('account_code', css_class='col-md-2'),
                 Div('comments', css_class='col-md-4'),
                 HTML('<div class="col-md-1 delete" style="margin-top: 2em;">' +
                         '<a href="#"><i class="fa fa-trash"></i></a>' +

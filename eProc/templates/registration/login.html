@@ -6,7 +6,9 @@
 
 {% block header %}
   <h3 class="logo">
-    <a href="{% url 'home' %}">LOG IN</a>
+    <a href="{% url 'home' %}">
+      <img src="{% static 'favicon.ico' %}" style="width:6%"> &nbsp; LOG IN
+    </a>
   </h3>
   <h4>Get back to business</h4>
   <p>Procurement savings at your fingertips</p>

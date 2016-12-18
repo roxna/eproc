@@ -71,7 +71,37 @@ def thankyou(request):
 
 @login_required()
 def get_started(request):
-    return render(request, "main/get_started.html")
+    buyer = request.user.buyer_profile
+    req_exists = Requisition.objects.filter(buyer_co=buyer.company).exists()
+    po_exists = PurchaseOrder.objects.filter(buyer_co=buyer.company).exists()
+    invoice_exists = Invoice.objects.filter(buyer_co=buyer.company).exists()
+    dd_exists = Drawdown.objects.filter(buyer_co=buyer.company).exists()
+    data = {        
+        'settings_list': [
+            # url, text, exists/completed
+            ['/vendors/','1. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
+            ['/categories/','2. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
+            ['/products/','3. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
+            ['/account_codes/','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
+            ['/users/','5. Add users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
+            ['/departments/','6. Add departments', Department.objects.filter(company=buyer.company).exists()],
+        ],
+        'request_list': [
+            ['/requisition/new/','1. Create a new request', req_exists],
+            ['/requisitions/','2. Approve/decline requests', req_exists],
+        ],
+        'procure_list': [
+            ['/purchase-order/new/','1. Create a purchase order', po_exists],
+            ['/purchase-orders/','2. View open/pending POs', po_exists],
+        ],
+        'pay_list': [
+            ['/invoice/new/','1. Track invoices', invoice_exists],
+            ['/purchase-orders/receive/','2. Receive items', dd_exists],
+            ['/drawdown/new/','3. Create drawdowns', dd_exists],
+            ['/inventory/','4. Track inventory', dd_exists],
+        ],               
+    }
+    return render(request, "main/get_started.html", data)
 
 @login_required()
 def dashboard(request):
@@ -392,7 +422,7 @@ def new_requisition(request):
             save_orderitems(requisition, orderitem_formset)
             save_newreq_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
-            return redirect('new_requisition')
+            return redirect('requisitions')
         else:
             messages.error(request, 'Error. Requisition not submitted')
     data = {

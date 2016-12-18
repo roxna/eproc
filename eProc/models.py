@@ -107,28 +107,10 @@ class BuyerProfile(models.Model):
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
 	location = models.ForeignKey(Location, related_name="users")
+	relates_to = models.ForeignKey('self') #ForeignKey to self for approval routing and thresholds
 
 	def __unicode__(self):
 		return "{}".format(self.user.username)
-
-# class Requester(BuyerProfile):
-# 	approvers = models.ManyToManyField(Approver, related_name='requesters')
-	
-# class Approver(BuyerProfile):	
-# 	threshold = models.IntegerField(null=True, blank=True)
-
-# class Purchaser(BuyerProfile):	
-# 	pass
-
-# class Receiver(BuyerProfile):	
-# 	pass
-
-# class Payer(BuyerProfile):	
-# 	pass
-
-# class SuperUser(BuyerProfile):	
-# 	pass
-
 
 # KILL FOR FIRST PASS - VENDOR USERS DONT HAVE A LOG IN/PW ETC
 class VendorProfile(models.Model):
@@ -214,7 +196,10 @@ class File(models.Model):
 		return "{}".format(self.name)
 
 
-######### PRODUCT & ORDER LINE ITEMS #########
+##########################################
+###    PRODUCT & ORDER LINE ITEMS      ### 
+########################################## 
+
 class Category(models.Model):
 	code = models.IntegerField(null=True, blank=True)
 	name = models.CharField(max_length=50)
@@ -271,7 +256,10 @@ class OrderItem(models.Model):
 	    return self.status_updates.latest('date')	
 
 
-######### OTHER DETAILS #########
+##########################################
+#####        OTHER DETAILS          ##### 
+########################################## 
+
 class Status(models.Model):
 	value = models.CharField(max_length=20, choices=settings.STATUSES, default='Pending')
 	date = models.DateTimeField(editable=False, default=timezone.now)
