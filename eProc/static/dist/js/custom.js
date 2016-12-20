@@ -1,57 +1,5 @@
 $(document).ready(function(){
 
-	/***************************************
-	****      VENDOR DETAILS AJAX       ***
-	***************************************/	
-
-	$('#vendorTable tbody tr td').on('click', function(vendors_json){
-	    $('#noVendorSelected').hide();
-	    $('#vendorDetailSection').show();
-
-	    var id = parseInt($(this).data('id'));
-	    var name = $(this).data('name');
-	    $.ajax({
-		    url: '/vendor/'+id+'/'+name,
-		    type: 'get',
-		    success: function(data) {
-				var vendorCo = data[0]['fields'];
-				$('#vendorContactRep').text(vendorCo['contact_rep']);
-				$('#vendorID').text(vendorCo['vendorID']);
-				$('#vendorComments').text(vendorCo['comments']);
-
-		        var company = data[1]['fields'];		        
-		        $('#vendorName').text(company['name']);
-		        $('#vendorWebsite').text(company['website']);		        
-
-		        try{
-		        	var location = data[2]['fields'];
-		        	$('#vendorEmail').text(location['email']);
-		        	$('#vendorPhone').text(location['phone']);
-		        	$('#vendorFax').text(location['fax']);
-		        	$('#vendorAdd1').text(location['address1']);
-		        	$('#vendorAdd2').text(location['address2']);
-		        	$('#vendorCity').text(location['city']);
-		        	$('#vendorState').text(location['state'].toUpperCase());
-		        	$('#vendorZip').text(location['zipcode']);
-		        	$('#vendorCountry').text(location['country'].toUpperCase());
-		        }catch(error){
-		        	$('#vendorEmail').text('');
-		        	$('#vendorPhone').text('');
-		        	$('#vendorFax').text('');
-		        	$('#vendorAdd1').text('');
-		        	$('#vendorAdd2').text('');
-		        	$('#vendorCity').text('');
-		        	$('#vendorState').text('');
-		        	$('#vendorZip').text('');
-		        	$('#vendorCountry').text('');
-		        }
-		    },
-		    failure: function(data) { 
-		        console.log('Got an error dude');
-		    }
-		});
-	});
-
 	/********************************************
 	**** REQ: ADD/DELETE ORDER ITEM DETAILS  ****
 	********************************************/

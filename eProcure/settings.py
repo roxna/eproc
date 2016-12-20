@@ -134,6 +134,7 @@ ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'App
 # Add Controller: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
+INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (

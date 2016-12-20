@@ -11,22 +11,26 @@
 <section class="content">
   <div class="row">
 
-      <div class="col-lg-6 col-md-12 col-xs-12">
+      <div class="col-lg-12 col-md-12 col-xs-12">
         <div class="box">
           <div class="box-body">
 
             <table id="vendorTable" class="table table-striped">
               {% include "_includes/table_header.html" with header_class="basic-teal" header=table_headers %}
                 <tbody>              
-                  {% for vendor in vendors %}                           
+                  {% for vendor in vendors %}    
+                  {% with vendor.get_primary_location as location %}                       
                     <tr>
                       <td data-id="{{vendor.id}}" data-name="{{vendor.name|slugify}}">
-                          <a href="#">{{ vendor.name }}</a>                
+                          <a href="{% url 'view_vendor' vendor.id vendor.name|slugify %}">{{ vendor.name }}</a>
                       </td>
-                      {% with vendor.get_primary_location as location %}
-                      <td>{{location.city}}, {{location.country}}</td>
-                      {% endwith %}  
+                      <!--  -->
+                      <td>                        
+                        <a href="mailto:{{location.email}}">{{vendor.contact_rep}}</a>
+                      </td>                      
+                      <td>{{location.city}}, {{location.country}}</td>                      
                     </tr>
+                    {% endwith %}
                   {% endfor %}
                 </tbody>
             </table><br> 
@@ -44,9 +48,6 @@
         </div>
      </div>
 
-    {% include '_includes/view_vendor.html' %}
-  
-
   </div>
 </section>
 {% endblock content %}
@@ -54,7 +55,4 @@
 
 {% block js %}
   {% include "_includes/dataTablesNotifications.html" with tableID="vendorTable" %}
-  <script>
-    $('#vendorDetailSection').hide();
-  </script>
 {% endblock js %}

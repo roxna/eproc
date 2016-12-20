@@ -287,21 +287,32 @@ def vendors(request):
         'vendors': vendors,
         'vendor_form': vendor_form,
         'location_form': location_form,
-        'table_headers': ['Name', 'Location']
+        'table_headers': ['Name', 'Contact', 'Location']
     }
     return render(request, "settings/vendors.html", data)    
 
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
-    vendor = VendorCo.objects.filter(pk=vendor_id)
-    company = Company.objects.filter(pk=vendor_id)    
-    try:
-        location = Location.objects.filter(company=company)
-        data = serialize('json', list(vendor) + list(company) + list(location))
-    except TypeError: # No Location has been determined for Vendor
-        data = serialize('json', list(vendor) + list(company))
-    return HttpResponse(data, content_type='application/json')
-
+    vendor = VendorCo.objects.get(pk=vendor_id)
+    location = Location.objects.filter(company=vendor)[0]
+    vendor_form = VendorCoForm(request.POST or None, instance=vendor)
+    location_form = LocationForm(request.POST or None, instance=location)
+    doc_ids = [doc.id for doc in vendor.invoice.all()]
+    documents = File.objects.filter(document__in=doc_ids)
+    if request.method == 'POST':
+        if vendor_form.is_valid() and location_form.is_valid():
+            vendor = vendor_form.save()
+            location = location_form.save()
+            messages.success(request, "Vendor updated successfully")
+        else:
+            messages.error(request, 'Error. Vendor not updated.')
+    data = {
+        'vendor': vendor,
+        'vendor_form': vendor_form,
+        'location_form': location_form,
+        'documents': documents,
+    }
+    return render(request, "settings/view_vendor.html", data)    
 
 @login_required
 def upload_vendor_csv(request):

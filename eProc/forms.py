@@ -22,6 +22,23 @@ class RegisterUserForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterUserForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Div(
+                Div('first_name', css_class='col-md-6'),
+                Div('last_name', css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('username', css_class='col-md-6'),
+                Div('email', css_class='col-md-6'),
+                css_class='row',
+            ),            
+            Div(
+                Div('password1', css_class='col-md-6'),
+                Div('password2', css_class='col-md-6'),
+                css_class='row',
+            ),   
+        )
         self.helper.form_tag = False
 
         self.helperReadOnly = FormHelper()
@@ -148,19 +165,29 @@ class BuyerProfileForm(ModelForm):
 
 class BuyerCoForm(forms.ModelForm):
     name = forms.CharField(required=True)
+    industry = forms.ChoiceField(settings.INDUSTRY_CHOICES, required=True, )
     currency = forms.ChoiceField(settings.CURRENCIES, required=True, )
     logo = forms.ImageField(required=False)
 
-    helper = FormHelper()
-    helper.layout = Layout(
-        Field('name', css_class='form-control'),
-        Field('currency', css_class='form-control'),
-    )
-    helper.form_tag = False
+    def __init__(self, *args, **kwargs):
+        super(BuyerCoForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div('industry', css_class='col-md-6'),
+                Div('currency', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
+        self.helper.form_tag = False
 
     class Meta:
         model = BuyerCo
-        fields = ('name', 'currency')
+        fields = ('name', 'industry', 'currency')
 
 
 class VendorCoForm(ModelForm):

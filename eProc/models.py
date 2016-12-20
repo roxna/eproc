@@ -17,6 +17,7 @@ def co_logo_directory_path(instance, filename):
 
 class Company (models.Model):
 	name = models.CharField(max_length=30)	
+	industry = models.CharField(choices=settings.INDUSTRY_CHOICES, max_length=20, null=True, blank=True)
 	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
 	website = models.CharField(max_length=100, null=True, blank=True)	
 	logo = models.ImageField(upload_to=co_logo_directory_path, default='../static/img/default_logo.jpg', blank=True, null=True)
@@ -40,6 +41,9 @@ class VendorCo(Company):
 	comments = models.CharField(max_length=150, null=True, blank=True)
 	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)
 
+	def get_model_fields(model):
+	    return model._meta.fields
+	    
 class Location(models.Model):
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Billing')
 	name = models.CharField(max_length=50)
@@ -153,7 +157,7 @@ class Document(models.Model):
 	        return True
 	    return False
 
-class SalesOrder(models.Model):
+class SalesOrder(Document):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	cost_other = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	discount_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -163,7 +167,7 @@ class SalesOrder(models.Model):
 	grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
-	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s_orders")
+	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
 
  	class Meta:
  		abstract = True	
@@ -172,10 +176,10 @@ class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
 
-class PurchaseOrder(Document, SalesOrder):	
+class PurchaseOrder(SalesOrder):	
 	pass	
 
-class Invoice(Document, SalesOrder):
+class Invoice(SalesOrder):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
 class Drawdown(Document):

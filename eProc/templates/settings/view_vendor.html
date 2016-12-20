@@ -1,0 +1,78 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Vendor{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}Vendor Details{% endblock header %}
+
+{% block content %}
+<section class="content">
+    <div class="row">
+
+	  <!-- Vendor details -->
+	  <div class="col-lg-6">
+		 <div class="box box-widget widget-user" id="vendorDetailSection">
+		    <form method="POST" id="post-form">
+		    {% csrf_token %}					
+		      
+		      <div class="widget-user-header bg-gray">
+		        <h3 class="widget-user-username">{{vendor.name}}</h3>
+		      </div>
+		      <div class="widget-user-image">
+		        <img class="img-circle" src="{% static 'dist/img/photo4.jpg' %}" alt="Vendor">
+		      </div>
+
+		      <div class="box-footer">
+		      	  <!-- VendorCo Form -->
+			      <div class="description-block">
+			      	<h5 class="description-header pull-left">CONTACT INFORMATION</h5><br><br>
+			      </div>
+			      {% crispy vendor_form vendor_form.helper %}
+		        
+		          <!-- Location Form -->
+		           <div class="description-block">
+		              <h5 class="description-header pull-left">ADDRESS</h5><br><br>
+		           </div>
+		           {% crispy location_form location_form.helper %}			
+
+					<button type='submit' class='button btn basic-teal pull-right'>Update Vendor </button>		                      
+		       </div>
+		      
+		    </form>
+		  </div>			
+  		</div>
+
+		<!-- List of docs -->
+  		<div class="col-lg-6">
+
+			<div class="box box-default">
+        
+		        <div class="box-header with-border">
+		          <h3 class="box-title">List of Vendor Invoices</h3>
+		        </div>     
+
+		        <div class="box-body">
+			         <table class="table table-striped">
+			         	<tbody>			         
+				         	{% for doc in documents %}
+			         		<tr>
+			         			<td>{{doc.name}}</td>
+			         		</tr>			         	
+		         		{% empty %}
+		         			No invoices with {{vendor.name}}			    	
+			         	{% endfor %}
+			         	</tbody>
+			          </table>            
+			    </div>
+
+          </div>
+
+  				
+  		</div>
+
+	</div>
+</section>
+{% endblock content %}
