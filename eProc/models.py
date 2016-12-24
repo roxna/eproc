@@ -43,10 +43,10 @@ class VendorCo(Company):
 
 	def get_model_fields(model):
 	    return model._meta.fields
-	    
+
 class Location(models.Model):
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Billing')
-	name = models.CharField(max_length=50)
+	name = models.CharField(max_length=50, default='')
 	address1 = models.CharField(max_length=40, null=True, blank=True)
 	address2 = models.CharField(max_length=40, null=True, blank=True)
 	city = models.CharField(max_length=20, null=True, blank=True)
@@ -67,7 +67,8 @@ class Location(models.Model):
 ######### ACCOUNTING DETAILS #########
 class Department(models.Model):
 	name = models.CharField(max_length=20)
-	company = models.ForeignKey(BuyerCo, related_name='departments')
+	company = models.ForeignKey(BuyerCo, related_name='departments') 
+	location = models.ForeignKey(Location, related_name='departments')
 
 	def __unicode__(self):
 		return "{}".format(self.name)
@@ -293,7 +294,10 @@ class Rating(models.Model):
 		(4, 'Good'),
 		(5, 'Great'),
 	)
-	score = models.IntegerField(choices=SCORES)
-	company = models.ForeignKey(Company, related_name="ratings")
+	value = models.IntegerField(choices=SCORES)
+	rater = models.ForeignKey(Company, related_name="ratings_given")
+	ratee = models.ForeignKey(Company, related_name="ratings_received")
 	comments = models.CharField(max_length=100)
 
+	def __unicode__(self):
+		return "{} - {}".format(self.receiver, self.value)

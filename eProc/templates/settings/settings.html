@@ -1,0 +1,70 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Settings{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Settings{% endblock header %}
+
+{% block content %}
+<section class="content">
+   <div class="row">
+
+	<div class="col-xs-12 col-md-6 col-lg-6">
+	  <div class="box box-default">     
+	    <div class="box-header with-border">
+	      <h3 class="box-title">Company</h3>
+	    </div>       
+	    <div class="box-body">          
+          {% if user.buyer_profile.role == 'SuperUser' %}
+            <h4><a href="{%url 'users' %}"><i class="fa fa-user"></i> Users</a></h4>
+            <p class="text-muted">Add, edit and invite users</p>  
+
+            <h4><a href="{%url 'locations' %}"><i class="fa fa-building"></i> Locations</a></h4>
+            <p class="text-muted">Manage locations</p>
+
+            <h4><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></h4>
+            <p class="text-muted">Manage departments</p>
+
+            <h4><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company Profile</a></h4>
+            <p class="text-muted">Manage company profile details</p>           
+
+          {% endif %}    
+
+            <h4><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></h4>
+            <p class="text-muted">Manage your own profile details</p> 
+	    </div>        
+	  </div>    
+	</div>
+
+	<div class="col-xs-12 col-md-6 col-lg-6">
+	  <div class="box box-default">     
+	    <div class="box-header with-border">
+	      <h3 class="box-title">Operations</h3>
+	    </div>       
+	    <div class="box-body">
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+            <h4><a href="{%url 'categories' %}"><i class="fa fa-file-pdf-o"></i> Product Categories</a></h4>
+            <h5>Manage product categories</h5>
+
+            <h4><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></h4>
+            <p class="text-muted">Manage vendors incl. CSV upload</p>
+
+            <h4><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></h4>
+            <p class="text-muted">Manage products incl. CSV upload</p>
+
+            <h4><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></h4>
+            <p class="text-muted">Manage Chart of Accounts</p>
+
+          {% else %}
+          	<p class="text-muted">You don't have access rights to Operations Settings</p>
+          {% endif %}          
+	    </div>        
+	  </div>    
+	</div>
+
+  </div>    
+</section>
+{% endblock content %}

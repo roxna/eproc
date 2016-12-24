@@ -136,6 +136,10 @@ def dashboard(request):
 ####################################
 
 @login_required
+def settings(request):
+    return render(request, "settings/settings.html")
+
+@login_required
 def users(request):    
     buyer = request.user.buyer_profile
     user_form = AddUserForm(request.POST or None)
@@ -180,6 +184,34 @@ def users(request):
         'table_headers': ['Username', 'Email Address', 'Role', 'Status', ' ',]
     }
     return render(request, "settings/users.html", data)
+
+@login_required
+def locations(request):
+    buyer = request.user.buyer_profile
+    locations = Location.objects.filter(company=buyer.company).annotate(num_users=Count('users'), num_depts=Count('departments'))
+    location_form = LocationForm(request.POST or None)
+    if request.method == "POST":
+        if location_form.is_valid():
+            location = location_form.save(commit=False)
+            location.company = buyer.company
+            location.save()
+            messages.success(request, 'Location added successfully')
+            return redirect('locations')
+        else:
+            messages.error(request, 'Error. Location not updated.')    
+    data = {
+        'locations': locations,
+        'location_form': location_form,
+    }
+    return render(request, "settings/locations.html", data)
+
+@login_required
+def view_location(request, location_id, location_name):
+    location = Location.objects.get(pk=location_id)
+    data = {
+        'location': location,
+    }
+    return render(request, "settings/view_location.html", data)
 
 @login_required
 def departments(request):

@@ -1,3 +1,15 @@
+# - LOCATIONS 
+# a) Add new LOCATION
+# b) Inventory - by each location (Shipping Add) 
+# ADD DEPARTMENT BY location
+
+###### APPROVAL ROUTING - who requesters can go to, threshold $ APPROVAL
+# http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2
+# ***- New Req: APproveres only on Dept selected
+# - New Req: Dont show dept unless superuser
+
+# Save files uploaded/media elements (invoice, co logo, blogs etc)
+
 #  INDUSTRY BENCHMARKS IN DASHBOARD (# 90% spend to 5% suppliers vs. your reality)
 #  VENDOR RANKINGS 
 #  See vendor list with rankings (Premium feature?)
@@ -5,17 +17,6 @@
 
 # VIEW DEPT: EDIT, Spend, contracts, people etc OR # Edit dept formset (see new_dd)
 # Edit product price
-# Save files uploaded/media elements (invoice, co logo, blogs etc)
-
-###### APPROVAL ROUTING - who requesters can go to, threshold $ APPROVAL
-# http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2
-# ***- New Req: APproveres only on Dept selected
-# - New Req: Dont show dept unless superuser
-
-# - LOCATIONS 
-# a) Add new LOCATION
-# b) Inventory - by each location (Shipping Add)
-# c) Each location can have multiple addresses
 
 # - Profile no pw
 # Your pending actions (dashboard)
@@ -62,3 +63,6 @@
 # LOW PRIO REFINEMENTS
 # **********
 # Approver - Assign alt. approver
+# Each location can have multiple addresses (bill/ship)
+# Remove DEPT and BYERPROFILE FK to Company (only need FK for each to Location)
+

@@ -1,0 +1,26 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Locations{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}Locations{% endblock header %}
+
+{% block content %}
+<section class="content">
+	<div class="row">
+		<div class="col-sm-12">
+			<button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Location</button>  
+			{% include "_includes/modal_singleform.html" with target="Location" form=location_form %} 
+		</div>	
+	</div>
+	<div class="row">
+		{% for location in locations %}
+			{% include '_includes/location_template.html' with location=location %}
+		{% endfor %}
+	</div>
+</section>
+
+{% endblock content %}

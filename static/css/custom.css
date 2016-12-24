@@ -50,6 +50,9 @@
 .text-grey{
 	color:grey !important;
 }
+.text-black{
+	color:black !important;	
+}
 /*LABELS*/
 .label-pending{
 	background-color: #f39c12 !important;

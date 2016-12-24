@@ -223,7 +223,8 @@ class VendorCoForm(ModelForm):
         fields = ("name", "contact_rep", "website", "vendorID", "comments")
 
 class LocationForm(ModelForm):
-    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Address Type")
+    name = forms.CharField(required=True, label="Location Name")
+    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Location Type")
     address1 = forms.CharField(required=True, label="<i class='fa fa-home'></i> Address Line 1")
     address2 = forms.CharField(required=False, label="<i class='fa fa-home'></i> Address Line 2")
     city = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> City")
@@ -239,7 +240,8 @@ class LocationForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('loc_type', css_class='col-md-12'),
+                Div('name', css_class='col-md-6'),
+                Div('loc_type', css_class='col-md-6'),
                 css_class='row',
             ),
             Div(
@@ -266,7 +268,7 @@ class LocationForm(ModelForm):
 
     class Meta:
         model = Location
-        fields = ('loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
+        fields = ('name', 'loc_type', 'address1', 'address2', 'city', 'state', 'country', 'zipcode', 'phone', 'email')        
 
 ####################################
 ###       SETTINGS FORMS         ### 

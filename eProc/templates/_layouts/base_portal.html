@@ -241,31 +241,11 @@
           <!--****************************
           *********   SETTINGS  **********   
           ******************************-->
-          <li class="treeview">
-            <a href="#">
-              <i class="fa fa-gear"></i> <span>Settings</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
+          <li>
+            <a href="{%url 'settings' %}">
+              <i class="fa fa-gear"></i> 
+              <span>Settings</span>
             </a>
-            <ul class="treeview-menu">
-
-              {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
-                <li><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></li>
-                <li><a href="{%url 'categories' %}"><i class="fa fa-file-pdf-o"></i> Categories</a></li>                
-                <li><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></li>                
-              {% endif %}              
-              
-              {% if user.buyer_profile.role == 'SuperUser' %}
-                <li><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></li>
-                <li><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company Profile</a></li>
-                <li><a href="{%url 'users' %}"><i class="fa fa-users"></i> Users</a></li>                
-                <li><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></li>              
-              {% endif %}
-              
-              <li><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></li>
-
-            </ul>
           </li> 
 
         </ul>

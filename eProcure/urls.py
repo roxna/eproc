@@ -89,9 +89,12 @@ urlpatterns=[
     url(r'^products/import-csv$', eProc_views.upload_product_csv, name='upload_product_csv'),
     url(r'^categories/$', eProc_views.categories, name='categories'),
 
+    url(r'^settings/$', eProc_views.settings, name='settings'),
     url(r'^settings/profile/$', eProc_views.user_profile, name='user_profile'),
     url(r'^settings/company/$', eProc_views.company_profile, name='company_profile'),
     url(r'^settings/users/$', eProc_views.users, name='users'),
+    url(r'^settings/locations/$', eProc_views.locations, name='locations'),
+    url(r'^settings/locations/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
     url(r'^settings/departments/$', eProc_views.departments, name='departments'),
     url(r'^settings/account-codes/$', eProc_views.account_codes, name='account_codes'),
     # url(r'^settings/taxes/$', eProc_views.taxes, name='taxes'),
