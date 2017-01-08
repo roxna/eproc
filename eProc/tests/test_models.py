@@ -98,15 +98,6 @@
 #         self.assertTrue(isinstance(instance, BuyerProfile))
 #         self.assertEqual(instance.__unicode__(), instance.user.name)
 
-# class VendorProfileTest(TestCase):
-#     def create_instance(self, user, company):
-#         return VendorProfile.objects.create(user=UserTest.create_instance, company=VendorCoTest.create_instance)
-
-#     def test_instance_creation(self):
-#         instance = self.create_instance()
-#         self.assertTrue(isinstance(instance, VendorProfile))
-#         self.assertEqual(instance.__unicode__(), instance.user.name)
-
 
 # class RequisitionTest(TestCase):
 #     def create_instance(self, preparer, next_approver, buyer_co, department, number="RO1", date_issued=timezone.now):

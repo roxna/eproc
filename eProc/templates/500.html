@@ -1,0 +1,17 @@
+{% extends '_layouts/base_error.html' %}
+
+{% block title %}500 - error{% endblock title %}
+
+{% block content %}
+  <h2 class="headline text-red"> 500</h2>
+
+  <div class="error-content">
+    <br><h3><i class="fa fa-warning text-red"></i> Oops! Something went wrong.</h3><br>
+
+    <p>
+      We will work on fixing that right away.<br>
+      In the meantime, you may want to <a href="{% url 'dashboard' %}">return to your dashboard</a>.
+    </p>
+   
+  </div>
+{% endblock content %}

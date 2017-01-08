@@ -7,14 +7,10 @@
 {% endblock css %}
 
 {% block header %}
-	<p class="small">
-		{% include '_includes/back_to.html' with destination='settings' %}
-	</p>
+	<p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
 
 	<!-- Add Location Button -->
-	<button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">
-		<i class='fa fa-plus'> </i> Add Location
-	</button>  
+	<button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Location</button>  
 	{% include "_includes/modal_singleform.html" with target="Location" form=location_form %} 
 
 	<h1>Locations</h1>

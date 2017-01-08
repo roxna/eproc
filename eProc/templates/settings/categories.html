@@ -8,6 +8,11 @@
 
 {% block header %}
   <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+  
+  <!-- Add Category modal -->
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Category</button>  
+  {% include "_includes/modal_singleform.html" with target="Category" form=category_form %}  
+
   <h1>Categories</h1>
 {% endblock header %}
 
@@ -38,10 +43,6 @@
                 </tbody>
               </table>
             <br>
-
-            <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Category</button>  
-            {% include "_includes/modal_singleform.html" with target="Category" form=category_form %}   
-            
             </div>
 
           </div>

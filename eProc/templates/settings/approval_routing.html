@@ -1,0 +1,51 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Approval Routing{% endblock title %}
+
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+  
+  <!-- Add Approver Modal Button -->
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Approver</button>
+  {% include "_includes/modal_singleform.html" with target="Approver" form=approver_form %} 
+  
+  <h1>Approval Routing</h1>
+{% endblock header %}
+
+
+{% block content %}      
+<section class="content">
+  <div class="row">
+    <div class="col-sm-12 col-lg-12">
+      <div class="box">
+        
+        <div class="box-header with-border">
+          <h3 class="box-title">List of Approvers & Relevant Approval Thresholds</h3>
+        </div>
+
+        <div class="box-body">
+            <table id="approverTable" class="table table-striped">
+              {% include "_includes/table_header.html" with header_class="basic-teal" header=table_headers %}            
+              <tbody>
+                  {% for approver in approvers %}
+                  <tr>
+                    <td>{{ approver.user.username }}</td>
+                    <td>{{ approver.location }} ({{ approver.department }})</td>
+                    <td>{{ approver.approval_threshold }}</td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}
+
+{% block js %}
+{% include "_includes/dataTablesNotifications.html" with tableID="approverTable" %}
+{% endblock js %}

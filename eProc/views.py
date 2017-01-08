@@ -78,29 +78,29 @@ def get_started(request):
     dd_exists = Drawdown.objects.filter(buyer_co=buyer.company).exists()
     data = {        
         'settings_list': [
-            # url, text, exists/completed
-            ['/locations/','1. Add locations & departments', Location.objects.filter(company=buyer.company).exists()],
-            ['/vendors/','2. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
-            ['/categories/','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
-            ['/products/','4. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
-            ['/account_codes/','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
-            # ['/approval_routing/','5. Set up approval rounting', BuyerProfile.objects.filter(company=buyer.company).exists()],
-            ['/users/','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
+            # url (name), text_to_display, action_completed?
+            ['locations','1. Add locations & departments', Location.objects.filter(company=buyer.company).exists()],
+            ['vendors','2. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
+            ['categories','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
+            ['products','4. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
+            ['account_codes','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
+            ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gte=100).exists()],
+            ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
             
         ],
         'request_list': [
-            ['/requisition/new/','1. Create a new request', req_exists],
-            ['/requisitions/','2. Approve/decline requests', req_exists],
+            ['new_requisition','1. Create a new request', req_exists],
+            ['requisitions','2. Approve/decline requests', req_exists],
         ],
         'procure_list': [
-            ['/purchase-order/new/','1. Create a purchase order', po_exists],
-            ['/purchase-orders/','2. View open/pending POs', po_exists],
+            ['new_purchaseorder','1. Create a purchase order', po_exists],
+            ['purchaseorders','2. View open/pending POs', po_exists],
         ],
         'pay_list': [
-            ['/invoice/new/','1. Track invoices', invoice_exists],
-            ['/purchase-orders/receive/','2. Receive items', dd_exists],
-            ['/drawdown/new/','3. Create drawdowns', dd_exists],
-            ['/inventory/','4. Track inventory', dd_exists],
+            ['new_invoice','1. Track invoices', invoice_exists],
+            ['receive_pos','2. Receive items', dd_exists],
+            ['new_drawdown','3. Create drawdowns', dd_exists],
+            ['inventory_current','4. Track inventory', dd_exists],
         ],               
     }
     return render(request, "main/get_started.html", data)
@@ -110,10 +110,10 @@ def dashboard(request):
     buyer = request.user.buyer_profile
     
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(requisitions)
+    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(buyer, requisitions)
     
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(buyer, pos)
     # pending_requisitions = requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     # pending_pos = pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     
@@ -207,7 +207,7 @@ def locations(request):
 @login_required
 def view_location(request, location_id, location_name):
     buyer = request.user.buyer_profile    
-    location = Location.objects.get(pk=location_id)
+    location = get_object_or_404(Location, pk=location_id)
     location_form = LocationForm(request.POST or None, instance=location)
     
     buyers = BuyerProfile.objects.filter(location=location)
@@ -226,22 +226,14 @@ def view_location(request, location_id, location_name):
                 messages.success(request, 'Location updated successfully')
         elif 'add_User' in request.POST:
             if user_form.is_valid() and buyer_profile_form.is_valid():                
-                user = user_form.save()
-                buyer_profile = buyer_profile_form.save(commit=False)
-                buyer_profile.user = user                
-                buyer_profile.company = buyer.company
-                buyer_profile.location = location
-                buyer_profile.save()
+                save_user(user_form, buyer_profile_form, company, location)                
                 send_verific_email(user, user.id*settings.SCALAR)
                 messages.success(request, 'User successfully invited')
             else:
                 messages.error(request, 'Error adding user. Please try again.')
         elif 'add_Department' in request.POST:
             if department_form.is_valid():
-                department = department_form.save(commit=False)
-                department.company = buyer.company
-                department.location = location
-                department.save()
+                save_department(department_form, buyer, location)                
                 messages.success(request, 'Department added successfully')
             else:
                 messages.error(request, 'Error. Department not added.')  
@@ -264,13 +256,14 @@ def view_location(request, location_id, location_name):
 
 @login_required
 def account_codes(request):
+    buyer = request.user.buyer_profile
     account_codes = AccountCode.objects.filter(company=request.user.buyer_profile.company)    
     account_code_form = AccountCodeForm(request.POST or None)
-    account_code_form.fields['departments'].queryset = Department.objects.filter(company=request.user.buyer_profile.company)
+    account_code_form.fields['departments'].queryset = Department.objects.filter(company=buyer.company)
     if request.method == "POST":
         if account_code_form.is_valid():
             code = account_code_form.save(commit=False)
-            code.company = request.user.buyer_profile.company
+            code.company = buyer.company
             code.save()
             account_code_form.save_m2m() #Save dept m2m field
             messages.success(request, 'Account Code added successfully')
@@ -286,34 +279,43 @@ def account_codes(request):
 
 @login_required
 def approval_routing(request):
-    # if request.method == "POST":
-    #     if approval_route_form.is_valid():
-    #         messages.success(request, 'Approval Route added successfully')
-    #         return redirect('approval_routing')
-    #     else:
-    #         messages.error(request, 'Error. New Approval Route not set up.')
+    buyer = request.user.buyer_profile
+    approver_form = ApprovalRoutingForm(request.POST or None)
+    # Only show 'Approvers/SuperUsers' in the dropdown
+    approvers = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
+    approver_form.fields['approver'].queryset = approvers    
+    if request.method == "POST":
+        if approver_form.is_valid():
+            approver_form.save()
+            messages.success(request, 'Approver added successfully')
+            return redirect('approval_routing')
+        else:
+            messages.error(request, 'Error. New Approval Route not set up.')
     data = {
-        
+        'approver_form': approver_form,
+        'approvers': approvers,
+        'table_headers': ['Approver', 'Location (Dept.)', 'Threshold ('+buyer.company.currency+')']
     }
     return render(request, "settings/approval_routing.html", data)
 
 @login_required
 def products(request):
+    buyer = request.user.buyer_profile
     products = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
-    product_form.fields['category'].queryset = Category.objects.filter(buyer_co=request.user.buyer_profile.company)
-    product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)    
+    product_form.fields['category'].queryset = Category.objects.filter(buyer_co=buyer.company)
+    product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)    
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
             product.currency = product.vendor_co.currency
-            product.buyer_co = request.user.buyer_profile.company
+            product.buyer_co = buyer.company
             product.save()
             messages.success(request, "Product added successfully")
             return redirect('products')
         else:
             messages.error(request, 'Error. Catalog list not updated.')
-    currency = request.user.buyer_profile.company.currency.upper()
+    currency = buyer.company.currency.upper()
     data = {
         'products': products,
         'product_form': product_form,
@@ -367,7 +369,7 @@ def vendors(request):
 
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
-    vendor = VendorCo.objects.get(pk=vendor_id)
+    vendor = get_object_or_404(VendorCo, pk=vendor_id)
     location = Location.objects.filter(company=vendor)[0]
     vendor_form = VendorCoForm(request.POST or None, instance=vendor)
     location_form = LocationForm(request.POST or None, instance=location)
@@ -460,6 +462,7 @@ def company_profile(request):
             messages.error(request, 'Error. Settings not updated')        
     data = {
         'company_form': company_form,
+        'currency': buyer.company.currency,
     }
     return render(request, "settings/company_profile.html", data)       
 
@@ -468,6 +471,8 @@ def new_requisition(request):
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})    
+    requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=request.user)    
     OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
     orderitem_formset = OrderItemFormSet(request.POST or None)
     initialize_newreq_forms(request.user, requisition_form, orderitem_formset)    
@@ -494,8 +499,8 @@ def new_requisition(request):
 def requisitions(request):
     buyer = request.user.buyer_profile
     requisitions = Requisition.objects.filter(buyer_co=buyer.company)
-    # pdb.set_trace()
-    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(requisitions)
+    # Returns relevant requisitions based on their status and the buyer's authorization to see them (see utils.py)
+    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents(buyer, requisitions)
     data = {
         'all_requisitions': all_requisitions,
         'pending_requisitions': pending_requisitions,
@@ -508,7 +513,7 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     buyer = request.user.buyer_profile
-    requisition = Requisition.objects.get(pk=requisition_id)
+    requisition = get_object_or_404(Requisition, pk=requisition_id)
     # Manage approving/denying requisitions
     if request.method == 'POST':
         if 'approve' in request.POST:
@@ -537,7 +542,7 @@ def view_requisition(request, requisition_id):
 
 @login_required
 def print_requisition(request, requisition_id):
-    requisition = Requisition.objects.get(pk=requisition_id)
+    requisition = get_object_or_404(Requisition, pk=requisition_id)
     data = {
         'requisition': requisition,        
     }
@@ -583,7 +588,7 @@ def new_purchaseorder(request):
 def purchaseorders(request):
     buyer = request.user.buyer_profile
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(buyer, pos)
     data = {
         'all_pos': all_pos,
         'pending_pos': pending_pos,
@@ -600,7 +605,7 @@ def purchaseorders(request):
 
 @login_required
 def print_purchaseorder(request, po_id):
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     data = {
         'purchase_order': purchase_order,        
     }
@@ -609,7 +614,7 @@ def print_purchaseorder(request, po_id):
 @login_required
 def view_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':        
         if 'approve' in request.POST:
             DocumentStatus.objects.create(value='Approved', author=buyer, document=purchase_order)
@@ -638,7 +643,7 @@ def view_purchaseorder(request, po_id):
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(pos)
+    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents(buyer, pos)
     data = {
         'approved_pos': approved_pos,
         'currency': buyer.company.currency,
@@ -649,7 +654,7 @@ def receive_pos(request):
 @login_required
 def receive_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     ReceivePOFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOForm, extra=0)
     receive_po_formset = ReceivePOFormSet(request.POST or None, instance=purchase_order)
 
@@ -684,7 +689,7 @@ def receive_purchaseorder(request, po_id):
 
 @login_required
 def po_orderitems(request, po_id):
-    purchase_order = PurchaseOrder.objects.get(pk=po_id)
+    purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     buyer_co = request.user.buyer_profile.company
     try:
         # Get relevant PO orderItems and serialize the data into json for ajax request
@@ -741,7 +746,7 @@ def new_invoice(request):
 def invoices(request):
     buyer = request.user.buyer_profile    
     invoices = Invoice.objects.filter(buyer_co=buyer.company)
-    all_invoices, pending_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents(invoices)
+    all_invoices, pending_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents(buyer, invoices)
     data = {
         'all_invoices': all_invoices,
         'pending_invoices': pending_invoices,
@@ -754,7 +759,7 @@ def invoices(request):
 
 @login_required
 def print_invoice(request, invoice_id):
-    invoice = Invoice.objects.get(pk=invoice_id)
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
     data = {
         'invoice': invoice,        
     }
@@ -763,7 +768,7 @@ def print_invoice(request, invoice_id):
 @login_required
 def view_invoice(request, invoice_id):
     buyer = request.user.buyer_profile
-    invoice = Invoice.objects.get(pk=invoice_id)
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
     if request.method == 'POST':
         if 'paid' in request.POST:
             DocumentStatus.objects.create(value='Paid', author=buyer, document=invoice)
@@ -781,7 +786,7 @@ def view_invoice(request, invoice_id):
 @login_required
 def vendor_invoices(request, vendor_id):
     buyer_co = request.user.buyer_profile.company
-    vendor_co = VendorCo.objects.get(pk=vendor_id)    
+    vendor_co = get_object_or_404(VendorCo, pk=vendor_id)    
     try:
         purchase_orders = PurchaseOrder.objects.filter(buyer_co=buyer_co, vendor_co=vendor_co)
         po_numbers = [order.number for order in purchase_orders]
@@ -870,7 +875,7 @@ def new_drawdown(request):
 @login_required
 def view_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
-    drawdown = Drawdown.objects.get(pk=drawdown_id)
+    drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
     # pdb.set_trace()
     if request.method == 'POST':
         if 'approve' in request.POST:
@@ -900,7 +905,7 @@ def view_drawdown(request, drawdown_id):
 def drawdowns(request):
     buyer = request.user.buyer_profile    
     drawdowns = Drawdown.objects.filter(buyer_co=buyer.company)
-    all_drawdowns, pending_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents(drawdowns)
+    all_drawdowns, pending_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents(buyer, drawdowns)
 
     data = {
         'all_drawdowns': all_drawdowns,

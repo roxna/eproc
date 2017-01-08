@@ -10,15 +10,13 @@ from eProc import views as eProc_views
 from eProc.forms import LoginForm
 
 urlpatterns=[
-#     # Examples:
-#     # url(r'^$', 'eProcure.views.home', name='home'),
-#     # url(r'^blog/', include('blog.urls')),
+    # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 
-    #####################################
-    ## HOME - LANDING PAGE, BLOGS ETC  ##
-    #####################################
+    ##########################################
+    ####  HOME - LANDING PAGE, BLOGS ETC  ####
+    ##########################################
 
     # GENERAL
     url(r'^$', home_views.home, name='home'),
@@ -45,17 +43,17 @@ urlpatterns=[
     url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
-    # TODO: password_change isn't passing messages framework as extra_context to show pw changed success
-    url(r'^password_change/$', auth_views.password_change, {'post_change_redirect': 'user_profile', 'extra_context': { 'messages': 'Password changed successfully'}}, name='password_change'),
+    url(r'^password_change/$', auth_views.password_change, {'post_change_redirect': 'user_profile'}, name='password_change'),
     # url(r'^password_change/done/$', auth_views.password_change_done, name='password_change_done'),
 
 
-    #####################################
-    ##         EPROCURE MODULE         ##
-    #####################################
-    # Post log in URLS
+    ############################################
+    ##      EPROC MODULE  (login required)    ##
+    ###########################################
+    
     url(r'^get-started/$', eProc_views.get_started, name='get_started'),
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
+
     url(r'^requisition/new/$', eProc_views.new_requisition, name='new_requisition'),
     url(r'^requisitions/$', eProc_views.requisitions, name='requisitions'),
     url(r'^requisitions/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),

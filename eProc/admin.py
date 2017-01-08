@@ -10,12 +10,8 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'first_name', 'last_name', 'email']
 
 class BuyerProfileAdmin(admin.ModelAdmin):
-    list_display = ['id', 'role', 'department', 'company']
-    search_fields = ['company']
-
-class VendorProfileAdmin(admin.ModelAdmin):
-    list_display = ['id', 'company']
-    list_filter = ['company']
+    list_display = ['id', 'user', 'role', 'department', 'company', 'approval_threshold']
+    list_filter = ['company', 'role']
 
 class RequisitionAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'department', 'buyer_co', 'sub_total']
@@ -70,7 +66,6 @@ class FileAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
-admin.site.register(VendorProfile, VendorProfileAdmin)
 admin.site.register(AccountCode, AccountCodeAdmin)
 admin.site.register(CatalogItem, CatalogItemAdmin)
 admin.site.register(Category, CategoryAdmin)

@@ -1,0 +1,18 @@
+{% extends '_layouts/base_error.html' %}
+{% load staticfiles %}
+{% block title %}404 - Page Not Found{% endblock title %}
+
+{% block content %}
+  <h2 class="headline text-yellow"> 404</h2>
+
+  <div class="error-content">
+    <br><h3><i class="fa fa-warning text-yellow"></i> Oops! Page not found.</h3><br>
+
+    <p>
+      We could not find the page you were looking for.<br>
+      Maybe you want to <a href="{% url 'dashboard' %}">return to your dashboard</a>.
+    </p>             
+  </div>
+{% endblock content %}
+
+

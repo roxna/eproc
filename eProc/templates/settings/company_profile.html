@@ -15,8 +15,16 @@
 {% block content %}
 <section class="content">
   <div class="row">
-      	<div class="col-lg-12">    		
-    		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form formhelper=company_form.helper buttonName='company' %}
+      	<div class="col-lg-12">  
+      		<div class="box box-primary">  		
+	    		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form formhelper=company_form.helper buttonName='company' %}
+
+	    		<div class="col-lg-12">
+			    	<b>NOTE:</b> Default Approval Threshold for all approvers is <b>{{currency|upper}} 100.00</b>. Change thresholds for individual approvers in 
+		    		<a href="{% url 'approval_routing' %}"><b> Settings / Approval Routing </b></a>
+	    		</div>
+	    		<br><br>
+	    	</div>
     	</div>
     </div>
 </section>

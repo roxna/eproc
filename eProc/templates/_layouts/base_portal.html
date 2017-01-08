@@ -2,290 +2,291 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block title %}Genie{% endblock title %}</title>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}Genie{% endblock title %}</title>
 
-  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  
-  <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
-  <!-- Shared Stylesheets -->
-  <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}"> 
-  <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <!-- Shared Stylesheets -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}"> 
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
 
-  <!-- Stylesheets for AdminLTE theme -->
-  <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
-  <link rel="stylesheet" href="{% static 'dist/css/_all-skins.min.css' %}">
-  <link rel="stylesheet" href="{% static 'dist/css/skin-teal.css' %}">
-  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
-  <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
-  {% block css %}{% endblock css %}
+    <!-- Stylesheets for AdminLTE theme -->
+    <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/_all-skins.min.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/skin-teal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+    {% block css %}{% endblock css %}
 
-</head>
+  </head>
 
-<body class="hold-transition skin-teal sidebar-mini">
-  <div class="wrapper">
+  <body class="hold-transition skin-teal sidebar-mini">
+    <div class="wrapper">
 
-    <header class="main-header">
-      <!-- Logo -->
-      <a href="{%url 'dashboard' %}" class="logo">      
-          <span class="logo-mini">Genie</span><!-- mini logo for sidebar mini 50x50 pixels -->
-          <img src="{% static 'favicon.ico' %}" alt="User Image" class="logo-custom"/>
-          <span class="logo-lg">Genie</span><!-- logo for regular state and mobile devices -->
-      </a>
+      <header class="main-header">
+        <!-- Logo -->
+        <a href="{%url 'dashboard' %}" class="logo">      
+            <span class="logo-mini">Genie</span><!-- mini logo for sidebar mini 50x50 pixels -->
+            <img src="{% static 'favicon.ico' %}" alt="User Image" class="logo-custom"/>
+            <span class="logo-lg">Genie</span><!-- logo for regular state and mobile devices -->
+        </a>
 
-      <nav class="navbar navbar-static-top">
-          <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-            <span class="sr-only">Toggle navigation</span>
-          </a>
-
-          <div class="navbar-custom-menu">
-            <ul class="nav navbar-nav">            
-              <li class="dropdown user user-menu">
-                {% if user.buyer_profile.role == 'SuperUser' %} 
-                <a href="{% url 'get_started' %}" id="get-started">
-                  <span class="pull-right-container">GET STARTED</span>
-                </a>
-                {% endif %}
-              </li>            
-              <li class="dropdown user user-menu">
-                <a href="{% url 'logout' %}">
-                  <span class="hidden-xs">Sign out</span>
-                  <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
-                </a>
-              </li>
-            </ul>
-          </div>
-      </nav>
-    </header>
-
-    <!-- Sidebar -->
-    <aside class="main-sidebar">
-      <section class="sidebar">
-
-        <!-- user -->
-        <div class="user-panel">
-          <div class="pull-left image">
-            <img src="{% static 'dist/img/photo4.jpg' %}" class="img-circle" alt="User Image">
-          </div>
-          <div class="pull-left info">
-            <p>{{user.username}} [{{user.buyer_profile.role}}]</p>
-            <!-- <a href="#"><i class="fa fa-circle text-success"></i> Online</a> -->
-          </div>
-        </div>
-
-        <!-- menu:-->
-        <ul class="sidebar-menu">
-
-          <!--************************
-          ********  DASHBOARD  ********   
-          **************************-->
-          <!-- everyone has access -->
-          <li class="active treeview">
-            <a href="{%url 'dashboard' %}">
-              <i class="fa fa-dashboard"></i> 
-              <span>Dashboard</span>
+        <nav class="navbar navbar-static-top">
+            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+              <span class="sr-only">Toggle navigation</span>
             </a>
-          </li>        
-          
-          <!--************************
-          ******  REQUISITIONS  ******   
-          **************************-->
-          <!-- everyone has access to create req / view status-->          
-          <li class="treeview">
-            <a href="#">
-              <i class="fa fa-book"></i> 
-              <span>Requests</span>
-              <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
-            </a>
-            <ul class="treeview-menu">
-              <li>
-                <a href="{%url 'new_requisition' %}">
-                  <i class="fa fa-pencil-square-o"></i> New Order
-                </a>
-              </li>
-              <li>
-                <a href="{%url 'requisitions' %}">
-                <!-- only superuser & approver have access to approve (managed in view_req) -->
-                <i class="fa fa-book"></i> 
-                {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-                  View/Approve Orders
-                {% else %}
-                  View Order Status
-                {% endif %}
-                </a>
-              </li>
-            </ul>
-          </li> 
 
-          <!--***************************
-          ******  PURCHASE ORDERS  ******   
-          *****************************-->
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
-            <li class="treeview">
-              <a href="#">
-                <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
-              </a>
-              <ul class="treeview-menu">
-                <li><a href="{%url 'new_purchaseorder' %}"><i class="fa fa-pencil-square-o"></i> New PO</a></li>
-                <li><a href="{%url 'purchaseorders' %}"><i class="fa fa-shopping-cart"></i> Purchase Orders</a></li>
+            <div class="navbar-custom-menu">
+              <ul class="nav navbar-nav">            
+                <li class="dropdown user user-menu">
+                  {% if user.buyer_profile.role == 'SuperUser' %} 
+                  <a href="{% url 'get_started' %}" id="get-started">
+                    <span class="pull-right-container">GET STARTED</span>
+                  </a>
+                  {% endif %}
+                </li>            
+                <li class="dropdown user user-menu">
+                  <a href="{% url 'logout' %}">
+                    <span class="hidden-xs">Sign out</span>
+                    <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
+                  </a>
+                </li>
               </ul>
-            </li>   
-          {% endif %}
+            </div>
+        </nav>
+      </header>
 
-          <!--****************************
-          ******  INVOICES (Payer)  ******
-          ******************************-->
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
+      <!-- Sidebar -->
+      <aside class="main-sidebar">
+        <section class="sidebar">
+
+          <!-- user -->
+          <div class="user-panel">
+            <div class="pull-left image">
+              <img src="{% static 'dist/img/photo4.jpg' %}" class="img-circle" alt="User Image">
+            </div>
+            <div class="pull-left info">
+              <p>{{user.username}} [{{user.buyer_profile.role}}]</p>
+              <!-- <a href="#"><i class="fa fa-circle text-success"></i> Online</a> -->
+            </div>
+          </div>
+
+          <!-- menu:-->
+          <ul class="sidebar-menu">
+
+            <!--************************
+            ********  DASHBOARD  ********   
+            **************************-->
+            <!-- everyone has access -->
+            <li class="active treeview">
+              <a href="{%url 'dashboard' %}">
+                <i class="fa fa-dashboard"></i> 
+                <span>Dashboard</span>
+              </a>
+            </li>        
+            
+            <!--************************
+            ******  REQUISITIONS  ******   
+            **************************-->
+            <!-- everyone has access to create req / view status-->          
             <li class="treeview">
               <a href="#">
-                <i class="fa fa-money"></i> <span>Invoices</span>
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
+                <i class="fa fa-book"></i> 
+                <span>Requests</span>
+                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
               </a>
               <ul class="treeview-menu">
                 <li>
-                  <a href="{%url 'new_invoice' %}">
-                    <i class="fa fa-pencil-square-o"></i> New Invoice
+                  <a href="{%url 'new_requisition' %}">
+                    <i class="fa fa-pencil-square-o"></i> New Order
                   </a>
                 </li>
                 <li>
-                  <a href="{%url 'invoices' %}">
-                    <i class="fa fa-money"></i> View Invoices
+                  <a href="{%url 'requisitions' %}">
+                  <!-- only superuser & approver have access to approve (managed in view_req) -->
+                  <i class="fa fa-book"></i> 
+                  {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+                    View/Approve Orders
+                  {% else %}
+                    View Order Status
+                  {% endif %}
                   </a>
                 </li>
               </ul>
             </li> 
-          {% endif %}
 
-          <!--****************************
-          ******  RECEIVE DELIVERY  ******   
-          ******************************-->
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-            <li>
-              <a href="{%url 'receive_pos' %}">
-                <i class="fa fa-truck"></i> 
-                <span>Receive Items</span>
-              </a>
-            </li>
-          {% endif %}
+            <!--***************************
+            ******  PURCHASE ORDERS  ******   
+            *****************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+              <li class="treeview">
+                <a href="#">
+                  <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
+                  <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                  </span>
+                </a>
+                <ul class="treeview-menu">
+                  <li><a href="{%url 'new_purchaseorder' %}"><i class="fa fa-pencil-square-o"></i> New PO</a></li>
+                  <li><a href="{%url 'purchaseorders' %}"><i class="fa fa-shopping-cart"></i> Purchase Orders</a></li>
+                </ul>
+              </li>   
+            {% endif %}
 
-          <!--************************
-          ******  DRAWDOWNS  ******   
-          **************************-->
-          <!-- everyone has access to create / view status-->             
-          <li class="treeview">
-            <a href="#">
-              <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
-            </a>
-            <ul class="treeview-menu">
+            <!--****************************
+            ******  INVOICES (Payer)  ******
+            ******************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
+              <li class="treeview">
+                <a href="#">
+                  <i class="fa fa-money"></i> <span>Invoices</span>
+                  <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                  </span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="{%url 'new_invoice' %}">
+                      <i class="fa fa-pencil-square-o"></i> New Invoice
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{%url 'invoices' %}">
+                      <i class="fa fa-money"></i> View Invoices
+                    </a>
+                  </li>
+                </ul>
+              </li> 
+            {% endif %}
+
+            <!--****************************
+            ******  RECEIVE DELIVERY  ******   
+            ******************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
               <li>
-                <a href="{%url 'new_drawdown' %}">
-                  <i class="fa fa-pencil-square-o"></i> New Request
+                <a href="{%url 'receive_pos' %}">
+                  <i class="fa fa-truck"></i> 
+                  <span>Receive Items</span>
                 </a>
               </li>
-              <li>
-                <a href="{%url 'drawdowns' %}">
-                <i class="fa fa-sign-out"></i>
-                <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
-                {% if user.buyer_profile.role == 'SuperUser' or   user.buyer_profile.role == 'Approver' %}
-                  View/Approve Drawdowns
-                {% else %}
-                  View Drawdowns
-                {% endif %}
-                </a>
-              </li>
-            </ul>
-          </li>     
+            {% endif %}
 
-          <!--****************************
-          *********  INVENTORY  **********   
-          ******************************-->
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Inventory Manager' %}           
+            <!--************************
+            ******  DRAWDOWNS  ******   
+            **************************-->
+            <!-- everyone has access to create / view status-->             
             <li class="treeview">
               <a href="#">
-                <i class="fa fa-list-alt"></i> <span>Inventory</span>
+                <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
                 <span class="pull-right-container">
                   <i class="fa fa-angle-left pull-right"></i>
                 </span>
               </a>
               <ul class="treeview-menu">
                 <li>
-                  <a href="{%url 'inventory_current' %}">
-                    <i class="fa fa-list"></i> Current Inventory
+                  <a href="{%url 'new_drawdown' %}">
+                    <i class="fa fa-pencil-square-o"></i> New Request
                   </a>
                 </li>
                 <li>
-                  <a href="{%url 'inventory_received' %}">
-                    <i class="fa fa-sign-in"></i> Received Items
-                  </a>
-                </li>                
-                <li>
-                  <a href="{%url 'inventory_drawndown' %}">
-                    <i class="fa fa-sign-out"></i>Drawdowns
+                  <a href="{%url 'drawdowns' %}">
+                  <i class="fa fa-sign-out"></i>
+                  <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
+                  {% if user.buyer_profile.role == 'SuperUser' or   user.buyer_profile.role == 'Approver' %}
+                    View/Approve Drawdowns
+                  {% else %}
+                    View Drawdowns
+                  {% endif %}
                   </a>
                 </li>
               </ul>
-            </li>               
-          {% endif %}
-          
+            </li>     
 
-          <!--****************************
-          *********   SETTINGS  **********   
-          ******************************-->
-          <li>
-            <a href="{%url 'settings' %}">
-              <i class="fa fa-gear"></i> 
-              <span>Settings</span>
-            </a>
-          </li> 
+            <!--****************************
+            *********  INVENTORY  **********   
+            ******************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Inventory Manager' %}           
+              <li class="treeview">
+                <a href="#">
+                  <i class="fa fa-list-alt"></i> <span>Inventory</span>
+                  <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                  </span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="{%url 'inventory_current' %}">
+                      <i class="fa fa-list"></i> Current Inventory
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{%url 'inventory_received' %}">
+                      <i class="fa fa-sign-in"></i> Received Items
+                    </a>
+                  </li>                
+                  <li>
+                    <a href="{%url 'inventory_drawndown' %}">
+                      <i class="fa fa-sign-out"></i>Drawdowns
+                    </a>
+                  </li>
+                </ul>
+              </li>               
+            {% endif %}
+            
 
-        </ul>
-      </section>
-      <!-- /.sidebar -->
-    </aside>
+            <!--****************************
+            *********   SETTINGS  **********   
+            ******************************-->
+            <li>
+              <a href="{%url 'settings' %}">
+                <i class="fa fa-gear"></i> 
+                <span>Settings</span>
+              </a>
+            </li> 
 
-    <!-- Page Content -->
-    <div class="content-wrapper">
-      <section class="content-header">
-        {% block header %}{% endblock header %}
-        {% include "_includes/messages.html" with messages=messages %}
-      </section>    
-      {% block content %}{% endblock content %}
+          </ul>
+        </section>
+        <!-- /.sidebar -->
+      </aside>
+
+      <!-- Page Content -->
+      <div class="content-wrapper">
+        <section class="content-header">
+          {% block header %}{% endblock header %}
+          {% include "_includes/messages.html" with messages=messages %}
+        </section>    
+        {% block content %}{% endblock content %}
+      </div>
+
+      <footer class="main-footer">
+        <strong>Copyright &copy; 2017 </a>.</strong> All rights reserved.
+      </footer>
+    <!-- ./page content -->
+
     </div>
+    <!-- ./wrapper -->
 
-    <footer class="main-footer">
-      <strong>Copyright &copy; 2016 </a>.</strong> All rights reserved.
-    </footer>
+    <script src="{% static 'jQuery/jquery-2.2.3.min.js' %}"></script>  <!-- jQuery 2.2.3 -->
+    <script src="{% static 'jQuery/jquery-ui.min.js' %}"></script>  <!-- jQuery UI 1.11.4 -->
+    <script>$.widget.bridge('uibutton', $.ui.button);</script> <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
+    <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
+    <script src="{% static 'dist/js/app.js' %}"></script>
+    <script src="{% static 'dist/js/custom.js' %}"></script>
 
-  </div>
-  <!-- ./wrapper -->
-
-  <script src="{% static 'jQuery/jquery-2.2.3.min.js' %}"></script>  <!-- jQuery 2.2.3 -->
-  <script src="{% static 'jQuery/jquery-ui.min.js' %}"></script>  <!-- jQuery UI 1.11.4 -->
-  <script>$.widget.bridge('uibutton', $.ui.button);</script> <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-  <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
-  <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
-  <script src="{% static 'dist/js/app.js' %}"></script>
-  <script src="{% static 'dist/js/custom.js' %}"></script>
-
-  {% block js %}{% endblock js %}
-  
-  <!-- Success/Error Notifications -->
-  <script>
-    $(function() {
-        setTimeout(function() {
-            $("#messageNotification").hide('fade', 500)
-        }, 2000);
-    });
-  </script>  
-</body>
+    {% block js %}{% endblock js %}
+    
+    <!-- Success/Error Notifications -->
+    <script>
+      $(function() {
+          setTimeout(function() {
+              $("#messageNotification").hide('fade', 500)
+          }, 2000);
+      });
+    </script>  
+  </body>
 </html>

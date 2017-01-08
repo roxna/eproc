@@ -421,8 +421,8 @@ class RequisitionForm(ModelForm):
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     # currency = forms.ChoiceField(settings.CURRENCIES, initial='USD')
     comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
-    department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
-    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
+    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=True)
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.none(), required=True)
 
     def __init__(self, *args, **kwargs):
         super(RequisitionForm, self).__init__(*args, **kwargs)
@@ -618,12 +618,26 @@ class ReceivePOForm(ModelForm):
         fields = ('number', 'product', 'quantity', 'qty_delivered', 'qty_returned', 'comments_delivery')
 
 class ApprovalRoutingForm(forms.Form):
-    qty_delivered = forms.IntegerField(required=True)
-    qty_returned = forms.IntegerField(required=True)
-    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}))
-
+    approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.none(), required=True)
+    approval_threshold = forms.DecimalField(required=True, label='Threshold Amount')
 
     def __init__(self, *args, **kwargs):
         super(ApprovalRoutingForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('approver', css_class='col-md-6'),   
+                Div('approval_threshold', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
+
+    def save(self):
+        approver = self.cleaned_data['approver']
+        approval_threshold = self.cleaned_data['approval_threshold']
+        
+        approver.approval_threshold=approval_threshold
+        approver.save()
+        return approver

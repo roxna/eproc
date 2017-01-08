@@ -111,16 +111,8 @@ class BuyerProfile(models.Model):
 	user = models.OneToOneField(User, related_name="buyer_profile")	
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
-	location = models.ForeignKey(Location, related_name="users")
-	relates_to = models.ForeignKey('self', null=True, blank=True) #ForeignKey to self for approval routing and thresholds
-
-	def __unicode__(self):
-		return "{}".format(self.user.username)
-
-# KILL FOR FIRST PASS - VENDOR USERS DONT HAVE A LOG IN/PW ETC
-class VendorProfile(models.Model):
-	user = models.OneToOneField(User, related_name="vendor_profile")
-	company = models.ForeignKey(VendorCo, related_name="users")
+	location = models.ForeignKey(Location, related_name="users")	
+	approval_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
 
 	def __unicode__(self):
 		return "{}".format(self.user.username)

@@ -6,14 +6,12 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Get Started{% endblock header %}
+{% block header %}<h1>Get Started</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
   
   <div class="row">
-
-  	<!-- TODO: Add CHECK MARKS IF EXISTS {% if user.buyer_profile.company.catalog_items|length == 0 %} {% endif %} -->
    
     {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. SETTINGS" icon="fa-gear" list=settings_list %}
 

@@ -12,23 +12,25 @@ def send_verific_email(user,random_id):
     msg.send()
 
 # TODO CLEANER IMPLEMENTATION OF QUERIES
-def get_documents(documents): 
+def get_documents(buyer, documents): 
     pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], []
     
     # (doc.get_latest_status().value.lower + '_requisitions').append(doc) for doc in documents
     for doc in documents:
-        if doc.get_latest_status().value == 'Pending':            
-            pending_docs.append(doc)
-        elif doc.get_latest_status().value == 'Approved':
-            approved_docs.append(doc)
-        elif doc.get_latest_status().value == 'Closed':
-            closed_docs.append(doc)
-        elif doc.get_latest_status().value == 'Paid':
-            paid_docs.append(doc)                
-        elif doc.get_latest_status().value == 'Cancelled':
-            cancelled_docs.append(doc)        
-        elif doc.get_latest_status().value == 'Denied':
-            denied_docs.append(doc)  
+        # Docs List (Reqs, POs, Invoices, DDs) only shows if you're preparer/approver or user is superuser
+        if doc.preparer == buyer or doc.next_approver == buyer or buyer.role == 'SuperUser':
+            if doc.get_latest_status().value == 'Pending':            
+                pending_docs.append(doc)
+            elif doc.get_latest_status().value == 'Approved':
+                approved_docs.append(doc)
+            elif doc.get_latest_status().value == 'Closed':
+                closed_docs.append(doc)
+            elif doc.get_latest_status().value == 'Paid':
+                paid_docs.append(doc)                
+            elif doc.get_latest_status().value == 'Cancelled':
+                cancelled_docs.append(doc)        
+            elif doc.get_latest_status().value == 'Denied':
+                denied_docs.append(doc)  
                        
     all_docs = pending_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
     return all_docs, pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs
@@ -68,11 +70,27 @@ def save_orderitems(document, orderitem_formset):
             order_item.save()
     document.save()
 
-# Used by location and view_location
+# Used by locations and view_location
 def save_location(location_form, buyer):
     location = location_form.save(commit=False)
     location.company = buyer.company
     location.save()    
+
+# User by view_location (eventually in 'users' too)
+def save_user(user_form, buyer_profile_form, company, location):
+    user = user_form.save()
+    buyer_profile = buyer_profile_form.save(commit=False)
+    buyer_profile.user = user                
+    buyer_profile.company = buyer.company
+    buyer_profile.location = location
+    buyer_profile.save()
+
+# User by view_location
+def save_department(department_form, buyer, location):
+    department = department_form.save(commit=False)
+    department.company = buyer.company
+    department.location = location
+    department.save()
 
 
 ################################

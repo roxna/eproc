@@ -10,6 +10,10 @@
 
 {% block header %}
   <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Account Code</button>
+  {% include "_includes/modal_singleform.html" with target="Account Code" form=account_code_form %}
+    
   <h1>Account Code</h1>
 {% endblock header %}
 
@@ -36,9 +40,6 @@
                     {% endfor %}
                   </tbody>
               </table>  
-
-              <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add Account Code</button>
-              {% include "_includes/modal_singleform.html" with target="Account Code" form=account_code_form %}
             </div>
 
         </div>

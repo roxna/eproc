@@ -1,10 +1,21 @@
   <form method="post">
   {% csrf_token %}
-      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == user_role %}                                        
-          <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve</button>
-          <button type="submit" name="deny" value="deny" class="btn basic-red pull-right"><i class="fa fa-times"></i> Deny</button>
-      {% endif %}
-      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile == document.preparer %}
-          <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel</button>            
-      {% endif %}            
+      {% with user.buyer_profile as buyer %}
+        <!-- Approve/Deny if user is APPROVER/SUPERUSER -->
+        {% if buyer.role == 'SuperUser' or buyer.role == user_role %}  
+
+          <!-- If APPROVAL_THRESHOLD > requestion.sub_total (for requisitions only, not POs/DDs)  -->
+          {% if is_requisition and buyer.approval_threshold > requisition.sub_total or not is_requisition %}
+            <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve</button>
+            <button type="submit" name="deny" value="deny" class="btn basic-red pull-right"><i class="fa fa-times"></i> Deny</button>
+          {% else %}
+            <p class="small text-red"><em><b>Your approval threshold is not high enough to approve this order. Please contact your Admin.</em></b></p>
+          {% endif %}
+        {% endif %}  
+
+        <!-- Cancel if user is PREPARER/SUPERUSER  -->
+        {% if buyer.role == 'SuperUser' or buyer == document.preparer %}
+            <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel</button>            
+        {% endif %}      
+      {% endwith %}      
   </form>

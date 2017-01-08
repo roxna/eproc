@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
-{% block title %}Location{% endblock title %}
+{% block title %}{{location.name}}{% endblock title %}
 
 {% block header %}
   <p class="small">{% include '_includes/back_to.html' with destination='locations' %}</p>
@@ -46,7 +46,7 @@
                 
                 <div class="box-header">
                   <h3 class="box-title">Users</h3>
-                  <!-- Add Department Button -->
+                  <!-- Add User Modal Button -->
                   <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addMultiModal"><i class="fa fa-plus"></i> Add User </button>
                   {% include "_includes/modal_multiform.html" with target="User" form1=user_form  form2=buyer_profile_form %}  
                 </div>       
@@ -80,7 +80,7 @@
               <div class="tab-pane" id="departments">
                  <div class="box-header">
                     <h3 class="box-title">Departments</h3>
-                    <!-- Add Department Button -->
+                    <!-- Add Department Modal Button -->
                     <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Dept</button>
                     {% include "_includes/modal_singleform.html" with target="Department" form=department_form %} 
 

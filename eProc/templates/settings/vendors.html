@@ -7,6 +7,13 @@
 
 {% block header %}
   <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+
+  <!-- ADD VENDOR MODAL -->
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addMultiModal"><i class='fa fa-plus'> </i> Add Vendor</button>
+  {% include "_includes/modal_multiform.html" with target="Vendor" form1=vendor_form form2=location_form %}
+  <!-- UPLOAD VENDOR CSV -->
+  <a href="{% url 'upload_vendor_csv' %}"><button type="button" class="btn basic-grey pull-right">Upload Vendors CSV</button></a>
+
   <h1>Vendors</h1>
 {% endblock header %}
 
@@ -37,15 +44,6 @@
                   {% endfor %}
                 </tbody>
             </table><br> 
-
-            <div class="row">
-              <div class="col-lg-12 col-xs-12">
-                <!-- ADD VENDOR -->
-                <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addMultiModal">Add Vendor</button>
-                {% include "_includes/modal_multiform.html" with target="Vendor" form1=vendor_form form2=location_form %}
-                <a href="{% url 'upload_vendor_csv' %}"><button type="button" class="btn basic-grey pull-right">Upload Vendors CSV</button></a>
-              </div>
-            </div>
 
           </div>
         </div>

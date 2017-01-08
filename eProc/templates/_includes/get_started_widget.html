@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <div class="col-lg-3 col-md-6 col-sm-6"> 
     <div class="box box-widget widget-user-2">      
         <div class="widget-user-header {{color}}">
@@ -5,11 +6,13 @@
           <h3 class="widget-user-username">{{title}}</h3>
           <h5 class="widget-user-desc"></h5>
         </div>
+        
         <div class="box-footer no-padding">
           <ul class="nav nav-stacked">
+          <!-- As passed in views.py: url=url_to_link_to, text=text_to_display, exists=has_action_been_completed -->
           {% for url, text, exists in list %} 
           <li>
-            <a href="{{url}}">
+            <a href="{% url url %}">
               {{text}}
               {% if exists %}
                 <i class="fa fa-check pull-right" style="color:green"></i>

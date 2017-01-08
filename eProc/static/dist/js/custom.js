@@ -135,16 +135,11 @@ $(document).ready(function(){
 	    $('#POTotal').html(POTotal);
 	});
 
+
 	/***************************************
 	****      INVOICE UPDATE PO AJAX     ***
 	***************************************/
 	// Dynamically updated the PO list based on Invoice selected on new_invoice
-
-
-
-	/***************************************
-	****      NEW INVOICE DETAILS        ***
-	***************************************/
 
 	$('#invoiceOrdersTable').hide();
     $("#id_purchase_order").attr("readonly", true);  // Note: jQuery 1.9+ --> .prop (not .attr)    
