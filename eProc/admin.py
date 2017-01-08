@@ -63,6 +63,7 @@ class OrderItemStatusAdmin(admin.ModelAdmin):
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'loc_type', 'company']  
+    list_filter = ['company',]
 
 class FileAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'file', 'document']    

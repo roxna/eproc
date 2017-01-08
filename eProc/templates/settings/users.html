@@ -5,7 +5,10 @@
 
 {% block css %}{% endblock css %}
 
-{% block header %}Users{% endblock header %}
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+  <h1>Users</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -22,6 +25,8 @@
                       <td>{{ buyer.user.username }}</td>
                       <td>{{ buyer.user.email }}</td>                      
                       <td>{{ buyer.role }}</td> 
+                      <td><a href="{% url 'view_location' buyer.location.id buyer.location.name|slugify %}">{{ buyer.location }}</a></td> 
+                      <td>{{ buyer.department }}</td> 
                       <td>{% if buyer.user.is_active %} 
                           <span class="label label-success"> Active </span>
                           {% else %} 
@@ -40,10 +45,7 @@
                     {% endfor %}
                 </tbody>
               </table>
-            <br>
-
-            <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">Add User</button>  
-            {% include "_includes/modal_multiform.html" with target="User" form1=user_form  form2=buyer_profile_form %}            
+              <br>         
             
             </div>
 

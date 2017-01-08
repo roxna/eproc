@@ -95,8 +95,8 @@ urlpatterns=[
     url(r'^settings/users/$', eProc_views.users, name='users'),
     url(r'^settings/locations/$', eProc_views.locations, name='locations'),
     url(r'^settings/locations/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
-    url(r'^settings/departments/$', eProc_views.departments, name='departments'),
     url(r'^settings/account-codes/$', eProc_views.account_codes, name='account_codes'),
+    url(r'^settings/approval-routing/$', eProc_views.approval_routing, name='approval_routing'),
     # url(r'^settings/taxes/$', eProc_views.taxes, name='taxes'),
 
 

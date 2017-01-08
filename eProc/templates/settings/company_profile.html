@@ -6,7 +6,10 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Company Settings{% endblock header %}
+{% block header %}
+	<p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+	<h1>Company Settings</h1>
+{% endblock header %}
 
 
 {% block content %}
@@ -16,14 +19,6 @@
     		{% include "_includes/profile_form_image.html" with title='Settings' image='dist/img/photo4.jpg' form=company_form formhelper=company_form.helper buttonName='company' %}
     	</div>
     </div>
-    <div class="row">
-    	<div class="col-lg-6">
-    		{% include "_includes/profile_form.html" with title='Billing Address' form=billing_address_form formhelper=billing_address_form.helper buttonName='billing' %}  			
-  		</div>
-  		<div class="col-lg-6">
-  			{% include "_includes/profile_form.html" with title="Shipping Address" form=shipping_address_form formhelper=shipping_address_form.helper buttonName='shipping'%}
-  		</div>
-	</div>
 </section>
 {% endblock content %}
 

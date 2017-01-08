@@ -6,7 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Settings{% endblock header %}
+{% block header %}<h1>Settings</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -19,14 +19,11 @@
 	    </div>       
 	    <div class="box-body">          
           {% if user.buyer_profile.role == 'SuperUser' %}
-            <h4><a href="{%url 'users' %}"><i class="fa fa-user"></i> Users</a></h4>
-            <p class="text-muted">Add, edit and invite users</p>  
-
             <h4><a href="{%url 'locations' %}"><i class="fa fa-building"></i> Locations</a></h4>
-            <p class="text-muted">Manage locations</p>
-
-            <h4><a href="{%url 'departments' %}"><i class="fa fa-building"></i> Departments</a></h4>
-            <p class="text-muted">Manage departments</p>
+            <p class="text-muted">Manage locations and corresponding departments</p>
+            
+            <h4><a href="{%url 'users' %}"><i class="fa fa-user"></i> Users</a></h4>
+            <p class="text-muted">View all users by department/location</p>  
 
             <h4><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company Profile</a></h4>
             <p class="text-muted">Manage company profile details</p>           
@@ -57,6 +54,9 @@
 
             <h4><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
+
+            <h4><a href="{%url 'approval_routing' %}"><i class="fa fa-book"></i> Approval Routing</a></h4>
+            <p class="text-muted">Manage approvers and threshold amounts</p>            
 
           {% else %}
           	<p class="text-muted">You don't have access rights to Operations Settings</p>

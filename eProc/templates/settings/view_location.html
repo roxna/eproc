@@ -1,0 +1,121 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Location{% endblock title %}
+
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='locations' %}</p>
+  <h1>{{location.name}}</h1><br>  
+{% endblock header %}
+
+
+{% block content %}      
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+          <div class="nav-tabs-custom">
+
+            <!-- TABS -->
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#details" data-toggle="tab">Details</a></li>
+              <li><a href="#users" data-toggle="tab">Users</a></li>
+              <li><a href="#departments" data-toggle="tab">Departments</a></li>
+            </ul>
+
+            <!-- TABLES -->
+            <div class="tab-content">
+              
+            <!-- Details -->
+              <div class="tab-pane active" id="details">                    
+                <div class="row">
+                  <div class="col-sm-12"> 
+                    <form method="POST" >
+                      {% csrf_token %}
+                      {% crispy location_form location_form.helper %}
+                      <button type="submit" name="add_Location" class="btn basic-teal pull-right">Update Location</button>
+                    </form>
+                  </div>
+                </div>        
+              </div>
+              
+              <!-- Users -->
+              <div class="tab-pane" id="users">
+                
+                <div class="box-header">
+                  <h3 class="box-title">Users</h3>
+                  <!-- Add Department Button -->
+                  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addMultiModal"><i class="fa fa-plus"></i> Add User </button>
+                  {% include "_includes/modal_multiform.html" with target="User" form1=user_form  form2=buyer_profile_form %}  
+                </div>       
+
+                <div class="box-body">     
+                    <!-- User List Table-->
+                    <table id="userTable" class="table table-striped">
+                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=user_table_headers %}
+
+                      <tbody>              
+                        {% for buyer in buyers %}                           
+                          <tr>
+                            <td>{{ buyer.user.username }}</td>
+                            <td>{{ buyer.user.email }}</td>
+                            <td>{{ buyer.role }}</td>
+                            <td>{% if buyer.user.is_active %} 
+                                <span class="label label-success"> Active </span>
+                                {% else %} 
+                                <span class="label label-warning"> Pending </span>
+                                {% endif %}
+                            </td> 
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>  
+                </div>
+
+              </div>
+              
+              <!-- Departments -->
+              <div class="tab-pane" id="departments">
+                 <div class="box-header">
+                    <h3 class="box-title">Departments</h3>
+                    <!-- Add Department Button -->
+                    <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Dept</button>
+                    {% include "_includes/modal_singleform.html" with target="Department" form=department_form %} 
+
+                </div>       
+                <div class="box-body">     
+                    <!-- Department List Table-->
+                    <table id="departmentTable" class="table table-striped">
+                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=dept_table_headers %}           
+
+                      <tbody>              
+                        {% for department in departments %}
+                          <tr>
+                            <td>{{ department.name }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>  
+                    
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
+{% endblock content %}
+
+{% block js %}
+    {% include "_includes/dataTablesNotifications.html" %}
+  <script type="text/javascript">
+  $(function () {
+    $('#userTable').DataTable();
+    $('#departmentTable').DataTable();
+  });
+</script>
+{% endblock js %}

@@ -6,19 +6,32 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Locations{% endblock header %}
+{% block header %}
+	<p class="small">
+		{% include '_includes/back_to.html' with destination='settings' %}
+	</p>
+
+	<!-- Add Location Button -->
+	<button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal">
+		<i class='fa fa-plus'> </i> Add Location
+	</button>  
+	{% include "_includes/modal_singleform.html" with target="Location" form=location_form %} 
+
+	<h1>Locations</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
 	<div class="row">
-		<div class="col-sm-12">
-			<button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Location</button>  
-			{% include "_includes/modal_singleform.html" with target="Location" form=location_form %} 
+		<div class="col-sm-12">			
+			
 		</div>	
 	</div>
 	<div class="row">
 		{% for location in locations %}
-			{% include '_includes/location_template.html' with location=location %}
+			<div class="col-md-4">
+				{% include '_includes/location_template.html' with location=location %}
+			</div>
 		{% endfor %}
 	</div>
 </section>

@@ -1,7 +1,7 @@
  {% load crispy_forms_tags %}
 
   <!-- Modal for Department, Taxes, Users -->
-    <div class="modal" id="addModal">
+    <div class="modal" id="addMultiModal">
       <div class="modal-dialog">
         <div class="modal-content">
 
@@ -20,7 +20,7 @@
 
             <div class="modal-footer">
               <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-              <button type="submit" name="add" class="btn basic-teal pull-right">Add {{target}}</button>
+              <button type="submit" name="add_{{target}}" class="btn basic-teal pull-right">Add {{target}}</button>
             </div>
           </form>
 

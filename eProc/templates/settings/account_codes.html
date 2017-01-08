@@ -8,7 +8,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'dist/css/chosen.min.css' %}" media="screen"/>
 {% endblock css %}
 
-{% block header %}Account Code{% endblock header %}
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+  <h1>Account Code</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">

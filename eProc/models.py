@@ -66,7 +66,7 @@ class Location(models.Model):
 
 ######### ACCOUNTING DETAILS #########
 class Department(models.Model):
-	name = models.CharField(max_length=20)
+	name = models.CharField(max_length=50)
 	company = models.ForeignKey(BuyerCo, related_name='departments') 
 	location = models.ForeignKey(Location, related_name='departments')
 
@@ -112,7 +112,7 @@ class BuyerProfile(models.Model):
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
 	location = models.ForeignKey(Location, related_name="users")
-	relates_to = models.ForeignKey('self') #ForeignKey to self for approval routing and thresholds
+	relates_to = models.ForeignKey('self', null=True, blank=True) #ForeignKey to self for approval routing and thresholds
 
 	def __unicode__(self):
 		return "{}".format(self.user.username)
@@ -294,7 +294,15 @@ class Rating(models.Model):
 		(4, 'Good'),
 		(5, 'Great'),
 	)
-	value = models.IntegerField(choices=SCORES)
+	score = models.IntegerField(choices=SCORES)
+	CATEGORIES = (
+		('Quality', 'Quality'),
+		('Delivery', 'Delivery'),
+		('Cost', 'Cost'),
+		('Responsiveness', 'Responsiveness'),
+		('Total', 'Total'),
+	)
+	category = models.CharField(choices=CATEGORIES, max_length=15, default='Total')
 	rater = models.ForeignKey(Company, related_name="ratings_given")
 	ratee = models.ForeignKey(Company, related_name="ratings_received")
 	comments = models.CharField(max_length=100)

@@ -68,6 +68,12 @@ def save_orderitems(document, orderitem_formset):
             order_item.save()
     document.save()
 
+# Used by location and view_location
+def save_location(location_form, buyer):
+    location = location_form.save(commit=False)
+    location.company = buyer.company
+    location.save()    
+
 
 ################################
 ###     NEW REQUISITION     ### 

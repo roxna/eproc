@@ -79,12 +79,14 @@ def get_started(request):
     data = {        
         'settings_list': [
             # url, text, exists/completed
-            ['/vendors/','1. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
-            ['/categories/','2. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
-            ['/products/','3. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
+            ['/locations/','1. Add locations & departments', Location.objects.filter(company=buyer.company).exists()],
+            ['/vendors/','2. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
+            ['/categories/','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
+            ['/products/','4. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
             ['/account_codes/','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
-            ['/users/','5. Add users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
-            ['/departments/','6. Add departments', Department.objects.filter(company=buyer.company).exists()],
+            # ['/approval_routing/','5. Set up approval rounting', BuyerProfile.objects.filter(company=buyer.company).exists()],
+            ['/users/','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
+            
         ],
         'request_list': [
             ['/requisition/new/','1. Create a new request', req_exists],
@@ -142,25 +144,24 @@ def settings(request):
 @login_required
 def users(request):    
     buyer = request.user.buyer_profile
-    user_form = AddUserForm(request.POST or None)
-    buyer_profile_form = BuyerProfileForm(request.POST or None)
-    buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
-    buyer_profile_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
+    # user_form = AddUserForm(request.POST or None)
+    # buyer_profile_form = BuyerProfileForm(request.POST or None)
+    # buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+    # buyer_profile_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
     if request.method == "POST":
-        # pdb.set_trace()
-        if 'add' in request.POST:
-            if user_form.is_valid() and buyer_profile_form.is_valid():                
-                user = user_form.save()
-                buyer_profile = buyer_profile_form.save(commit=False)
-                buyer_profile.user = user                
-                buyer_profile.company = buyer.company
-                buyer_profile.save()
-                send_verific_email(user, user.id*settings.SCALAR)
-                messages.success(request, 'User successfully invited')
-                return redirect('users')
-            else:
-                messages.error(request, 'Error adding user. Please try again.')
-        elif 'delete' in request.POST:          
+        # if 'add' in request.POST:
+        #     if user_form.is_valid() and buyer_profile_form.is_valid():                
+        #         user = user_form.save()
+        #         buyer_profile = buyer_profile_form.save(commit=False)
+        #         buyer_profile.user = user                
+        #         buyer_profile.company = buyer.company
+        #         buyer_profile.save()
+        #         send_verific_email(user, user.id*settings.SCALAR)
+        #         messages.success(request, 'User successfully invited')
+        #         return redirect('users')
+        #     else:
+        #         messages.error(request, 'Error adding user. Please try again.')
+        if 'delete' in request.POST:          
             for key in request.POST:
                 if key == 'delete':
                     buyer_id = int(request.POST[key])
@@ -176,12 +177,12 @@ def users(request):
         else:
             messages.error(request, 'Error. Please try again.')
             return redirect('users')
-    buyers = BuyerProfile.objects.filter(company=request.user.buyer_profile.company)
+    buyers = BuyerProfile.objects.filter(company=buyer.company)
     data = {
         'buyers': buyers,
-        'user_form': user_form,
-        'buyer_profile_form': buyer_profile_form,
-        'table_headers': ['Username', 'Email Address', 'Role', 'Status', ' ',]
+        # 'user_form': user_form,
+        # 'buyer_profile_form': buyer_profile_form,
+        'table_headers': ['Username', 'Email Address', 'Role', 'Location', 'Dept', 'Status', ' ',]
     }
     return render(request, "settings/users.html", data)
 
@@ -192,9 +193,7 @@ def locations(request):
     location_form = LocationForm(request.POST or None)
     if request.method == "POST":
         if location_form.is_valid():
-            location = location_form.save(commit=False)
-            location.company = buyer.company
-            location.save()
+            save_location(location_form, buyer)
             messages.success(request, 'Location added successfully')
             return redirect('locations')
         else:
@@ -207,31 +206,61 @@ def locations(request):
 
 @login_required
 def view_location(request, location_id, location_name):
+    buyer = request.user.buyer_profile    
     location = Location.objects.get(pk=location_id)
+    location_form = LocationForm(request.POST or None, instance=location)
+    
+    buyers = BuyerProfile.objects.filter(location=location)
+    user_form = AddUserForm(request.POST or None)
+    buyer_profile_form = BuyerProfileForm(request.POST or None)
+    buyer_profile_form.fields['department'].queryset = Department.objects.filter(location=location)
+    
+    departments = Department.objects.filter(location=location)
+    department_form = DepartmentForm(request.POST or None)
+    
+    if request.method == "POST":
+        # pdb.set_trace()
+        if 'add_Location' in request.POST:
+            if location_form.is_valid():
+                save_location(location_form, buyer)
+                messages.success(request, 'Location updated successfully')
+        elif 'add_User' in request.POST:
+            if user_form.is_valid() and buyer_profile_form.is_valid():                
+                user = user_form.save()
+                buyer_profile = buyer_profile_form.save(commit=False)
+                buyer_profile.user = user                
+                buyer_profile.company = buyer.company
+                buyer_profile.location = location
+                buyer_profile.save()
+                send_verific_email(user, user.id*settings.SCALAR)
+                messages.success(request, 'User successfully invited')
+            else:
+                messages.error(request, 'Error adding user. Please try again.')
+        elif 'add_Department' in request.POST:
+            if department_form.is_valid():
+                department = department_form.save(commit=False)
+                department.company = buyer.company
+                department.location = location
+                department.save()
+                messages.success(request, 'Department added successfully')
+            else:
+                messages.error(request, 'Error. Department not added.')  
+        else:
+            pass
     data = {
         'location': location,
-    }
-    return render(request, "settings/view_location.html", data)
+        'location_form': location_form,
+        
+        'buyers': buyers,
+        'user_form': user_form,
+        'buyer_profile_form': buyer_profile_form,
+        'user_table_headers': ['Username', 'Email', 'Role', 'Status'],
 
-@login_required
-def departments(request):
-    departments = Department.objects.filter(company=request.user.buyer_profile.company)
-    department_form = DepartmentForm(request.POST or None)
-    if request.method == "POST":
-        if department_form.is_valid():
-            department = department_form.save(commit=False)
-            department.company = request.user.buyer_profile.company
-            department.save()
-            messages.success(request, 'Department added successfully')
-            return redirect('departments')
-        else:
-            messages.error(request, 'Error. Department list not updated.')
-    data = {
         'departments': departments,
         'department_form': department_form,
-        'table_headers': ['Name']
+        'dept_table_headers': ['Name'],        
     }
-    return render(request, "settings/departments.html", data)
+    return render(request, "settings/view_location.html", data)
 
 @login_required
 def account_codes(request):
@@ -254,6 +283,19 @@ def account_codes(request):
         'table_headers': ['Code', 'Name', 'Departments']
     }
     return render(request, "settings/account_codes.html", data)
+
+@login_required
+def approval_routing(request):
+    # if request.method == "POST":
+    #     if approval_route_form.is_valid():
+    #         messages.success(request, 'Approval Route added successfully')
+    #         return redirect('approval_routing')
+    #     else:
+    #         messages.error(request, 'Error. New Approval Route not set up.')
+    data = {
+        
+    }
+    return render(request, "settings/approval_routing.html", data)
 
 @login_required
 def products(request):
@@ -408,44 +450,16 @@ def user_profile(request):
 def company_profile(request):
     buyer = request.user.buyer_profile
     company_form = BuyerCoForm(request.POST or None, instance=buyer.company)
-    try:
-        billing_add = Location.objects.filter(company=buyer.company, loc_type='Billing').first()
-        billing_address_form = LocationForm(request.POST or None, instance=billing_add)
-    except ObjectDoesNotExist:
-        billing_address_form = LocationForm(request.POST or None)
-    try:
-        shipping_add = Location.objects.filter(company=buyer.company, loc_type='Shipping').first()
-        shipping_address_form = LocationForm(request.POST or None, instance=shipping_add)
-    except:    
-        shipping_address_form = LocationForm(request.POST or None)
-
-    # pdb.set_trace()
     if request.method == "POST":
         if 'company' in request.POST:
             if company_form.is_valid():
                 company_form.save()
                 messages.success(request, "Company profile updated successfully")
-                return redirect('company_profile')
-        elif 'billing' in request.POST:
-            if billing_address_form.is_valid():
-                billing_add = billing_address_form.save(commit=False)
-                billing_add.company=buyer.company
-                billing_add.save()
-                messages.success(request, "Billing address updated successfully")
-                return redirect('company_profile')
-        elif 'shipping' in request.POST:
-            if shipping_address_form.is_valid():
-                shipping_add = shipping_address_form.save(commit=False)
-                shipping_add.company=buyer.company
-                shipping_add.save()
-                messages.success(request, "Shipping address updated successfully")
-                return redirect('company_profile')         
+                return redirect('company_profile')     
         else:
             messages.error(request, 'Error. Settings not updated')        
     data = {
         'company_form': company_form,
-        'billing_address_form': billing_address_form,
-        'shipping_address_form': shipping_address_form
     }
     return render(request, "settings/company_profile.html", data)       
 

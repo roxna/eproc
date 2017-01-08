@@ -6,7 +6,10 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}Profile Settings{% endblock header %}
+{% block header %}
+	<p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+	<h1>Profile Settings</h1>
+{% endblock header %}
 
 
 {% block content %}

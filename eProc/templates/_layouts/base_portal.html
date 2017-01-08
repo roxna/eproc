@@ -256,7 +256,7 @@
     <!-- Page Content -->
     <div class="content-wrapper">
       <section class="content-header">
-        <h1>{% block header %}{% endblock header %}</h1>
+        {% block header %}{% endblock header %}
         {% include "_includes/messages.html" with messages=messages %}
       </section>    
       {% block content %}{% endblock content %}
@@ -285,12 +285,6 @@
         setTimeout(function() {
             $("#messageNotification").hide('fade', 500)
         }, 2000);
-
-        $('li').on('click', function(){
-          console.log('yay');
-          // $(this).parent().children('a').removeClass('active');
-          $(this).addClass('active');
-        })
     });
   </script>  
 </body>

@@ -6,7 +6,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 # NOTES:
-# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log Start
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

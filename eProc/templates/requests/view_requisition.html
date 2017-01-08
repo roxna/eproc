@@ -3,7 +3,7 @@
 
 {% block title %}Requests{% endblock title %}
 
-{% block header %}Requisition Details{% endblock header %}
+{% block header %}<h1>Requisition Details</h1>{% endblock header %}
 
 
 {% block content %}
@@ -12,7 +12,8 @@
 
     <div class="row">
       <div class="col-xs-12">
-        <a href="{% url 'requisitions' %}"><i class="fa fa-angle-left"></i> Back</a>
+        {% include '_includes/back_to.html' with destination='requisitions' %}
+        
         {% include "_includes/print_or_email.html" with href='print_requisition' document=requisition %}    
       </div>
     </div>

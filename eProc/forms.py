@@ -143,7 +143,7 @@ class AddUserForm(forms.Form):
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
     department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
-    location = forms.ModelChoiceField(queryset=Location.objects.all(), label="<i class='fa fa-building'></i> Location")
+    # location = forms.ModelChoiceField(queryset=Location.objects.all(), label="<i class='fa fa-building'></i> Location")
 
     def __init__(self, *args, **kwargs):
         super(BuyerProfileForm, self).__init__(*args, **kwargs)
@@ -151,16 +151,16 @@ class BuyerProfileForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('location', css_class='col-md-6'),
+                # Div('location', css_class='col-md-6'),
                 Div('department', css_class='col-md-6'),
-                Div('role', css_class='col-md-12'),
+                Div('role', css_class='col-md-6'),
                 css_class='row',
             ),
         )
 
     class Meta:
         model = BuyerProfile
-        fields = ("role", "department", "location")
+        fields = ("role", "department",)
         
 
 class BuyerCoForm(forms.ModelForm):
