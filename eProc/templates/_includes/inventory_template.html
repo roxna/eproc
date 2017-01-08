@@ -1,108 +1,49 @@
-{% extends '_layouts/base_portal.html' %}
-{% load staticfiles %}
 
-{% block title %}{{title}}{% endblock title %}
-
-{% block css %}
-{% endblock css %}
-
-{% block header %}<h1>{{title}}<h1>{% endblock header %}
-
-{% block content %}
-<section class="content">
-  <div class="row"> 
-
-  <!-- TABLE LIST OF ITEMS -->
-    <div class="col-lg-7 col-xs-12">    
-      <div class="box box-default"> 
-
-        <div class="box-header with-border">
-          <h3 class="box-title">{{subtitle}}</h3>
-        </div>     
-
-        <div class="box-body">
-            <table id="{{tableID}}" class="table table-striped">
-                 <thead class="basic-grey">
-                  <tr>
-                    <th>Product</th>                        
-                    <th>Quantity</th>
-                    <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
-                    {% if queryset == 'true' %}
-                      <th>Updated By</th>
-                    {% else %}
-                      <th>Status</th>
-                    {% endif %}
-                  </tr>
-                </thead>
-                
-                <tbody> 
-                  {% for item in items %}           
-                  <tr>
-                  
-                    <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
-                    {% if queryset == 'true' %}
-                      <td>{{ item.product.name }}</td>
-                      <td>{{ item.quantity }}</td>                    
-                      <td>{{ item.get_latest_status.get_status_details }}</td>
-                    {% else %}
-                      <td>{{item.product__name}}</td>
-                      <td>{{item.total_qty}}</td>
-                      
-                      <!-- Flag when inventory stock running low -->
-                      <td>
-                        {% if item.total_qty < item.product.threshold %}
-                          <span class="label label-pending"> Running low</span>                        
-                        {% endif %}
-                      </td>
-
-                    {% endif %}
-
-                  </tr>
-                  {% endfor %}
-                </tbody>
-            </table>
-        </div>  
-
-      </div>  
-    </div>
-
-    <!-- CHART AGGREGATION OF ITEMS -->
-    <div class="col-lg-5 col-xs-12">
-      <div class="box box-default">     
-        <div class="box-header with-border">
-          <h3 class="box-title">Items</h3>
-        </div>       
-        <div class="box-body">
-          <canvas id="{{chartID}}" height="350" width="350"></canvas>
-        </div>
-      </div>   
-    </div>
+<!-- TABLE LIST OF ITEMS -->
+<table id="{{tableID}}" class="table table-striped">      
+   <thead class="basic-grey">
+    <tr>
+      <th>Product</th>                        
+      <th>Quantity</th>
+      <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
+      {% if queryset == 'true' %}
+        <th>Status</th>
+        <th>By</th>
+      {% else %}
+        <th>Status</th>
+      {% endif %}
+    </tr>
+  </thead>
   
-  </div>
-</section>
+  <tbody> 
+    {% for item in items %}           
+    <tr>     
+      <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
+      {% if queryset == 'true' %}
+        
+        <td>{{ item.product.name }}</td>
+        <td class={{text_css}}><i class="{{i_class}}" aria-hidden="true"></i> {{ item.quantity }}</td>
+        <td>{{ item.get_latest_status }}</td> 
+        <td>{{ item.get_latest_status.get_status_details }}</td>
 
-{% endblock content %}
+      {% else %}
+        
+        <td>{{item.product__name}}</td>
+        <td>{{item.total_qty}}</td>
+        <!-- Flag when inventory stock running low -->
+        <td>
+          {% if item.total_qty < item.product__threshold %}            
+            <span class="label label-pending"> Running low</span> 
+          {% else %}          
+            <span> OK</span>
+          {% endif %}
+        </td>
 
-{% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID=tableID %}
-  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>
+      {% endif %}
 
-  <script>
-    $(function () {
-      var chartCtx = $("#{{chartID}}").get(0).getContext("2d");
-      var chartData = [];
-      {% for item in item_count %}
-        chartData[{{forloop.counter0}}] = {
-          value: {{item.total_qty}},
-          label: '{{item.product__name}}',
-          color: 'hsl(' + 160 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
-        };
-      {% endfor %}
-      var chartOptions = {
-        tooltipTemplate: "<%= label %> (<%= value %>)",
-        animation : false,
-      };
-      var inventoryChart = new Chart(chartCtx).Pie(chartData, chartOptions);
-    }); 
-  </script>
-{% endblock js %}
+    </tr>
+    {% endfor %}
+  </tbody>            
+
+</table>  
+

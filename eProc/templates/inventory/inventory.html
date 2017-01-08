@@ -1,0 +1,29 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Inventory{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}
+	<h1>Select Location to view Inventory</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+	<div class="row">
+		<div class="col-sm-12">			
+			
+		</div>	
+	</div>
+	<div class="row">
+		{% for location in locations %}
+			<div class="col-md-4">
+				{% include '_includes/location_template.html' with location=location url='view_location_inventory' %}
+			</div>
+		{% endfor %}
+	</div>
+</section>
+
+{% endblock content %}

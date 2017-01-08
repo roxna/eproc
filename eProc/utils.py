@@ -149,14 +149,14 @@ def get_inventory_received(all_items):
     available_for_drawdown_statuses = ['Delivered Partial', 'Delivered Complete']
     delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown_statuses]
     delivered_list = all_items.filter(id__in=delivered_ids)
-    delivered_count = delivered_list.values('product__name').annotate(total_qty=Sum('quantity'))
+    delivered_count = delivered_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('quantity'))
     return delivered_list, delivered_count
 
 def get_inventory_drawndown(all_items, multiplier=1):    
     drawndown_statuses = ['Drawdown Approved']
     drawndown_ids = [item.id for item in all_items if item.get_latest_status().value in drawndown_statuses]
     drawndown_list = all_items.filter(id__in=drawndown_ids)
-    drawndown_count = drawndown_list.values('product__name').annotate(total_qty=Sum('quantity')*multiplier)    
+    drawndown_count = drawndown_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('quantity')*multiplier)    
     return drawndown_list, drawndown_count
 
 

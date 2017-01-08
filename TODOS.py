@@ -1,15 +1,14 @@
-# Approval_routing/thresholds, Docs (Reqs, POs, Invoices, DDs) only show if you're preparer/approver, 404 & 500 handlers/templates
-# APPROVAL ROUTING (New Req): APproveres only on Dept selected (queryset not updating for dept/next_approver)
+# Done: Collapsed inventory into single menu, Inventory by location
 
-
-# LOCATIONS : Inventory - by each location (Shipping Add) 
 # Edit product price
-
+# APPROVAL ROUTING (New Req): APprovers only on Dept selected (queryset not updating for dept/next_approver)
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # VIEW DEPT: EDIT, Spend, contracts, people etc OR # Edit dept formset (see new_dd)
-
+# console - custom.js cant find
 # Your pending actions (dashboard)
-
+# INVENTORY:
+	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
+    # TODO: HANDLE NEGATIVE QUANTITIES IN THE CHART
 # *****************************
 
 # BIG
@@ -53,6 +52,7 @@
 # REFINEMENTS:
 # **********
 # Fasclick menu select
+# INVENTORY: view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 # Mgr (get_latest_status)
 # (Bug) New Req/New DD - add Order_Items
 # Email PDF

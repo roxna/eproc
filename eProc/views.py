@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Sum, Max, Avg, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms import inlineformset_factory,BaseModelFormSet, modelformset_factory
-from django.shortcuts import render, redirect, resolve_url
+from django.shortcuts import render, redirect, resolve_url, get_object_or_404
 from django.template.response import TemplateResponse
 from django.views import generic
 from django.views.decorators.cache import never_cache
@@ -57,9 +57,12 @@ def register(request):
 
 def activate(request):
     user_id = int(request.GET.get('id'))/settings.SCALAR
-    user = User.objects.get(id=user_id)
-    user.is_active=True
-    user.save()
+    try:
+        user = User.objects.get(id=user_id)
+        user.is_active=True
+        user.save()
+    except:
+        pass
     return render(request,'registration/activate.html')
 
 ####################################
@@ -100,7 +103,7 @@ def get_started(request):
             ['new_invoice','1. Track invoices', invoice_exists],
             ['receive_pos','2. Receive items', dd_exists],
             ['new_drawdown','3. Create drawdowns', dd_exists],
-            ['inventory_current','4. Track inventory', dd_exists],
+            ['inventory','4. Track inventory', dd_exists],
         ],               
     }
     return render(request, "main/get_started.html", data)
@@ -206,7 +209,7 @@ def locations(request):
 
 @login_required
 def view_location(request, location_id, location_name):
-    buyer = request.user.buyer_profile    
+    buyer = request.user.buyer_profile
     location = get_object_or_404(Location, pk=location_id)
     location_form = LocationForm(request.POST or None, instance=location)
     
@@ -797,54 +800,55 @@ def vendor_invoices(request, vendor_id):
     return HttpResponse(data, content_type='application/json')
 
 @login_required
-def inventory_received(request):
+def inventory(request):    
     buyer = request.user.buyer_profile
-    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    delivered_list, delivered_count = get_inventory_received(all_items)
+    locations = Location.objects.filter(company=buyer.company)        
     data = {
-        'delivered_list': delivered_list,
-        'delivered_count': delivered_count,
+        'locations': locations,
     }
-    return render(request, "inventory/inventory_received.html", data)
+    return render(request, "inventory/inventory.html", data)
 
 @login_required
-def inventory_drawndown(request):
+def view_location_inventory(request, location_id, location_name):
     buyer = request.user.buyer_profile
-    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
-    drawndown_list, drawndown_count = get_inventory_drawndown(all_items)
-    data = {
-        'drawndown_list':drawndown_list,
-        'drawndown_count': drawndown_count,
-    }    
-    return render(request, "inventory/inventory_drawndown.html", data)
-
-@login_required
-def inventory_current(request):
-    buyer = request.user.buyer_profile
-    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company)
+    location = get_object_or_404(Location, pk=location_id)
     
-    delivered_list, delivered_count = get_inventory_received(all_items)
-    drawndown_list, drawndown_count = get_inventory_drawndown(all_items, -1) # Negate drawdown items
-
-    #TODO: Make all this more efficient: inventory_list = delivered_count | drawndown_count  
-
+    all_items = OrderItem.objects.filter(invoice__shipping_add=location)    
+    
+    # _list: querylist with individual items // _count: aggregate sum of qty for item in querylist
+    delivered_list, delivered_count = get_inventory_received(all_items) #(for inventory_delivered)
+    drawndown_list, drawndown_count = get_inventory_drawndown(all_items) #(for inventory_drawdown)
+    neg_drawndown_list, neg_drawndown_count = get_inventory_drawndown(all_items, -1) # Negate drawdown items (for inventory_current)
+    print delivered_count
+    print drawndown_count
     # Chain/combine the two querysets into a list, not another Queryset (can't use annotate etc)
-    inventory_list = list(chain(delivered_count, drawndown_count)) 
+    # TypeError for empty list
+    try:
+        inventory_list = list(chain(delivered_count, neg_drawndown_count)) 
+    except TypeError:
+        inventory_list = []
+
+    # print inventory_list
     # Convert list of dictionaries to dictionary
-    inventory_dict = defaultdict(int)
-    for item in inventory_list:
-        inventory_dict[item['product__name']] += item['total_qty']
+    # inventory_dict = defaultdict(int)
+    # for item in inventory_list:
+    #     inventory_dict[item['product__name']] += item['total_qty']
     
-    # TODO: HANDLE NEGATIVE QUANTITIES IN THE CHART
     # Convert dictionary back to list of dicts
-    inventory_count = [{'product__name': prod, 'total_qty': qty} for prod, qty in inventory_dict.items()]
-    print inventory_count
-        
+    # inventory_count = [{'product__name': prod, 'total_qty': qty} for prod, qty in inventory_dict.items()]
+
     data = {
-        'inventory_list': inventory_count,
-        'inventory_count': inventory_count,
+        'location': location,
+        'inventory_list': inventory_list,
+        # 'inventory_count': inventory_count,
+
+        'delivered_list': delivered_list,
+        # 'delivered_count': delivered_count,
+
+        'drawndown_list': drawndown_list,
+        # 'drawndown_count': drawndown_count,
     }
-    return render(request, "inventory/inventory_current.html", data)
+    return render(request, "inventory/inventory_location.html", data)
 
 
 @login_required

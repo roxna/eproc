@@ -30,7 +30,7 @@ class DrawdownAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'buyer_co' ]
 
 class CatalogItemAdmin(admin.ModelAdmin):
-	list_display = ['id', 'name', 'unit_price', 'category']
+	list_display = ['id', 'name', 'unit_price', 'threshold', 'category']
 
 class CategoryAdmin(admin.ModelAdmin):
 	list_display = ['id', 'code', 'name']	
@@ -38,7 +38,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['id', 'product', 'quantity', 'unit_price', 'get_latest_status']
     search_fields = ['product',  ]
-    list_filter = ['product', 'purchase_order',]
+    list_filter = ['product', 'purchase_order', 'invoice']
 
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
@@ -54,8 +54,8 @@ class DocumentStatusAdmin(admin.ModelAdmin):
     list_filter = ['document']
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
-    list_display = ['id', 'value', 'date', 'author', 'order_item']    
-    list_filter = ['value', 'order_item__product', 'order_item__product__buyer_co']   
+    list_display = ['id', 'value', 'date', 'author', 'order_item',]    
+    list_filter = ['value', 'order_item__product', 'order_item__product__buyer_co', ]   
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'loc_type', 'company']  

@@ -2,7 +2,7 @@
 <div class="box box-widget widget-user">
 
   <div class="widget-user-header bg-grey-active">      
-    <a href="{% url 'view_location' location.id location.name|slugify %}">
+    <a href="{% url url location.id location.name|slugify %}">
       <h3 class="widget-user-username text-black">{{location.name}}</h3>
       <h5 class="widget-user-desc text-black">
       {{location.address1}}<br>

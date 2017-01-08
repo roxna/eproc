@@ -168,7 +168,6 @@ class SalesOrder(Document):
 class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
-
 class PurchaseOrder(SalesOrder):	
 	pass	
 
@@ -211,7 +210,7 @@ class CatalogItem(models.Model):
 	sku = models.CharField(max_length=20, null=True, blank=True)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
-	threshold = models.IntegerField(null=True, blank=True) # Altert if inventory drops below
+	threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendor_co = models.ForeignKey(VendorCo, related_name="catalog_items")
