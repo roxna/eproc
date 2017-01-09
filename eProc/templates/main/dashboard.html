@@ -6,78 +6,45 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Dashboard</h1>{% endblock header %}
+{% block header %}<h1>My Dashboard</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">  
   
   <!-- WIDGETS -->
   <div class="row">
-    {% include "_includes/dashboard_widget.html" with color="bg-yellow" value=pending_req_count title="Pending Requests" href='requisitions' icon='book' %}
-    {% include "_includes/dashboard_widget.html" with color="bg-blue" value=pending_po_count title="Open Purchase Orders" href='purchaseorders' icon='shopping-cart' %}
-    {% include "_includes/dashboard_widget.html" with color="bg-red" value=items_recd_count title="Shipments Received" href='inventory' icon='truck' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-yellow" value=pending_requisitions|length title="Pending Request(s)" href='requisitions' icon='book' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-blue" value=pending_pos|length title="Open PO(s)" href='purchaseorders' icon='shopping-cart' %}
+    {% include "_includes/dashboard_widget.html" with color="bg-red" value=items_received|length title="Shipments this Week" href='inventory' icon='truck' %}
   </div>
-  
-  <!-- CHARTS -->
+
+  <!-- LIST -->
   <div class="row">
-    {% include "_includes/dashboard_chart.html" with chartID='deptSpendChart' title='Spend by Department' %}
-    {% include "_includes/dashboard_chart.html" with chartID='categorySpendChart' title='Spend by Category' %}
-    {% include "_includes/dashboard_chart.html" with chartID='productSpendChart' title='Spend by Product' %}
+    
+    {% include "_includes/dashboard_list.html" with title='Pending Requests' color="bg-yellow" documents=pending_requisitions url='view_requisition' empty_text='No pending requests.' %}
+    
+    {% include "_includes/dashboard_list.html" with title='Pending POs' color="bg-blue" documents=pending_pos url='view_purchaseorder' empty_text='No open POs.'%}    
+
+    <!-- Shipments -->
+     <div class="col-xs-12 col-md-4 col-lg-4">
+      <div class="box box-default">     
+        <div class="box-header with-border">
+          <h3 class="box-title">Shipments received this week</h3>
+        </div>       
+        <div class="box-body">
+          {% for item in items_received %}
+             <a href="{% url 'view_purchaseorder' item.purchase_order.id %}">
+                <span class="label bg-red label-large">{{item.purchase_order}}</span>
+              </a>
+             {{item}}<br><br>
+          {% empty %}
+            No shipments this week.
+          {% endfor %}
+        </div>        
+      </div>    
+    </div>
+    <!-- ./shipments -->
+
   </div>
 
 {% endblock content %}
-
-
-{% block js %}
-  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
-  <script>
-    $(function () {
-      var deptCtx = $("#deptSpendChart").get(0).getContext("2d");      
-      var deptData = [];
-      {% for item in dept_spend %}
-        deptData[{{forloop.counter0}}] = {
-          value: {{item.total_cost}},
-          label: '{{item.requisition__department__name}}',
-          color: '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
-        };
-      {% endfor %}
-      var deptOptions = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
-        animation : false,
-      };
-      
-      var categCtx = $("#categorySpendChart").get(0).getContext("2d");      
-      var categData = [];
-      {% for item in categ_spend %}
-        categData[{{forloop.counter0}}] = {
-          value: {{item.total_cost}},
-          label: '{{item.product__category__name}}',
-          color: '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
-        };
-      {% endfor %}
-      var categOptions = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
-        animation : false,
-      };
-
-      var productCtx = $("#productSpendChart").get(0).getContext("2d");      
-      var productData = [];
-      {% for item in product_spend %}
-        productData[{{forloop.counter0}}] = {
-          value: {{item.total_cost}},
-          label: '{{item.product__name}}',
-          color: 'hsl(' + 0 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
-        };
-      {% endfor %}
-      var productOptions = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
-        animation : false,
-      };
-
-      var deptChart = new Chart(deptCtx).Pie(deptData, deptOptions);
-      var categChart = new Chart(categCtx).Pie(categData, categOptions);
-      var productChart = new Chart(productCtx).Pie(productData, productOptions);
-    });
-
-  </script>
-{% endblock js %}

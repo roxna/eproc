@@ -1,0 +1,76 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Analysis{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Analysis</h1>{% endblock header %}
+
+{% block content %}
+<section class="content"> 
+  
+  <!-- CHARTS -->
+  <div class="row">
+    {% include "_includes/analysis_chart.html" with chartID='locationSpendChart' title='Spend by Location' %}
+    {% include "_includes/analysis_chart.html" with chartID='categorySpendChart' title='Spend by Category' %}
+    {% include "_includes/analysis_chart.html" with chartID='productSpendChart' title='Spend by Product' %}
+  </div>
+
+{% endblock content %}
+
+
+{% block js %}
+  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+  <script>
+    $(function () {
+      var deptCtx = $("#locationSpendChart").get(0).getContext("2d");      
+      var deptData = [];
+      {% for item in location_spend %}
+        deptData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.invoice__shipping_add__name}}',
+          color: '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
+        };
+      {% endfor %}
+      var deptOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+        animation : false,
+      };
+      
+      var categCtx = $("#categorySpendChart").get(0).getContext("2d");      
+      var categData = [];
+      {% for item in categ_spend %}
+        categData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.product__category__name}}',
+          color: '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6),
+        };
+      {% endfor %}
+      var categOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+        animation : false,
+      };
+
+      var productCtx = $("#productSpendChart").get(0).getContext("2d");      
+      var productData = [];
+      {% for item in product_spend %}
+        productData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.product__name}}',
+          color: 'hsl(' + 0 + ', ' + Math.floor(Math.random() * 100) + '%, ' + Math.floor(Math.random() * 100) + '%)',
+        };
+      {% endfor %}
+      var productOptions = {
+        tooltipTemplate: "<%= label %> ($<%= value %>)",
+        animation : false,
+      };
+
+      var deptChart = new Chart(deptCtx).Pie(deptData, deptOptions);
+      var categChart = new Chart(categCtx).Pie(categData, categOptions);
+      var productChart = new Chart(productCtx).Pie(productData, productOptions);
+    });
+
+  </script>
+{% endblock js %}

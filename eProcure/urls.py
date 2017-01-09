@@ -53,6 +53,7 @@ urlpatterns=[
     
     url(r'^get-started/$', eProc_views.get_started, name='get_started'),
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
+    url(r'^analysis/$', eProc_views.analysis, name='analysis'),
 
     url(r'^requisition/new/$', eProc_views.new_requisition, name='new_requisition'),
     url(r'^requisitions/$', eProc_views.requisitions, name='requisitions'),

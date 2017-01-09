@@ -219,6 +219,18 @@
             {% endif %}          
 
             <!--****************************
+            *********  REPORTS & ANALYSIS  **********   
+            ******************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.department == 'Admin' %}
+              <li>
+                <a href="{%url 'analysis' %}">
+                  <i class="fa fa-area-chart"></i> 
+                  <span>Reports & Analysis</span>
+                </a>
+              </li>
+            {% endif %}  
+
+            <!--****************************
             *********   SETTINGS  **********   
             ******************************-->
             <li>

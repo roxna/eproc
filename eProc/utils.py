@@ -11,26 +11,34 @@ def send_verific_email(user,random_id):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
-# TODO CLEANER IMPLEMENTATION OF QUERIES
-def get_documents(buyer, documents): 
+# Returns Docs (Reqs/POs etc) where the user is either the preparer OR next_approver, unless user is SuperUser
+# User in requisitions, purchaseorders etc in views.py
+def get_documents_by_auth(buyer, document_type):
+    if buyer.role == 'SuperUser':
+        documents = document_type.objects.filter(buyer_co=buyer.company)
+    else:
+        documents = document_type.objects.filter(preparer=buyer).filter(next_approver=buyer)
+    return documents
+
+
+# Returns relevant Docs (Reqs/POs etc) based on their status
+def get_documents_by_status(buyer, documents): 
     pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], []
-    
+    print documents
     # (doc.get_latest_status().value.lower + '_requisitions').append(doc) for doc in documents
-    for doc in documents:
-        # Docs List (Reqs, POs, Invoices, DDs) only shows if you're preparer/approver or user is superuser
-        if doc.preparer == buyer or doc.next_approver == buyer or buyer.role == 'SuperUser':
-            if doc.get_latest_status().value == 'Pending':            
-                pending_docs.append(doc)
-            elif doc.get_latest_status().value == 'Approved':
-                approved_docs.append(doc)
-            elif doc.get_latest_status().value == 'Closed':
-                closed_docs.append(doc)
-            elif doc.get_latest_status().value == 'Paid':
-                paid_docs.append(doc)                
-            elif doc.get_latest_status().value == 'Cancelled':
-                cancelled_docs.append(doc)        
-            elif doc.get_latest_status().value == 'Denied':
-                denied_docs.append(doc)  
+    for doc in documents:        
+        if doc.get_latest_status().value == 'Pending':            
+            pending_docs.append(doc)
+        elif doc.get_latest_status().value == 'Approved':
+            approved_docs.append(doc)
+        elif doc.get_latest_status().value == 'Closed':
+            closed_docs.append(doc)
+        elif doc.get_latest_status().value == 'Paid':
+            paid_docs.append(doc)                
+        elif doc.get_latest_status().value == 'Cancelled':
+            cancelled_docs.append(doc)        
+        elif doc.get_latest_status().value == 'Denied':
+            denied_docs.append(doc)  
                        
     all_docs = pending_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
     return all_docs, pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs

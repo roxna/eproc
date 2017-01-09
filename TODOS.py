@@ -1,27 +1,31 @@
-# Done: Collapsed inventory into single menu, Inventory by location
-
+# Show legend on charts (analysis)
 # Edit product price
 # APPROVAL ROUTING (New Req): APprovers only on Dept selected (queryset not updating for dept/next_approver)
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
-# VIEW DEPT: EDIT, Spend, contracts, people etc OR # Edit dept formset (see new_dd)
 # console - custom.js cant find
-# Your pending actions (dashboard)
-# INVENTORY:
-	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
-    # TODO: HANDLE NEGATIVE QUANTITIES IN THE CHART
+# Refactor
+#  Change all 'backs' to clearly state where going
+# (Bug) New Req/New DD - add Order_Items
+# Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR
+# # TODO CLEANER IMPLEMENTATION OF get_docu_by_status(utils.py)
+	# pending_requisitions = requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+    # pending_pos = pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+
 # *****************************
 
+# QUES:
+# ****************************
+# 1. Reqs/POs etc show docs only if user is preparer or next_approver. Any other situations?
+
 # BIG
-# **********
+# ****************************
 # Tests
 # Payment
-# Refactor
-# Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR
 # Blogs/website
 
 
 # NEW FEATURES
-# **********
+# ****************************
 # PRICING
 	# API - live commodities prices with alerts
 	# Wholesale prices for select products
@@ -50,18 +54,19 @@
 
 
 # REFINEMENTS:
-# **********
+# ****************************
 # Fasclick menu select
-# INVENTORY: view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
+# INVENTORY: 
+	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
+	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
 # Mgr (get_latest_status)
-# (Bug) New Req/New DD - add Order_Items
 # Email PDF
 # view_Vendor - link to invoice doc
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
-
+# DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 
 # LOW PRIO REFINEMENTS
-# **********
+# ****************************
 # New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # ADD_USER functionality in USERS when able to filter dept based on location

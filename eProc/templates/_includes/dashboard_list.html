@@ -1,0 +1,26 @@
+
+  <div class="col-xs-12 col-md-4 col-lg-4">
+    <div class="box box-default">     
+      <div class="box-header with-border">
+        <h3 class="box-title">{{title}}</h3>
+      </div>       
+      <div class="box-body">
+        {% for doc in documents %}
+           
+           <a href="{% url url doc.id %}">
+              <span class="label {{color}} label-large">{{doc}}</span>
+            </a>
+           for {{doc.currency|upper}} {{doc.sub_total}}<br>
+
+           {% if user.buyer_profile == doc.preparer %}
+              Pending approval by <b>{{doc.next_approver}}</b>
+            {% elif user.buyer_profile == doc.next_approver %}
+              Submitted by <b>{{doc.preparer}}</b> / Due <b>{{doc.date_due}}</b>
+           {% endif %}<br><br>
+        
+        {% empty %}
+          {{empty_text}}
+        {% endfor %}
+      </div>        
+    </div>    
+  </div>
