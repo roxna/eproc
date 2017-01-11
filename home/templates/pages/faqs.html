@@ -1,0 +1,28 @@
+{% extends '_layouts/base_landing.html' %}
+{% load staticfiles %}
+
+{% block content %}
+<div id="support">
+	<div id="browse">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<h4>Browse by topic</h4>
+				</div>
+			</div>
+			<div class="row">
+				{% include '_includes/faqs_snippet.html' with title='Tasks & Projects' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-clipboard' %}
+
+				{% include '_includes/faqs_snippet.html' with title='Account Settings' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-gear' %}
+
+				{% include '_includes/faqs_snippet.html' with title='Billing Information' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-credit-card' %}
+
+				{% include '_includes/faqs_snippet.html' with title='Users & Roles' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-user' %}
+				
+		</div>
+	</div>
+</div>	
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

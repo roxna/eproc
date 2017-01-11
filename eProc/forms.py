@@ -90,6 +90,7 @@ class ChangeUserForm(UserChangeForm):
 class AddUserForm(forms.Form):  
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True) 
+    title = forms.CharField(required=False)
     email = forms.EmailField(required=True, label="<i class='fa fa-envelope'></i> Email")  
 
     helper = FormHelper()
@@ -101,7 +102,8 @@ class AddUserForm(forms.Form):
             css_class='row',
         ),
         Div(
-            Div('email', css_class='col-md-12'),
+            Div('title', css_class='col-md-6'),
+            Div('email', css_class='col-md-6'),
             css_class='row',
         )
     )
@@ -131,6 +133,7 @@ class AddUserForm(forms.Form):
                                             password='temppw',)        
             user.first_name=self.cleaned_data['first_name']
             user.last_name=self.cleaned_data['last_name']
+            user.title=self.cleaned_data['title']
             user.is_active=False
             user.save()
             return user

@@ -8,7 +8,7 @@
         {% for doc in documents %}
            
            <a href="{% url url doc.id %}">
-              <span class="label {{color}} label-large">{{doc}}</span>
+              <span class="label {{color}}">{{doc}}</span>
             </a>
            for {{doc.currency|upper}} {{doc.sub_total}}<br>
 

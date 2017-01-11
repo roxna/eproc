@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize', #Converts numbers/totals to comma-separated
     'home',    
     'rest_framework',
     'crispy_forms',
@@ -133,7 +134,19 @@ DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
 
 SCALAR = 570
-ROLES = (('SuperUser', 'SuperUser'),('Requester', 'Requester'),('Approver', 'Approver'),('Purchaser', 'Purchaser'),('Receiver', 'Receiver'), ('Payer', 'Payer'), ('Inventory Manager', 'Inventory Manager'))
+
+ROLES = (
+    ('SuperUser', 'SuperUser'),
+    ('Requester', 'Requester'),
+    ('Approver', 'Approver'),
+    ('Purchaser', 'Purchaser'),
+    # ('Controller', 'Controller'),
+    ('Receiver', 'Receiver'), 
+    ('Inventory Manager', 'Inventory Manager'),
+    # ('Branch Manager', 'Branch Manager')
+    ('Payer', 'Payer'), #Accounts Payable
+)
+
 # Add Controller: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))

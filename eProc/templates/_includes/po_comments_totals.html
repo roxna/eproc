@@ -11,32 +11,33 @@
             <tbody>
                 <tr>
                   <td>Subtotal:</td>
-                  <td id="POSubTotal">{{sub_total}}</td>
+                  <!-- floatformat adds decimals if needed; intcomma from humanize adds commas where needed -->
+                  <td id="POSubTotal">{{sub_total|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Tax:</td>
-                  <td class="amount">{{form.tax_amount}}</td>
+                  <td class="amount">{{form.tax_amount|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Shipping:</td>
-                  <td class="amount">{{form.cost_shipping}}</td>
+                  <td class="amount">{{form.cost_shipping|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Discount:</td>
-                  <td class="amount discount">{{form.discount_amount}}</td>
+                  <td class="amount discount">{{form.discount_amount|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Other costs:</td>
-                  <td class="amount">{{form.cost_other}}</td>
+                  <td class="amount">{{form.cost_other|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>    
                 <tr class="lead">
                   <td>Total Cost</td>
-                  <td id="POTotal">{{grand_total}}</td>
+                  <td id="POTotal">{{grand_total|floatformat:2|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>	
               </tbody>

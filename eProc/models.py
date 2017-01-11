@@ -101,6 +101,7 @@ def user_img_directory_path(instance, filename):
 
 class User(AbstractUser):
     # Already has username, firstname, lastname, email, is_staff, is_active, date_joined    
+    title = models.CharField(max_length=100, null=True, blank=True)
     profile_pic = models.ImageField(upload_to=user_img_directory_path, default='../static/img/default_profile_pic.jpg', blank=True, null=True)
 
     def __unicode__(self):
@@ -108,11 +109,11 @@ class User(AbstractUser):
 
 class BuyerProfile(models.Model):
 	role = models.CharField(choices=settings.ROLES, max_length=15)
+	approval_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
 	user = models.OneToOneField(User, related_name="buyer_profile")	
 	department = models.ForeignKey(Department, related_name="users", null=True, blank=True)
 	company = models.ForeignKey(BuyerCo, related_name="users")
-	location = models.ForeignKey(Location, related_name="users")	
-	approval_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
+	location = models.ForeignKey(Location, related_name="users")		
 
 	def __unicode__(self):
 		return "{}".format(self.user.username)

@@ -104,6 +104,26 @@
 	font-size: 100% !important;
 }
 
+
+/**********************
+*** ANALYSIS CHARTS ***
+**********************/
+.pie-legend {
+	list-style: none !important;
+	margin: 0;
+	padding: 0;
+}
+.pie-legend span {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 20%;
+	margin-right: 14px;
+	margin-bottom: -2px;
+}
+
+
+
 /******************* 
 *****   HOME   ****
 *******************/

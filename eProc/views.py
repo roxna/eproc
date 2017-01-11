@@ -133,6 +133,8 @@ def dashboard(request):
     }
     return render(request, "main/dashboard.html", data)
 
+import unicodedata
+from random import randint
 @login_required()
 def analysis(request):
     buyer = request.user.buyer_profile
@@ -143,14 +145,14 @@ def analysis(request):
 
     location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))    
+
     data = {
-        'location_spend': location_spend,
+        'location_spend': location_spend,        
         'categ_spend': categ_spend,
         'product_spend': product_spend,        
     }    
     return render(request, "main/analysis.html", data)
-
 
 ####################################
 ###        REQUISITIONS          ### 

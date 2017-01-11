@@ -64,6 +64,9 @@ def blog(request):
 	}
 	return render(request, "pages/blog.html", data)
 
+def faqs(request):
+	return render(request, "pages/faqs.html")
+
 def view_blog(request, blog_id, blog_slug):
     blog = Blog.objects.get(pk=blog_id)    
     try:

@@ -34,7 +34,7 @@
         <div class="box-body">
           {% for item in items_received %}
              <a href="{% url 'view_purchaseorder' item.purchase_order.id %}">
-                <span class="label bg-red label-large">{{item.purchase_order}}</span>
+                <span class="label bg-red">{{item.purchase_order}}</span>
               </a>
              {{item}}<br><br>
           {% empty %}

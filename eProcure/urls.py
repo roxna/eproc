@@ -24,6 +24,7 @@ urlpatterns=[
     url(r'^features/$', home_views.features, name='features'),
     url(r'^blog/$', home_views.blog, name='blog'),
     url(r'^blog/(?P<blog_id>\w+)/(?P<blog_slug>[\w-]+)/$', home_views.view_blog, name='view_blog'), 
+    url(r'^faqs/$', home_views.faqs, name='faqs'),
     url(r'^contact/$', home_views.contact, name='contact'),
     url(r'^success/$', home_views.success, name='success'),
     
