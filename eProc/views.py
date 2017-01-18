@@ -145,12 +145,14 @@ def analysis(request):
 
     location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))    
+    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    supplier_spend = items_received.values('product__vendor_co__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
 
     data = {
         'location_spend': location_spend,        
         'categ_spend': categ_spend,
-        'product_spend': product_spend,        
+        'product_spend': product_spend,
+        'supplier_spend': supplier_spend,
     }    
     return render(request, "main/analysis.html", data)
 
@@ -162,12 +164,10 @@ def analysis(request):
 def new_requisition(request): 
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
-                                       initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})    
-    requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
-    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=request.user)    
+                                       initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})        
     OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
     orderitem_formset = OrderItemFormSet(request.POST or None)
-    initialize_newreq_forms(request.user, requisition_form, orderitem_formset)    
+    initialize_newreq_forms(buyer, requisition_form, orderitem_formset)    
     
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():

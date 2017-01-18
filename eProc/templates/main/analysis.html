@@ -16,6 +16,7 @@
     {% include "_includes/analysis_chart.html" with chartID='locationChart' legendID='locationLegend' title='Spend by Location' %}
     {% include "_includes/analysis_chart.html" with chartID='categoryChart' legendID='categoryLegend' title='Spend by Category' %}
     {% include "_includes/analysis_chart.html" with chartID='productChart' legendID='productLegend' title='Spend by Product' %}
+    {% include "_includes/analysis_chart.html" with chartID='supplierChart' legendID='supplierLegend' title='Spend by Supplier' %}
   </div>
 
 {% endblock content %}
@@ -95,6 +96,21 @@
       var productCtx = $("#productChart").get(0).getContext("2d");
       var productChart = new Chart(productCtx).Pie(productData, options);
       $('#productLegend').append(productChart.generateLegend());
+
+      /****************** 
+      Spend by Supplier      
+      ********************/     
+      var supplierData = [];
+      {% for item in supplier_spend %}
+        supplierData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.product__vendor_co__name}}',
+          color: pastelColors(),
+        };
+      {% endfor %}
+      var supplierCtx = $("#supplierChart").get(0).getContext("2d");
+      var supplierChart = new Chart(supplierCtx).Pie(supplierData, options);
+      $('#supplierLegend').append(supplierChart.generateLegend());
 
     });
 

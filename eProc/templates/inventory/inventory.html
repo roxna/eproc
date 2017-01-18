@@ -20,7 +20,7 @@
 	<div class="row">
 		{% for location in locations %}
 			<div class="col-md-4">
-				{% include '_includes/location_template.html' with location=location url='view_location_inventory' %}
+				{% include '_includes/location_template_basic.html' with location=location url='view_location_inventory' %}
 			</div>
 		{% endfor %}
 	</div>

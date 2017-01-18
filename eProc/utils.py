@@ -105,12 +105,19 @@ def save_department(department_form, buyer, location):
 ###     NEW REQUISITION     ### 
 ################################ 
 
-def initialize_newreq_forms(user, requisition_form, orderitem_formset):
-    requisition_form.fields['department'].queryset = Department.objects.filter(company=user.buyer_profile.company)
-    requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=user.buyer_profile.company).exclude(user=user)
+def initialize_newreq_forms(buyer, requisition_form, orderitem_formset):
+    if buyer.role == 'SuperUser':
+        # If SuperUser, can select any department and approver, incl. self
+        requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
+    else:
+        # Else, dept only of buyer's location and next_approver only in buyer's department
+        requisition_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
+    
     for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=user.buyer_profile.company)
-        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=user.buyer_profile.company)
+        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
 def save_newreq_statuses(buyer, requisition):
     if buyer.role == 'SuperUser':

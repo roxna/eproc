@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize', #Converts numbers/totals to comma-separated
     'home',    
     'rest_framework',
-    'crispy_forms',
+    'crispy_forms',    
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,3 +1,5 @@
+{% load eProc_filters %}
+
 {% with requisition.get_latest_status as latest_status %} 
 <div class="row">
   <div class="col-xs-12">
@@ -22,7 +24,7 @@
     <p class="lead">Details</p>
     Number:<b> {{ requisition.number }}</b><br>
     Date Requested:<b> {{ requisition.date_issued | date }}</b><br>
-    Date Due:<b> {{ requisition.date_due }}</b><br>        
+    Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br>        
   </div>  
 </div><br><br>
 
