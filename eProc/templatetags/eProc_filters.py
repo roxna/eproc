@@ -20,3 +20,11 @@ def get_date_as_string(date):
 		return "In %s days" % delta.days
 	else:
 		return date
+
+@register.filter(name='currency_icon')
+def currency_icon(currency_string):
+	if currency_string == 'USD':
+		return '$'
+	else:
+		return currency_string
+

@@ -4,7 +4,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h2 class="page-header">
-      <i class="fa fa-globe"></i> REQUEST ORDER
+      <i class="fa fa-globe"></i> ORDER #{{requisition.number}}
       <small class="pull-right">
         <b>{{requisition.number}} {% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b>
       </small><br> 
@@ -16,15 +16,16 @@
 <div class="row invoice-info">
 	<div class="col-sm-6 invoice-col">
     <p class="lead">Requester Info</p>
-    Department: <b>{{ requisition.department }}</b><br>      
-    Preparer:<b> {{ requisition.preparer }}</b><br>
-    Next Approver:<b> {{ requisition.next_approver }}</b><br>
+    Requested by:<b> {{ requisition.preparer }}</b><br>
+    Location:<b> {{ requisition.location }}</b><br>
+    Department: <b>{{ requisition.department }}</b><br>              
   </div>
 <div class="col-sm-6 invoice-col">
     <p class="lead">Details</p>
-    Number:<b> {{ requisition.number }}</b><br>
+    Next Approver:<b> {{ requisition.next_approver }}</b><br>
     Date Requested:<b> {{ requisition.date_issued | date }}</b><br>
-    Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br>        
+    <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
+    Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br> 
   </div>  
 </div><br><br>
 
@@ -39,7 +40,7 @@
   </div>        
 
   <div class="col-xs-12 col-md-4">
-    <p class="lead">Total Cost: {{ requisition.currency }} {{ requisition.sub_total }}</p>
+    <p class="lead">Total Cost: {{ requisition.currency|currency_icon }} {{ requisition.sub_total }}</p>
   </div>
 </div><br>
 

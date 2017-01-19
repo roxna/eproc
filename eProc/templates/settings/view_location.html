@@ -92,9 +92,10 @@
                       {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=dept_table_headers %}           
 
                       <tbody>              
-                        {% for department in departments %}
+                        {% for dept in departments %}
                           <tr>
-                            <td>{{ department.name }}</td>
+                            <td>{{ dept.name }}</td>
+                            <td>{{ dept.budget }}</td>
                           </tr>
                         {% endfor %}
                       </tbody>

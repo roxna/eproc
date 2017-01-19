@@ -2,8 +2,7 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # (Bug) New Req/New DD - add Order_Items
 # Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR
-
-
+# is_past_due isnt working  
 
 # *****************************
 
@@ -13,6 +12,7 @@
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
 # 4. Add approval process to invoices?? (new_invoice) #TODO --> Pending / Cancelled / Paid (view_invoice/1)
+# 5. Should dept be FK to company? or via locations?
 
 
 # BIG
@@ -55,6 +55,7 @@
 	# user = models.OneToOneField(User, related_name="vendor_profile")
 	# company = models.ForeignKey(VendorCo, related_name="users")
 	# VENDOR able to create own profile based on fields buyer decides
+# AUDIT LOGGGG for each item/doc
 
 
 # REFINEMENTS:
@@ -71,6 +72,7 @@
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
+# Sub-GL codes?
 # CLEANER IMPLEMENTATION OF get_docu_by_status(utils.py)
 	# pending_requisitions = requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
     # pending_pos = pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
@@ -87,7 +89,7 @@
 # Move company from buyer_profile to user
 # PW_change (urls.py) - # TODO: password_change isn't passing messages framework as extra_context to show pw changed success
 # Each location can have multiple addresses (bill/ship)
-# Remove DEPT and BYERPROFILE FK to Company (only need FK for each to Location)
+# Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # DELETE USER in Locations section
 
 

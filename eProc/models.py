@@ -28,6 +28,9 @@ class Company (models.Model):
 	def get_primary_location(self):
 	    return self.locations.last
 
+	def get_all_locations(self):
+		return [location for location in self.locations.all()]
+
 class BuyerCo(Company):
 	pass
 
@@ -45,7 +48,7 @@ class VendorCo(Company):
 	    return model._meta.fields
 
 class Location(models.Model):
-	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Billing')
+	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Shipping')
 	name = models.CharField(max_length=50, default='')
 	address1 = models.CharField(max_length=40, null=True, blank=True)
 	address2 = models.CharField(max_length=40, null=True, blank=True)
@@ -67,7 +70,8 @@ class Location(models.Model):
 ######### ACCOUNTING DETAILS #########
 class Department(models.Model):
 	name = models.CharField(max_length=50)
-	company = models.ForeignKey(BuyerCo, related_name='departments') 
+	budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	location = models.ForeignKey(Location, related_name='departments')
 	location = models.ForeignKey(Location, related_name='departments')
 
 	def __unicode__(self):

@@ -88,15 +88,15 @@ def save_location(location_form, buyer):
 def save_user(user_form, buyer_profile_form, company, location):
     user = user_form.save()
     buyer_profile = buyer_profile_form.save(commit=False)
-    buyer_profile.user = user                
-    buyer_profile.company = buyer.company
+    buyer_profile.user = user              
+    buyer_profile.company = company
     buyer_profile.location = location
     buyer_profile.save()
+    return user
 
 # User by view_location
 def save_department(department_form, buyer, location):
     department = department_form.save(commit=False)
-    department.company = buyer.company
     department.location = location
     department.save()
 
@@ -108,7 +108,7 @@ def save_department(department_form, buyer, location):
 def initialize_newreq_forms(buyer, requisition_form, orderitem_formset):
     if buyer.role == 'SuperUser':
         # If SuperUser, can select any department and approver, incl. self
-        requisition_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+        requisition_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
         requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
     else:
         # Else, dept only of buyer's location and next_approver only in buyer's department
@@ -144,11 +144,11 @@ def initialize_newpo_forms(buyer, po_form):
 ###       DRAWDOWNS         ### 
 ################################ 
 
-def initialize_newdrawdown_forms(user, drawdown_form, drawdownitem_formset):
-    drawdown_form.fields['department'].queryset = Department.objects.filter(company=user.buyer_profile.company)
-    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=user.buyer_profile.company).exclude(user=user)
+def initialize_newdrawdown_forms(buyer, drawdown_form, drawdownitem_formset):
+    drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=user)
     for drawdownitem_form in drawdownitem_formset: 
-        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=user.buyer_profile.company)
+        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
 
 def save_newdrawdown_statuses(buyer, drawdown):
     if buyer.role == 'SuperUser':

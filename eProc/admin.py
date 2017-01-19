@@ -44,7 +44,7 @@ class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
     
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'location', 'company']
+    list_display = ['id', 'name', 'location']
 
 class AccountCodeAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'name']    

@@ -1,3 +1,5 @@
+  {% load eProc_filters %}
+
   <!-- Order Item in Request -->
   <div class="row">
     <div class="col-xs-12">
@@ -17,18 +19,21 @@
           </tr>
         </thead>
 
-        <tbody>
+        <tbody>        
           {% for order_item in order_items %}
-          <tr id="orderItemList">
-            <td id="">{{ order_item.product.name }}</td>
-            <td>{{ order_item.quantity }}</td>
-            <td>{{ order_item.qty_delivered }}</td>
-            <td>{{ order_item.qty_returned }}</td>            
-            <td>{{ order_item.product.unit_price }}</td>
-            <td>{{ order_item.sub_total }}</td>
-            <td>{{ order_item.comments }}</td>
-          </tr>
-          {% endfor %}
+            <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
+            {% with order_item.product.currency|currency_icon as currency %}
+            <tr id="orderItemList">
+              <td id="">{{ order_item.product.name }}</td>
+              <td>{{ order_item.quantity }}</td>
+              <td>{{ order_item.qty_delivered }}</td>
+              <td>{{ order_item.qty_returned }}</td>            
+              <td>{{ currency }} {{ order_item.product.unit_price }}</td>
+              <td>{{ currency }} {{ order_item.sub_total }}</td>
+              <td>{{ order_item.comments }}</td>
+            </tr>
+            {% endwith %}
+          {% endfor %}          
         </tbody>
       </table>
     </div>

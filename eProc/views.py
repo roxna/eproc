@@ -40,7 +40,8 @@ def register(request):
         if  user_form.is_valid() and buyer_company_form.is_valid():
             user_instance = user_form.save()
             company = buyer_company_form.save()
-            department = Department.objects.create(name='Admin', company=company)
+            location = Location.objects.create(loc_type='HQ', name=company.name+' - HQ', company=company)
+            department = Department.objects.create(name='Admin', location=location)
             buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, company=company)
             messages.info(request, "Thank you for registering. You are now logged in.")
             user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
@@ -559,7 +560,7 @@ def new_drawdown(request):
                                        initial= {'number': 'DD'+str(Drawdown.objects.filter(buyer_co=buyer.company).count()+1)})
     DrawdownItemFormSet = inlineformset_factory(parent_model=Drawdown, model=OrderItem, form=DrawdownItemForm, extra=1)
     drawdownitem_formset = DrawdownItemFormSet(request.POST or None)
-    initialize_newdrawdown_forms(request.user, drawdown_form, drawdownitem_formset)    
+    initialize_newdrawdown_forms(buyer, drawdown_form, drawdownitem_formset)    
     
     if request.method == "POST":
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
@@ -638,7 +639,7 @@ def users(request):
     buyer = request.user.buyer_profile
     # user_form = AddUserForm(request.POST or None)
     # buyer_profile_form = BuyerProfileForm(request.POST or None)
-    # buyer_profile_form.fields['department'].queryset = Department.objects.filter(company=buyer.company)
+    # buyer_profile_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
     # buyer_profile_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
     if request.method == "POST":
         # if 'add' in request.POST:
@@ -699,6 +700,8 @@ def locations(request):
 @login_required
 def view_location(request, location_id, location_name):
     buyer = request.user.buyer_profile
+    currency = buyer.company.currency
+
     location = get_object_or_404(Location, pk=location_id)
     location_form = LocationForm(request.POST or None, instance=location)
     
@@ -713,24 +716,32 @@ def view_location(request, location_id, location_name):
     if request.method == "POST":
         # pdb.set_trace()
         if 'add_Location' in request.POST:
+            print 'addLocation'
             if location_form.is_valid():
                 save_location(location_form, buyer)
                 messages.success(request, 'Location updated successfully')
+                return redirect('view_location', location.id, location.name)
+            else:
+                messages.error(request, 'Error. Location not updated. Please try again.')
         elif 'add_User' in request.POST:
+            print 'addUser'
             if user_form.is_valid() and buyer_profile_form.is_valid():                
-                save_user(user_form, buyer_profile_form, company, location)                
+                user = save_user(user_form, buyer_profile_form, buyer.company, location)                
                 send_verific_email(user, user.id*settings.SCALAR)
                 messages.success(request, 'User successfully invited')
+                return redirect('view_location', location.id, location.name)
             else:
-                messages.error(request, 'Error adding user. Please try again.')
+                messages.error(request, 'Error. User not added. Please try again.')
         elif 'add_Department' in request.POST:
+            print 'addDept'
             if department_form.is_valid():
                 save_department(department_form, buyer, location)                
                 messages.success(request, 'Department added successfully')
+                # return redirect('view_location', location_id=location.id, location_name=location.name)
+                return redirect('view_location', location.id, location.name)
+                
             else:
-                messages.error(request, 'Error. Department not added.')  
-        else:
-            pass
+                messages.error(request, 'Error. Department not added. Please try again.')
     data = {
         'location': location,
         'location_form': location_form,
@@ -742,7 +753,7 @@ def view_location(request, location_id, location_name):
 
         'departments': departments,
         'department_form': department_form,
-        'dept_table_headers': ['Name'],        
+        'dept_table_headers': ['Name', 'Annual budget ('+currency+')'],        
     }
     return render(request, "settings/view_location.html", data)
 
@@ -750,8 +761,8 @@ def view_location(request, location_id, location_name):
 def account_codes(request):
     buyer = request.user.buyer_profile
     account_codes = AccountCode.objects.filter(company=request.user.buyer_profile.company)    
-    account_code_form = AccountCodeForm(request.POST or None)
-    account_code_form.fields['departments'].queryset = Department.objects.filter(company=buyer.company)
+    account_code_form = AccountCodeForm(request.POST or None)    
+    account_code_form.fields['departments'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
     if request.method == "POST":
         if account_code_form.is_valid():
             code = account_code_form.save(commit=False)

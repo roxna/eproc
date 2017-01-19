@@ -279,15 +279,23 @@ class LocationForm(ModelForm):
 
 class DepartmentForm(ModelForm):
     name = forms.CharField(required=True)
+    budget = forms.DecimalField(min_value=0, label="Annual budget")
 
     def __init__(self, *args, **kwargs):
         super(DepartmentForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-md-6'),
+                Div('budget', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
 
     class Meta:
         model = Department
-        fields = ("name", )
+        fields = ("name", "budget")
 
 class AccountCodeForm(ModelForm):
     expense_type = forms.ChoiceField(settings.EXPENSE_TYPES, required=True, )
