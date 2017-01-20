@@ -22,7 +22,13 @@
       {% if queryset == 'true' %}
         
         <td>{{ item.product.name }}</td>
-        <td class={{text_css}}><i class="{{i_class}}" aria-hidden="true"></i> {{ item.quantity }}</td>
+        <td class={{text_css}}><i class="{{i_class}}" aria-hidden="true"></i> 
+          {% if tableID='receivedTable' %}
+            {{ item.qty_delivered }}
+          {% elif tableID='drawndownTable'%}
+            {{ item.qty_drawndown }}
+          {% endif %}
+        </td>
         <td>{{ item.get_latest_status }}</td> 
         <td>{{ item.get_latest_status.get_status_details }}</td>
 

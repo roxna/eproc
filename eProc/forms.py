@@ -373,8 +373,9 @@ class CatalogItemForm(ModelForm):
 
 class OrderItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
+    unit_price = forms.DecimalField(required=True)
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
-    quantity = forms.IntegerField(required=True, min_value=1)
+    qty_requested = forms.IntegerField(required=True, min_value=1)
     comments = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
@@ -384,10 +385,11 @@ class OrderItemForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('product', css_class='col-md-3'),                
-                Div('quantity', css_class='col-md-2'),
+                Div('product', css_class='item-product col-md-2'),
+                Div('qty_requested', css_class='col-md-2'),
+                Div('unit_price', css_class='item-price col-md-2'),
                 Div('account_code', css_class='col-md-2'),
-                Div('comments', css_class='col-md-4'),
+                Div('comments', css_class='col-md-3'),
                 HTML('<div class="col-md-1 delete" style="margin-top: 2em;">' +
                         '<a href="#"><i class="fa fa-trash"></i></a>' +
                     '</div>'),
@@ -397,11 +399,11 @@ class OrderItemForm(ModelForm):
 
     class Meta:
         model = OrderItem
-        fields = ("product", "quantity", "account_code", "comments")
+        fields = ("product", "qty_requested", "unit_price", "account_code", "comments")
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
-    quantity = forms.IntegerField(required=True, min_value=1)
+    qty_drawndown = forms.IntegerField(required=True, min_value=1)
     comments = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -412,7 +414,7 @@ class DrawdownItemForm(ModelForm):
         self.helper.layout = Layout(
             Div(
                 Div('product', css_class='col-md-4'),                
-                Div('quantity', css_class='col-md-2'),
+                Div('qty_drawndown', css_class='col-md-2'),
                 Div('comments', css_class='col-md-4'),
                 HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
@@ -421,7 +423,7 @@ class DrawdownItemForm(ModelForm):
 
     class Meta:
         model = OrderItem
-        fields = ("product", "quantity", "comments")
+        fields = ("product", "qty_drawndown", "comments")
 
 ####################################
 ###       DOCUMENT FORMS         ### 

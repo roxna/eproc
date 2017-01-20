@@ -86,6 +86,7 @@ urlpatterns=[
     url(r'^vendors/import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
     url(r'^products/$', eProc_views.products, name='products'),
     url(r'^products/import-csv$', eProc_views.upload_product_csv, name='upload_product_csv'),
+    url(r'^products/(?P<product_id>\w+)$', eProc_views.product_details, name='product_details'), #AJAX request
     url(r'^categories/$', eProc_views.categories, name='categories'),
 
     url(r'^settings/$', eProc_views.settings, name='settings'),

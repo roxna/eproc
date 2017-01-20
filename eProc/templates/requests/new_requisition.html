@@ -67,9 +67,39 @@
 
 
 {% block js %}    
-    <!-- Next_approver only from list of possible approvers -->
+    
     <script>
-        
+        /******* 
+        Dynamically updated the UNIT_PRICE of Product 
+        in Order Item Formset based on Product Unit_Price
+        *******/
+        $('.item-product').change(function(){
+
+            // Get the product_id of the element selected
+            var product_id = $('option:selected', this).val(); 
+            console.log(product_id);
+
+            // Get the DOM element for that row's unit-price field and set the unit price
+            var price_dom_element = $(this).parent().children('.item-price').children().attr('id');
+            var price_dom_element = price_dom_element.substring(4, price_dom_element.length);
+
+            // AJAX request to get the selected product's unit price and set it in the DOM element
+            $.ajax({
+                url: '/products/'+product_id,
+                type: 'get',
+                success: function(data){                    
+                    var price = parseInt(data[0]['fields']['unit_price']);
+                    console.log(price_dom_element);
+                    $('#'+price_dom_element).val(price);
+                },
+                error: function(data){
+                    console.log(data);
+                }
+            })
+
+        });
+
+        // Next_approver only from list of possible approvers
     </script>
 {% endblock js %}
 

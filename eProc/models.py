@@ -67,7 +67,10 @@ class Location(models.Model):
 		# return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 
-######### ACCOUNTING DETAILS #########
+################################
+###   ACCOUNTING DETAILS     ### 
+################################ 
+
 class Department(models.Model):
 	name = models.CharField(max_length=50)
 	budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -239,13 +242,14 @@ class CatalogItem(models.Model):
 
 class OrderItem(models.Model):
 	number = models.CharField(max_length=20)
-	quantity = models.IntegerField(default=1) #TODO change to qty_requested
-	qty_approved = models.IntegerField(default=0)
-	qty_ordered = models.IntegerField(default=0)
-	qty_delivered = models.IntegerField(default=0)
-	qty_returned = models.IntegerField(default=0)
-	unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-	sub_total = models.DecimalField(max_digits=10, decimal_places=2)
+	qty_requested = models.IntegerField(default=1) 	
+	qty_approved = models.IntegerField(null=True, blank=True)	
+	qty_ordered = models.IntegerField(null=True, blank=True)
+	qty_delivered = models.IntegerField(null=True, blank=True)
+	qty_returned = models.IntegerField(null=True, blank=True)
+	qty_drawndown = models.IntegerField(null=True, blank=True)
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+	# sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=150, blank=True, null=True) #Change to comments_request
 	comments_order = models.CharField(max_length=150, blank=True, null=True)
 	comments_delivery = models.CharField(max_length=150, blank=True, null=True)
@@ -263,10 +267,31 @@ class OrderItem(models.Model):
 	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
 	
 	def __unicode__(self):
-		return "{} {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
+		return "{} {} at {} {}".format(self.qty_requested, self.product.name, self.product.currency, self.unit_price)
 
 	def get_unit_price(self):
 		return self.unit_price
+
+	def get_subtotal(self, price, quantity):
+		try:
+			return price * quantity
+		except TypeError: #If qty is not defined
+			return '-'
+
+	def get_requested_subtotal(self):
+		return self.get_subtotal(self.unit_price, self.qty_requested)
+
+	def get_approved_subtotal(self):
+		return self.get_subtotal(self.unit_price, self.qty_approved)
+
+	def get_ordered_subtotal(self):
+		return self.get_subtotal(self.unit_price, self.qty_ordered)
+
+	def get_delivered_subtotal(self):
+		return self.get_subtotal(self.unit_price, self.qty_delivered)
+
+	def get_refund_subtotal(self):
+		return self.get_subtotal(self.unit_price, self.qty_returned)
 
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')

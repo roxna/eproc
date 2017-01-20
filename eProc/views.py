@@ -141,10 +141,10 @@ def analysis(request):
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
 
-    location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
-    categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
-    supplier_spend = items_received.values('product__vendor_co__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
+    location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
+    categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
+    supplier_spend = items_received.values('product__vendor_co__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
 
     data = {
         'location_spend': location_spend,        
@@ -171,7 +171,7 @@ def new_requisition(request):
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = save_new_document(buyer, requisition_form)
             # Save order_items and OrderItemsStatus --> see utils.py
-            save_orderitems(requisition, orderitem_formset)
+            save_orderitems(buyer, requisition, orderitem_formset)
             save_newreq_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
             return redirect('requisitions')
@@ -184,6 +184,11 @@ def new_requisition(request):
     }
     return render(request, "requests/new_requisition.html", data)
 
+# Get relevant product and serialize the data into json for ajax request
+@login_required
+def product_details(request, product_id):
+    product = get_object_or_404(CatalogItem, pk=product_id)    
+    return HttpResponse(serialize('json', [product,]), content_type='application/json')
 
 @login_required()
 def requisitions(request):
@@ -265,9 +270,10 @@ def new_purchaseorder(request):
             items = OrderItem.objects.filter(id__in=item_ids)
             for item in items:
                 item.purchase_order = purchase_order          
+                item.qty_approved = item.qty_ordered
                 item.save()
                 OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=item)
-                purchase_order.sub_total += item.sub_total
+                purchase_order.sub_total += item.get_approved_subtotal
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()
             messages.success(request, 'PO created successfully')
@@ -402,6 +408,7 @@ def po_orderitems(request, po_id):
     except TypeError:
         data = []
     return HttpResponse(JSONRenderer().render(data), content_type='application/json')
+
 
 ####################################
 ###           INVOICES           ### 
@@ -565,7 +572,7 @@ def new_drawdown(request):
     if request.method == "POST":
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
-            save_orderitems(drawdown, drawdownitem_formset)
+            save_orderitems(buyer, drawdown, drawdownitem_formset)
             save_newdrawdown_statuses(buyer, drawdown)
             messages.success(request, 'Drawdown submitted successfully')
             return redirect('drawdowns')

@@ -32,7 +32,7 @@
 </div><br><br>
 
 <!-- Order Items Table-->
-{% include "_includes/order_item_table.html" with order_items=requisition.order_items.all %}
+{% include "_includes/order_item_table.html" with doc=requisition order_items=requisition.order_items.all %}
 
 <!-- Comments & Total -->
 <div class="row">              
@@ -51,7 +51,7 @@
   <div class="col-xs-12">
     <!-- If req is PENDING -->
     {% if latest_status.value == 'Pending' %}
-      <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requestion.sub_total -->
+      <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.sub_total -->
       <!-- Cancel if user is PREPARER/SUPERUSER  -->
       {% include "_includes/approve_deny_cancel.html" with document=requisition is_requisition=True user_role='Approver' %}
     {% else %}

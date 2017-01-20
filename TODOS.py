@@ -1,7 +1,11 @@
-# Edit product price
+# Edit product price in PO line items too?
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
-# (Bug) New Req/New DD - add Order_Items
+# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating
 # Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR 
+
+# ORDERITEM - qty_dd???? Checks in place for order)item - qty_deliv < qty_ordered etc
+#  qty_ordered, approved etc - set up
+# new_po second page - tax, etc fields non editable?
 
 # *****************************
 
@@ -60,6 +64,7 @@
 # REFINEMENTS:
 # ****************************
 # Fasclick menu select
+#  Remove qty_ordered etc into own model??
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
@@ -90,7 +95,7 @@
 # Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # DELETE USER in Locations section
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
-
+# Restricted access for AJAX requests only to me (not to anyone with an account)
 
 # ARCHIVE
 # ****************************

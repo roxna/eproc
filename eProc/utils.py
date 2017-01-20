@@ -61,21 +61,21 @@ def save_new_document(buyer, form):
 
 # Save the data for each form in the order_items formset 
 # Used by NEW_REQ, NEW_DD
-def save_orderitems(document, orderitem_formset):    
+def save_orderitems(buyer, document, orderitem_formset):    
     for index, orderitem_form in enumerate(orderitem_formset.forms):
         if orderitem_form.is_valid():
-            order_item = orderitem_form.save(commit=False)
-            order_item.number = document.number + "-" + str(index+1)
+            item = orderitem_form.save(commit=False)
+            item.number = document.number + "-" + str(index+1)
             if isinstance(document, Requisition):
-                order_item.requisition = document
+                item.requisition = document
+                document.sub_total += item.get_requested_subtotal()
+                if buyer.role == 'SuperUser':
+                    item.qty_approved = item.qty_requested
             elif isinstance(document, Drawdown):
-                order_item.drawdown = document
-            order_item.date_due = document.date_due                    
-            order_item.sub_total = orderitem_form.cleaned_data['product'].unit_price * orderitem_form.cleaned_data['quantity']
-            document.sub_total += order_item.sub_total            
-            order_item.save()                    
-            order_item.unit_price = order_item.product.unit_price
-            order_item.save()
+                item.drawdown = document
+            item.date_due = document.date_due
+            # item.unit_price = item.product.unit_price
+            item.save()
     document.save()
 
 # Used by locations and view_location
@@ -146,7 +146,7 @@ def initialize_newpo_forms(buyer, po_form):
 
 def initialize_newdrawdown_forms(buyer, drawdown_form, drawdownitem_formset):
     drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=user)
+    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=buyer.user)
     for drawdownitem_form in drawdownitem_formset: 
         drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
 
