@@ -17,6 +17,7 @@ def get_documents_by_auth(buyer, document_type):
     if buyer.role == 'SuperUser':
         documents = document_type.objects.filter(buyer_co=buyer.company)
     else:
+        # .filter().filter() --> either or (vs. filter(x, y))
         documents = document_type.objects.filter(preparer=buyer).filter(next_approver=buyer)
     return documents
 
@@ -24,8 +25,7 @@ def get_documents_by_auth(buyer, document_type):
 # Returns relevant Docs (Reqs/POs etc) based on their status
 def get_documents_by_status(buyer, documents): 
     pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], []
-    print documents
-    # (doc.get_latest_status().value.lower + '_requisitions').append(doc) for doc in documents
+    
     for doc in documents:        
         if doc.get_latest_status().value == 'Pending':            
             pending_docs.append(doc)

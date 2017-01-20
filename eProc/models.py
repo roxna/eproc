@@ -152,8 +152,10 @@ class Document(models.Model):
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
-	# objects = models.Manager()
-	# latest_status = LatestStatusManager() #See managers.py
+	
+	# Managers - overridden in managers.py
+	objects = models.Manager() # default manager
+	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
 	
 	def __unicode__(self):
 		return "{}".format(self.number)
@@ -161,11 +163,10 @@ class Document(models.Model):
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
 
-	@property
 	def is_past_due(self):
-	    if timezone.now() > self.date_due:
-	        return True
-	    return False
+		if timezone.now().date() > self.date_due:
+			return True
+		return False
 
 class SalesOrder(Document):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -258,8 +259,8 @@ class OrderItem(models.Model):
 	drawdown = models.ForeignKey(Drawdown, related_name='order_items', null=True, blank=True)
 
 	# Managers - overridden in managers.py
-	objects = models.Manager()
-	latest_status_objects = LatestStatusManager()
+	objects = models.Manager() # default manager
+	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
 	
 	def __unicode__(self):
 		return "{} {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)

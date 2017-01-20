@@ -21,9 +21,7 @@
       </td>
       <td>
         {{ invoice.date_due }}
-        {% if invoice.is_past_due %}
-          <span class="label label-danger">Overdue</span>
-        {% endif %}<br>      
+        {% include '_includes/is_past_due.html' with doc=invoice %}<br>      
       </td>                      
       <td>{{ invoice.vendor_co }} <br></td>      
       <td>

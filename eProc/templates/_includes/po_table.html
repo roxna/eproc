@@ -20,9 +20,7 @@
     </td>
     <td>
       <b> {{ po.date_due }} </b>
-      {% if po.is_past_due %}
-        <span class="label label-danger">Overdue</span>
-      {% endif %}<br>
+      {% include '_includes/is_past_due.html' with doc=po %}<br>
       <em><small><b>Submitted:</b> {{ po.date_created|date }}</small></em>      
     </td>                      
     <td>{{ po.vendor_co }} <br></td>

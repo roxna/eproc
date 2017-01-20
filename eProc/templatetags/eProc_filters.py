@@ -5,6 +5,7 @@ register = template.Library()
 
 # SEE : http://www.pfinn.net/custom-django-filter-tutorial.html
 # Returns a more "user-friendly" date for recent past/future dates (+/- 5 days range), else just the date
+# NOTE: This is likely not timezone aware!
 @register.filter(name='get_date_as_string')
 def get_date_as_string(date):
 	delta = date - date.today()
@@ -27,4 +28,3 @@ def currency_icon(currency_string):
 		return '$'
 	else:
 		return currency_string
-

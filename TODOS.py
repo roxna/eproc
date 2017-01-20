@@ -1,8 +1,7 @@
 # Edit product price
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # (Bug) New Req/New DD - add Order_Items
-# Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR
-# is_past_due isnt working  
+# Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR 
 
 # *****************************
 
@@ -64,12 +63,11 @@
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
-# Mgr (get_latest_status)
+# Latest_status_manager for docs (to replcate get_documents_by_status and by_auth in utils, but need to add another manager method for _by_auth replacement)
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF
 # view_Vendor - link to invoice doc
-# BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
 # Sub-GL codes?
@@ -91,6 +89,7 @@
 # Each location can have multiple addresses (bill/ship)
 # Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # DELETE USER in Locations section
+# BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 
 
 # ARCHIVE
