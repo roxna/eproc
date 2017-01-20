@@ -114,18 +114,16 @@ def get_started(request):
 def dashboard(request):
     buyer = request.user.buyer_profile
     
-    # Only show documents where pending action remains
+    # Only show documents where user is preparer or next_approver (unless SuperUser)
     requisitions = get_documents_by_auth(buyer, Requisition)
     pos = get_documents_by_auth(buyer, PurchaseOrder)
 
     all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
     all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)    
     
-    # Items in BUYER'S DEPT, either COMPLETE/PARTIAL delivery, in the past 7 days
-    all_items = OrderItem.objects.filter(requisition__department=buyer.department)    
-    items_received = all_items.annotate(latest_update=Max('status_updates__date'))
-    items_received = items_received.filter(Q(status_updates__value='Delivered Complete') | Q(status_updates__value='Delivered Partial'))
-    # items_received = items_received.filter(latest_update__gte=datetime.now()-timedelta(days=7))
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department (in the past 7 days)
+    items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items_received = items_received.filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
     data = {
         'pending_requisitions': pending_requisitions,
@@ -140,9 +138,8 @@ from random import randint
 def analysis(request):
     buyer = request.user.buyer_profile
     
-    # Items in BUYER'S DEPT
-    all_items = OrderItem.objects.filter(requisition__department=buyer.department)    
-    items_received = all_items.annotate(latest_update=Max('status_updates__date')).filter(Q(status_updates__value='Delivered Complete') | Q(status_updates__value='Delivered Partial'))
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
 
     location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
     categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('quantity')*F('unit_price'), output_field=models.DecimalField()))
@@ -194,6 +191,7 @@ def requisitions(request):
     
     # Returns Reqs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     requisitions = get_documents_by_auth(buyer, Requisition)
+    
     # Returns relevant requisitions based on their status (see utils.py)
     all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
     
@@ -209,7 +207,7 @@ def requisitions(request):
 @login_required
 def view_requisition(request, requisition_id):
     buyer = request.user.buyer_profile
-    requisition = get_object_or_404(Requisition, pk=requisition_id)
+    requisition = get_object_or_404(Requisition, pk=requisition_id)    
     # Manage approving/denying requisitions
     if request.method == 'POST':
         if 'approve' in request.POST:
@@ -251,8 +249,10 @@ def print_requisition(request, requisition_id):
 @login_required
 def new_purchaseorder(request):
     buyer = request.user.buyer_profile
-    all_items = OrderItem.objects.filter(requisition__buyer_co=buyer.company).exclude(purchase_order__isnull=False)
-    approved_order_items = all_items.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Approved')
+    
+    # Get list of Order Items with latest_status = 'Approved' from the company, where the PO hasn't already been allocated
+    approved_order_items = OrderItem.latest_status_objects.approved.filter(requisition__buyer_co=buyer.company).exclude(purchase_order__isnull=False)
+    
     po_form = PurchaseOrderForm(request.POST or None,
                                 initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})    
     initialize_newpo_forms(buyer, po_form)
@@ -720,7 +720,6 @@ def view_location(request, location_id, location_name):
             if location_form.is_valid():
                 save_location(location_form, buyer)
                 messages.success(request, 'Location updated successfully')
-                return redirect('view_location', location.id, location.name)
             else:
                 messages.error(request, 'Error. Location not updated. Please try again.')
         elif 'add_User' in request.POST:
@@ -728,20 +727,17 @@ def view_location(request, location_id, location_name):
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)                
                 send_verific_email(user, user.id*settings.SCALAR)
-                messages.success(request, 'User successfully invited')
-                return redirect('view_location', location.id, location.name)
+                messages.success(request, 'User successfully invited')                
             else:
                 messages.error(request, 'Error. User not added. Please try again.')
         elif 'add_Department' in request.POST:
             print 'addDept'
             if department_form.is_valid():
                 save_department(department_form, buyer, location)                
-                messages.success(request, 'Department added successfully')
-                # return redirect('view_location', location_id=location.id, location_name=location.name)
-                return redirect('view_location', location.id, location.name)
-                
+                messages.success(request, 'Department added successfully')                
             else:
                 messages.error(request, 'Error. Department not added. Please try again.')
+        return redirect('view_location', location.id, location.name)
     data = {
         'location': location,
         'location_form': location_form,

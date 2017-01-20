@@ -70,12 +70,24 @@ class Location(models.Model):
 ######### ACCOUNTING DETAILS #########
 class Department(models.Model):
 	name = models.CharField(max_length=50)
-	budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-	location = models.ForeignKey(Location, related_name='departments')
+	budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	location = models.ForeignKey(Location, related_name='departments')
 
 	def __unicode__(self):
 		return "{}".format(self.name)
+
+	def get_spend_approved_ytd(self):		
+		requisitions = self.requisitions.all()
+		order_items = requisitions.order_items.all()
+		approved_order_items = order_items.filter(get_latest_status=='Approved')
+		spend_approved_ytd = approved_order_items
+		return spend_approved_ytd
+
+	def get_spend_percent_of_budget(self):
+		try:
+			return self.get_spend_approved_ytd()/self.budget
+		except ZeroDivisionError:
+			return "No budget defined"
 
 class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
@@ -244,8 +256,10 @@ class OrderItem(models.Model):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
 	invoice = models.ForeignKey(Invoice, related_name='order_items', null=True, blank=True)
 	drawdown = models.ForeignKey(Drawdown, related_name='order_items', null=True, blank=True)
-	# objects = OrderItemManager()
-	# latest_status_objects = LatestStatusManager()
+
+	# Managers - overridden in managers.py
+	objects = models.Manager()
+	latest_status_objects = LatestStatusManager()
 	
 	def __unicode__(self):
 		return "{} {} at {} {}".format(self.quantity, self.product.name, self.product.currency, self.unit_price)
@@ -254,7 +268,7 @@ class OrderItem(models.Model):
 		return self.unit_price
 
 	def get_latest_status(self):
-	    return self.status_updates.latest('date')	
+	    return self.status_updates.latest('date')
 
 
 ##########################################
@@ -264,7 +278,7 @@ class OrderItem(models.Model):
 class Status(models.Model):
 	value = models.CharField(max_length=20, choices=settings.STATUSES, default='Pending')
 	date = models.DateTimeField(editable=False, default=timezone.now)
-	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")	
+	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")
 
 	def __unicode__(self):
 		return "{}".format(self.value)

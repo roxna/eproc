@@ -1,29 +1,5 @@
 from django.db import models
-
-# class DocumentQueryset(models.QuerySet):
-# 	def get_latest_status(self):	    
-# 	    latest_status = None
-# 	    for status in self.status_updates.all():
-# 	        if latest_status is None or latest_status.date < status.date:
-# 	            latest_status = status
-# 	    return latest_status
-
-# class DocumentManager(models.Manager):
-# 	def get_query_set(self):
-# 		return DocumentQueryset(self.model)
-
-# 	def get_latest_status(self):
-# 		return self.get_query_set().get_latest_status()
-	
-# Manager to get the latest status of each Document or Order Item
-class LatestStatusManager(models.Manager):
-	def get_query_set(self):
-		return super(LatestStatusManager, self).get_queryset().annotate(Max('status_updates__date'))
-
-class OrderItemManager(models.Manager):
-
-	def get_item_ids_with_status(items_to_query, status_list):
-		return [item.id for item in items_to_query if item.get_latest_status().value in status_list]
+from django.db.models import Sum, Max, Avg, F, Q
 
 # class FeatureManager(models.Manager):
 
@@ -43,3 +19,24 @@ class OrderItemManager(models.Manager):
 
 #     def intersection( self ):
 #         return self._test_cases_eq_0( self._standardized_gt_0( self.get_query_set() ) )
+
+
+# Manager to get the latest status of each Document or Order Item
+class LatestStatusManager(models.Manager):
+	use_for_related_fields = True
+
+	def _get_pending(self):
+		pending_list = ['Pending']
+		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=pending_list)
+
+	def _get_approved(self):
+		approved_list = ['Approved']
+		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=approved_list)
+
+	def _get_delivered(self):
+		delivered_list = ['Delivered Partial', 'Delivered Complete']
+		return self.get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=delivered_list)	
+
+	pending = property(_get_pending)
+	approved = property(_get_approved)
+	delivered = property(_get_delivered)
