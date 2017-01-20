@@ -1,39 +1,30 @@
   {% load eProc_filters %}
 
-  <!-- Order Item in Request -->
+  <!-- Order Item Details in PO/Invoice -->
   <div class="row">
     <div class="col-xs-12">
-  	 <p class="lead">Line Items</p>
+     <p class="lead">Line Items</p>
     </div>
     <div class="col-xs-12 table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
             <th>Product</th>
-            <th>Requested</th>
             <th>Ordered</th>
-            <th>Delivered</th>
-            <th>Returned</th>            
             <th>Unit Price</th>
-            <th>Requested Sub-total</th>
-            <th>Comments</th>
+            <th>Sub Total</th>
           </tr>
         </thead>
 
         <tbody>        
-          {% for order_item in order_items %}
+          {% for item in order_items %}
             <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
-            {% with order_item.product.currency|currency_icon as currency %}
+            {% with item.product.currency|currency_icon as currency %}
             <tr id="orderItemList">
-              <td id="">{{ order_item.product.name }}</td>
-              <td>{{ order_item.qty_requested }}</td>
-              <td>{{ order_item.qty_ordered }}</td>
-              <td>{{ order_item.qty_delivered }}</td>
-              <td>{{ order_item.qty_returned }}</td>            
-              <td>{{ currency }} {{ order_item.product.unit_price }}</td>
-
-              <td>{{ currency }} {{ order_item.get_requested_subtotal }}</td>
-              <td>{{ order_item.comments }}</td>
+              <td id="">{{ item.product.name }}</td>
+              <td>{{ item.qty_ordered }}</td>
+              <td>{{ currency }} {{ item.unit_price }}</td>
+              <td>{{ currency }} {{ item.get_ordered_subtotal }}</td>
             </tr>
             {% endwith %}
           {% endfor %}          

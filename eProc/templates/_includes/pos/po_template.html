@@ -1,0 +1,37 @@
+
+  <!-- PO Header -->
+  {% include "_includes/pos/po_header.html" with purchase_order=purchase_order %}
+  
+  <!-- PO Details -->
+  {% include "_includes/pos/po_details.html" with purchase_order=purchase_order %}
+
+  <!-- *****************
+    Order Items Table
+  ***************** -->
+  {% include '_includes/order_item_table.html' with order_items=purchase_order.order_items.all %}
+
+  <!-- ***************************************
+  Comments, Terms & Sub/Grand Total tables
+  *************************************** -->
+
+  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=currency sub_total=purchase_order.sub_total grand_total=purchase_order.grand_total %}
+
+  <!-- *****************
+       Footer
+  ***************** -->
+  <div class="row no-print">
+    <div class="col-xs-12">
+    {% with purchase_order.get_latest_status as latest_status %}
+        {% if latest_status.value == 'Pending' %}
+            {% include "_includes/approve_deny_cancel.html" with document=purchase_order user_role='Purchaser' %}
+        {% else %}
+          <div class="label text-grey">
+            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
+            [By {{latest_status.author}} on {{latest_status.date|date}}]
+            </em>
+          </div>
+      {% endif %}          
+    {% endwith %}
+    </div>
+  </div>
+  

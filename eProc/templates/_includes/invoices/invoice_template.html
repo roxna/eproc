@@ -1,0 +1,68 @@
+
+{% with invoice.get_latest_status as latest_status %} 
+  <!-- *****************
+    Header
+  ***************** -->
+  <div class="row">
+    <div class="col-xs-12">
+      <h2 class="page-header">
+        <i class="fa fa-globe"></i> INVOICE #{{invoice.number}}
+        <small class="pull-right">
+          <b> {{invoice.number}}</b>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
+        </small><br> 
+      </h2>
+    </div>
+  </div>
+
+  <!-- *****************
+    Invoice Details
+  ***************** -->
+  {% include "_includes/invoices/invoice_details.html" with invoice=invoice %}
+
+  <!-- *****************
+    Order Items Table
+  ***************** -->
+  {% include '_includes/order_item_table.html' with order_items=invoice.order_items.all %}
+
+  <!-- ***************************************
+  Comments, Terms & Sub/Grand Total tables
+  *************************************** -->
+
+  {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice currency=currency sub_total=invoice.sub_total grand_total=invoice.grand_total %}
+
+  <!-- *****************
+       Footer
+  ***************** -->
+  <div class="row no-print">
+    <div class="col-xs-12">
+      {% if latest_status.value == 'Pending' %}
+        {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
+            <form method="post">
+              {% csrf_token %}              
+              <button type="submit" name="paid" value="paid" class="btn basic-teal pull-right"><i class="fa fa-arrow-right"></i> Mark as Paid</button>
+            </form>
+        {% endif %}
+      {% else %}
+          <div class="label text-grey">
+            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
+            [By {{latest_status.author}} on {{latest_status.date|date}}]
+            </em>
+          </div>
+      {% endif %}          
+    </div>
+  </div>
+{% endwith %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

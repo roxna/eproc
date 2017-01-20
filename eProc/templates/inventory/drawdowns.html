@@ -29,27 +29,27 @@
             <div class="tab-content">
               <div class="tab-pane active" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/drawdown_table.html" with drawdowns=all_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=all_drawdowns headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="pending"> 
                  <table id="pendingTable" class="table table-striped">
-                 {% include "_includes/drawdown_table.html" with drawdowns=pending_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=pending_drawdowns headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="approved">
                  <table id="approvedTable" class="table table-striped">
-                 {% include "_includes/drawdown_table.html" with drawdowns=approved_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=approved_drawdowns headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="denied">
                  <table id="deniedTable" class="table table-striped">
-                 {% include "_includes/drawdown_table.html" with drawdowns=denied_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=denied_drawdowns headers=table_headers %}
                   </table>
               </div> 
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes/drawdown_table.html" with drawdowns=cancelled_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=cancelled_drawdowns headers=table_headers %}
                   </table>
               </div>            
             </div>

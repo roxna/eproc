@@ -31,37 +31,37 @@
             <div class="tab-content">
               <div class="tab-pane active" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=all_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=all_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="pending"> 
                  <table id="pendingTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=pending_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=pending_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="open"> 
                  <table id="openTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=approved_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=approved_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=closed_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=closed_pos href=href currency=currency %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=paid_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=paid_pos href=href currency=currency %}
                   </table>
               </div>  
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=cancelled_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=cancelled_pos href=href currency=currency %}
                   </table>
               </div>                          
               <div class="tab-pane" id="denied">
                  <table id="deniedTable" class="table table-striped">
-                 {% include '_includes/po_table.html' with purchaseorders=denied_pos href=href currency=currency %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=denied_pos href=href currency=currency %}
                   </table>
               </div>
 

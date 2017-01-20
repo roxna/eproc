@@ -74,7 +74,7 @@ def save_orderitems(buyer, document, orderitem_formset):
             elif isinstance(document, Drawdown):
                 item.drawdown = document
             item.date_due = document.date_due
-            # item.unit_price = item.product.unit_price
+            item.unit_price = item.product.unit_price
             item.save()
     document.save()
 

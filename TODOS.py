@@ -16,7 +16,7 @@
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
 # 4. Add approval process to invoices?? (new_invoice) #TODO --> Pending / Cancelled / Paid (view_invoice/1)
 # 5. Should dept be FK to company? or via locations?
-
+# 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 
 # BIG
 # ****************************
@@ -65,6 +65,7 @@
 # ****************************
 # Fasclick menu select
 #  Remove qty_ordered etc into own model??
+# DOc - sub and grand totals --> make into formuale, not indep fields
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  

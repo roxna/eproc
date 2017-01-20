@@ -29,27 +29,27 @@
             <div class="tab-content">
               <div class="tab-pane" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/invoice_table.html" with invoices=all_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=all_invoices headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane active" id="pending"> 
                  <table id="pendingTable" class="table table-striped">
-                 {% include "_includes/invoice_table.html" with invoices=pending_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=pending_invoices headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="approved">
                  <table id="approvedTable" class="table table-striped">
-                 {% include "_includes/invoice_table.html" with invoices=approved_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=approved_invoices headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes/invoice_table.html" with invoices=cancelled_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=cancelled_invoices headers=table_headers %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include "_includes/invoice_table.html" with invoices=paid_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=paid_invoices headers=table_headers %}
                   </table>
               </div>              
             </div>

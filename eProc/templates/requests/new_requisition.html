@@ -72,6 +72,10 @@
         /******* 
         Dynamically updated the UNIT_PRICE of Product 
         in Order Item Formset based on Product Unit_Price
+        THIS IS NOT BEING USED FOR NOW
+        IF IT IS USED AGAIN: 
+        a) add unit_price in OrderItemForm (forms.py) 
+        b) remove item.unit_price = item.product.unit_price in utils.py
         *******/
         $('.item-product').change(function(){
 

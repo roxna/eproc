@@ -1,6 +1,6 @@
+{% load eProc_filters %}
 
 <!-- Used in view_requisition and print_requisition -->
-{% load eProc_filters %}
 
 {% with requisition.get_latest_status as latest_status %} 
 <div class="row">
@@ -14,7 +14,9 @@
   </div>
 </div>
 
-<!-- Request Details -->
+<!-- *****************
+  Request Details
+***************** -->
 <div class="row invoice-info">
 	<div class="col-sm-6 invoice-col">
     <p class="lead">Requester Info</p>
@@ -31,10 +33,47 @@
   </div>  
 </div><br><br>
 
-<!-- Order Items Table-->
-{% include "_includes/order_item_table.html" with doc=requisition order_items=requisition.order_items.all %}
 
-<!-- Comments & Total -->
+<!-- *****************
+  Order Items Table
+***************** -->
+  <div class="row">
+    <div class="col-xs-12">
+     <p class="lead">Line Items</p>
+    </div>
+    <div class="col-xs-12 table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity Requested</th>
+            <th>Unit Price</th>
+            <th>Sub Total</th>
+            <th>Comments</th>
+          </tr>
+        </thead>
+
+        <tbody>        
+          {% for item in requisition.order_items.all %}
+            <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
+            {% with item.product.currency|currency_icon as currency %}
+            <tr id="orderItemList">
+              <td id="">{{ item.product.name }}</td>
+              <td>{{ item.qty_requested }}</td>              
+              <td>{{ currency }} {{ item.unit_price }}</td>
+              <td>{{ currency }} {{ item.get_requested_subtotal }}</td>
+              <td>{{ item.comments_request }}</td>
+            </tr>
+            {% endwith %}
+          {% endfor %}          
+        </tbody>
+      </table>
+    </div>
+  </div><br>
+
+<!-- *****************
+  Comments & Totals
+***************** -->
 <div class="row">              
   <div class="col-xs-12 col-md-8">
     <p class="lead">Other</p>
@@ -46,7 +85,9 @@
   </div>
 </div><br>
 
-<!-- Footer -->
+<!-- *****************
+  Footer
+***************** -->
 <div class="row no-print">
   <div class="col-xs-12">
     <!-- If req is PENDING -->

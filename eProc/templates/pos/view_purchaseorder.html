@@ -19,10 +19,7 @@
       </div>
     </div>
 
-    {% include "_includes/po_template.html" with purchase_order=purchase_order %}
-
-    
-    <!-- {#{% include "_includes/print_or_email.html" with href='print_purchaseorder' document=purchase_order subject="Purchase Order "+purchase_order.id %}#} -->
+    {% include "_includes/pos/po_template.html" with purchase_order=purchase_order %}
 
   </section>
   <div class="clearfix"></div>

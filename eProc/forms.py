@@ -372,11 +372,10 @@ class CatalogItemForm(ModelForm):
 
 
 class OrderItemForm(ModelForm):
-    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
-    unit_price = forms.DecimalField(required=True)
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)    
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
     qty_requested = forms.IntegerField(required=True, min_value=1)
-    comments = forms.CharField(required=False,)
+    comments_request = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
         super(OrderItemForm, self).__init__(*args, **kwargs)
@@ -385,11 +384,10 @@ class OrderItemForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('product', css_class='item-product col-md-2'),
+                Div('product', css_class='item-product col-md-3'),
                 Div('qty_requested', css_class='col-md-2'),
-                Div('unit_price', css_class='item-price col-md-2'),
-                Div('account_code', css_class='col-md-2'),
-                Div('comments', css_class='col-md-3'),
+                Div('account_code', css_class='col-md-3'),
+                Div('comments_request', css_class='col-md-3'),
                 HTML('<div class="col-md-1 delete" style="margin-top: 2em;">' +
                         '<a href="#"><i class="fa fa-trash"></i></a>' +
                     '</div>'),
@@ -399,12 +397,12 @@ class OrderItemForm(ModelForm):
 
     class Meta:
         model = OrderItem
-        fields = ("product", "qty_requested", "unit_price", "account_code", "comments")
+        fields = ("product", "qty_requested", "account_code", "comments_request")
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
     qty_drawndown = forms.IntegerField(required=True, min_value=1)
-    comments = forms.CharField(required=False)
+    comments_drawdown = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         super(DrawdownItemForm, self).__init__(*args, **kwargs)
@@ -415,7 +413,7 @@ class DrawdownItemForm(ModelForm):
             Div(
                 Div('product', css_class='col-md-4'),                
                 Div('qty_drawndown', css_class='col-md-2'),
-                Div('comments', css_class='col-md-4'),
+                Div('comments_drawdown', css_class='col-md-4'),
                 HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
@@ -423,7 +421,7 @@ class DrawdownItemForm(ModelForm):
 
     class Meta:
         model = OrderItem
-        fields = ("product", "qty_drawndown", "comments")
+        fields = ("product", "qty_drawndown", "comments_drawdown")
 
 ####################################
 ###       DOCUMENT FORMS         ### 
