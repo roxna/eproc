@@ -1,0 +1,71 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}New Purchase Order{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Create a Purchase Order (Step 1 of 2)</h1>{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+        	<form method="POST" action="">
+        	{% csrf_token %}
+
+				<div class="pages">
+		        	<div class="box-header with-border">
+		          		<h3 class="box-title">Select Order Items to Add to PO</h3>
+		          	</div>        	
+		        	<div class="box-body">  
+		        		<table id="orderTable" class="table table-striped">      	
+			        		{% include "_includes/table_header.html" with header_class="basic-teal" table_headers=table_headers %}
+							<tbody>					
+							  {% for item in approved_order_items %} 
+							  <tr>
+							  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
+							    <td><a href="{% url 'view_requisition' item.requisition.id %}">{{ item.number }}</a><br>
+							      <small>
+							      	by
+							      	{{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
+							    </td>
+							    <td>
+							    	<span class="itemName"><b>{{ item.product.name }}</span> </b><br>
+							    	<small><span class="itemQty">Qty: {{ item.qty_approved }}</small></span>
+							    </td>
+							    <td> {{ item.product.vendor_co }}</td>
+							    <td> {{ item.date_due|date }}</td>
+							    <td> 
+							    	<span class="itemSubTotal">{{ item.get_requested_subtotal }}</span><br>
+							    </td>
+							  </tr>
+							  {% endfor %}					
+							</tbody>
+				  	  	</table>		  
+		
+					<!-- Button to go to new_po_confirm page -->
+					<a href='{% url "new_po_confirm" %}'>
+						<button type="input" class="btn basic-teal pull-right">
+							Add Items to PO <i class="fa fa-angle-right"> </i> 
+						</button>
+					</a>	
+
+		        </div>
+
+			</form>
+
+		 </div>
+	  </div>
+  </div>
+
+</section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="orderTable" %}	
+{% endblock js %}

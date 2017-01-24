@@ -9,8 +9,8 @@ from home import views as home_views
 from eProc import views as eProc_views
 from eProc.forms import LoginForm
 
+
 urlpatterns=[
-    # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 
@@ -61,13 +61,18 @@ urlpatterns=[
     url(r'^requisitions/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),
     url(r'^requisitions/print/(?P<requisition_id>\w+)$', eProc_views.print_requisition, name='print_requisition'),
     
-    url(r'^purchase-orders/$', eProc_views.purchaseorders, name='purchaseorders'),
-    url(r'^purchase-order/new/$', eProc_views.new_purchaseorder, name='new_purchaseorder'),
-    url(r'^purchase-order/(?P<po_id>\w+)/$', eProc_views.view_purchaseorder, name='view_purchaseorder'),
-    url(r'^purchase-order/print/(?P<po_id>\w+)$', eProc_views.print_purchaseorder, name='print_purchaseorder'),
-    url(r'^purchase-orders/receive/$', eProc_views.receive_pos, name='receive_pos'),
-    url(r'^purchase-order/receive/(?P<po_id>\w+)/$', eProc_views.receive_purchaseorder, name='receive_purchaseorder'),
-    url(r'^purchase-order/items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
+    url(r'^purchase-order/', include([
+        url(r'^new/select-items/$', eProc_views.new_po_items, name='new_po_items'),
+        url(ur'^new/confirm/\w*/$', eProc_views.new_po_confirm, name='new_po_confirm'),
+        url(r'^(?P<po_id>\w+)/$', eProc_views.view_purchaseorder, name='view_purchaseorder'),
+        url(r'^print/(?P<po_id>\w+)$', eProc_views.print_purchaseorder, name='print_purchaseorder'),
+    ])),
+    url(r'^purchase-orders/', include([
+        url(r'^$', eProc_views.purchaseorders, name='purchaseorders'),
+        url(r'^receive/$', eProc_views.receive_pos, name='receive_pos'),
+        url(r'^receive/(?P<po_id>\w+)/$', eProc_views.receive_purchaseorder, name='receive_purchaseorder'),
+        url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
+    ])),
 
     url(r'^invoices/$', eProc_views.invoices, name='invoices'),    
     url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),   
@@ -80,6 +85,7 @@ urlpatterns=[
     url(r'^drawdowns/$', eProc_views.drawdowns, name='drawdowns'),
     url(r'^drawdown/new/$', eProc_views.new_drawdown, name='new_drawdown'),
     url(r'^drawdown/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
+    url(r'^drawdown/print/(?P<drawdown_id>\w+)$', eProc_views.print_drawdown, name='print_drawdown'),
     
     url(r'^vendors/$', eProc_views.vendors, name='vendors'),
     url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
@@ -89,18 +95,22 @@ urlpatterns=[
     url(r'^products/(?P<product_id>\w+)$', eProc_views.product_details, name='product_details'), #AJAX request
     url(r'^categories/$', eProc_views.categories, name='categories'),
 
-    url(r'^settings/$', eProc_views.settings, name='settings'),
-    url(r'^settings/profile/$', eProc_views.user_profile, name='user_profile'),
-    url(r'^settings/company/$', eProc_views.company_profile, name='company_profile'),
-    url(r'^settings/users/$', eProc_views.users, name='users'),
-    url(r'^settings/locations/$', eProc_views.locations, name='locations'),
-    url(r'^settings/locations/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
-    url(r'^settings/account-codes/$', eProc_views.account_codes, name='account_codes'),
-    url(r'^settings/approval-routing/$', eProc_views.approval_routing, name='approval_routing'),
-    # url(r'^settings/taxes/$', eProc_views.taxes, name='taxes'),
-
+    url(r'^settings/', include([
+            url(r'^$', eProc_views.settings, name='settings'),
+            url(r'^profile/$', eProc_views.user_profile, name='user_profile'),
+            url(r'^company/$', eProc_views.company_profile, name='company_profile'),
+            url(r'^users/$', eProc_views.users, name='users'),
+            url(r'^locations/$', eProc_views.locations, name='locations'),
+            url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
+            url(r'^account-codes/$', eProc_views.account_codes, name='account_codes'),
+            url(r'^approval-routing/$', eProc_views.approval_routing, name='approval_routing'),
+            # url(r'^taxes/$', eProc_views.taxes, name='taxes'),
+    ])),
 
 ]
+
+
+
 if settings.DEBUG is True:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

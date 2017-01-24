@@ -325,7 +325,7 @@ class CategoryForm(ModelForm):
 
 
 ####################################
-###   PRODUCT & ITEM FORMS       ### 
+###   PRODUCT/CATALOG FORM       ### 
 ####################################
 
 class CatalogItemForm(ModelForm):
@@ -370,15 +370,18 @@ class CatalogItemForm(ModelForm):
         model = CatalogItem
         fields = ('name', 'desc', 'sku', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
+####################################
+###      ORDER ITEM FORMS        ### 
+####################################
 
-class OrderItemForm(ModelForm):
+class NewReqItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)    
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
     qty_requested = forms.IntegerField(required=True, min_value=1)
     comments_request = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
-        super(OrderItemForm, self).__init__(*args, **kwargs)
+        super(NewReqItemForm, self).__init__(*args, **kwargs)
         self.empty_permitted = False
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -398,6 +401,89 @@ class OrderItemForm(ModelForm):
     class Meta:
         model = OrderItem
         fields = ("product", "qty_requested", "account_code", "comments_request")
+
+class NewPOItemForm(ModelForm):
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    qty_approved = forms.IntegerField(label='Qty Approved', widget=forms.TextInput(attrs={'readonly':'true'}))
+    qty_ordered = forms.IntegerField(required=True, min_value=1, label='Qty To Order')
+    unit_price = forms.DecimalField(required=True)  
+    comments_order = forms.CharField(required=False, label='Comments')
+
+    def __init__(self, *args, **kwargs):
+        super(NewPOItemForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('product', css_class='col-md-2'),
+                Div('qty_approved', css_class='col-md-2'),
+                Div('qty_ordered', css_class='qty_ordered col-md-2'),
+                Div('unit_price', css_class='item_price col-md-2'),
+                Div('comments_order', css_class='col-md-4'),
+                css_class='row',
+            ),
+        )
+    
+    # Ensure readonly/disabled 'product' field is not editable by users 
+        # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot
+    def clean_product(self):        
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+
+    # Add basic form validations to clean method
+    def clean(self):
+        cleaned_data = super(NewPOItemForm, self).clean()
+        qty_ordered = cleaned_data.get('qty_ordered')
+        qty_approved = cleaned_data.get('qty_approved')
+
+        if qty_ordered > qty_approved:
+            raise forms.ValidationError('You can not order more items than have been approved.')
+        
+
+    class Meta:
+        model = OrderItem
+        fields = ("product", "qty_approved", "qty_ordered", "unit_price", "comments_order")
+
+class ReceivePOItemForm(ModelForm):
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    qty_ordered = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Ordered')
+    qty_delivered = forms.IntegerField(required=True, label='Delivered')
+    qty_returned = forms.IntegerField(required=True, label='Returned')
+    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
+
+
+    def __init__(self, *args, **kwargs):
+        super(ReceivePOItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('number', css_class='col-md-1'),   
+                Div('product', css_class='col-md-2'),
+                Div('qty_ordered', css_class='col-md-2'),
+                Div('qty_delivered', css_class='col-md-2'),
+                Div('qty_returned', css_class='col-md-2'),
+                Div('comments_delivery', css_class='col-md-3'),
+                css_class='row',
+            ),
+        )  
+
+    # Ensure readonly 'product' field is not editable by users 
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
+    def clean_product(self):
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+
+    class Meta:
+        model = OrderItem
+        fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivery')
+        
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
@@ -599,34 +685,6 @@ class UploadCSVForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False      
 
-class ReceivePOForm(ModelForm):
-    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    quantity = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Requested')
-    qty_delivered = forms.IntegerField(required=True, label='Delivered')
-    qty_returned = forms.IntegerField(required=True, label='Returned')
-    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
-
-
-    def __init__(self, *args, **kwargs):
-        super(ReceivePOForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                Div('number', css_class='col-md-1'),   
-                Div('product', css_class='col-md-2'),
-                Div('quantity', css_class='col-md-2'),
-                Div('qty_delivered', css_class='col-md-2'),
-                Div('qty_returned', css_class='col-md-2'),
-                Div('comments_delivery', css_class='col-md-3'),
-                css_class='row',
-            ),
-        )
-
-    class Meta:
-        model = OrderItem
-        fields = ('number', 'product', 'quantity', 'qty_delivered', 'qty_returned', 'comments_delivery')
 
 class ApprovalRoutingForm(forms.Form):
     approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.none(), required=True)

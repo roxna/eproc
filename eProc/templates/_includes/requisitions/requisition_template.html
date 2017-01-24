@@ -1,18 +1,10 @@
 {% load eProc_filters %}
 
-<!-- Used in view_requisition and print_requisition -->
-
-{% with requisition.get_latest_status as latest_status %} 
-<div class="row">
-  <div class="col-xs-12">
-    <h2 class="page-header">
-      <i class="fa fa-globe"></i> ORDER #{{requisition.number}}
-      <small class="pull-right">
-        <b>{{requisition.number}} {% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b>
-      </small><br> 
-    </h2>
-  </div>
-</div>
+<!-- *****************
+  Request Header
+***************** -->
+<!-- Used in view_ and print_ -->
+{% include "_includes/docs/doc_header.html" with document=requisition href='view_requisition' %}
 
 <!-- *****************
   Request Details
@@ -90,6 +82,7 @@
 ***************** -->
 <div class="row no-print">
   <div class="col-xs-12">
+  {% with requisition.get_latest_status as latest_status %} 
     <!-- If req is PENDING -->
     {% if latest_status.value == 'Pending' %}
       <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.sub_total -->

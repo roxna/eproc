@@ -4,7 +4,10 @@
 
 {% block title %}Receive PO{% endblock title %}
 
-{% block header %}<h1>PO Receive Details</h1>{% endblock header %}
+{% block header %}
+  <p class="small"><a href="{% url 'receive_pos' %}"><i class="fa fa-angle-left"></i> Back</a></p>
+  <h1>PO Receive Details</h1>
+{% endblock header %}
 
 
 {% block content %}
@@ -12,17 +15,8 @@
   {% with purchase_order.get_latest_status as latest_status %}
   <section class="invoice">
 
-    <div class="row">
-      <div class="col-xs-12">
-        <a href="{% url 'receive_pos' %}"><i class="fa fa-angle-left"></i> Back</a>
-      </div>
-    </div>
-
-    <div class="row">
-        <div class="col-xs-12">
-          <h2 class="page-header border">PURCHASE ORDER [{{purchase_order.number}}]</h2>
-        </div>
-    </div>
+    <!-- PO Header -->
+    {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_purchaseorder' %}
     
     <!-- PO Details -->
     {% include "_includes/pos/po_details.html" with purchase_order=purchase_order %}
@@ -58,9 +52,10 @@
                 <form method="post">
                 {% csrf_token %}    
                     <button type="submit" name="save" value="save" class="btn basic-teal-outline pull-right">Save Changes</button>
-                    {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                                        
-                        <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>
-                    {% endif %}                     
+
+                    {% if purchase_order.is_ready_to_close and user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                      
+                        <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>                      
+                    {% endif %}
                 </form>
             </div>
 

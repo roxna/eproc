@@ -1,12 +1,20 @@
-# Edit product price in PO line items too?
-# Save files uploaded/media elements (invoice, co logo, blogs etc)
+
+# git commit -m "Edit item price & qty in new PO; Remove 'pending','approved', add 'paid' status for PO; Docs template cleanup
+
+
+# Num not 'ordered' in PO is created into new Item linked to same Req
+#Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR 
+# receive_po: # TODO: CLOSE OUT ORDER ITEM STATUSES TOO
+
 # (Bug) New Req/New DD - add Order_Items incl. unit_price not updating
-# Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR 
+# Save files uploaded/media elements (invoice, co logo, blogs etc)
 
-# ORDERITEM - qty_dd???? Checks in place for order)item - qty_deliv < qty_ordered etc
-#  qty_ordered, approved etc - set up
+
+
 # new_po second page - tax, etc fields non editable?
+# activate - url shouldnt be 127:00...
 
+# 
 # *****************************
 
 # QUES:
@@ -17,6 +25,7 @@
 # 4. Add approval process to invoices?? (new_invoice) #TODO --> Pending / Cancelled / Paid (view_invoice/1)
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
+# 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
 
 # BIG
 # ****************************
@@ -26,6 +35,7 @@
 # Refactor
 # Caching (eg. css files)
 # DECK
+# qty_ordered, approved etc - set up
 
 
 # NEW FEATURES
@@ -69,6 +79,7 @@
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
+# POs - partial
 # Latest_status_manager for docs (to replcate get_documents_by_status and by_auth in utils, but need to add another manager method for _by_auth replacement)
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
@@ -100,6 +111,12 @@
 
 # ARCHIVE
 # ****************************
+# new_po_confirm:
+    # Initialize the formsets' qty_ordered fields with qty_approved that the PO preparer can then change
+    # for index, form in enumerate(po_items_formset.forms):
+    #     form.fields['qty_ordered'].value = items[index].qty_approved
+
+
 # ANALYSIS
 	# loc_costs, loc_labels, loc_colors = [], [], []
  #    for i in list(location_spend):

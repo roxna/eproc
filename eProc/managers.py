@@ -7,6 +7,10 @@ class LatestStatusManager(models.Manager):
 	def _get_pending(self):
 		pending_list = ['Pending']
 		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=pending_list)
+	
+	def _get_open(self):
+		pending_list = ['Open']
+		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=pending_list)
 
 	def _get_approved(self):
 		approved_list = ['Approved']
@@ -17,5 +21,6 @@ class LatestStatusManager(models.Manager):
 		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=delivered_list)	
 
 	pending = property(_get_pending)
+	opened = property(_get_open)
 	approved = property(_get_approved)
 	delivered = property(_get_delivered)

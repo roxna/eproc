@@ -1,14 +1,5 @@
-{% with drawdown.get_latest_status as latest_status %} 
-<div class="row">
-  <div class="col-xs-12">
-    <h2 class="page-header">
-      <i class="fa fa-globe"></i> DRAWDOWN
-      <small class="pull-right">
-        <b>{{drawdown.number}} {% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' href_id=drawdown.id %}</b>
-      </small><br> 
-    </h2>
-  </div>
-</div>
+
+{% include "_includes/docs/doc_header.html" with document=drawdown href='view_drawdown' %}
 
 <!-- Request Details -->
 <div class="row invoice-info">
@@ -39,6 +30,7 @@
 <!-- Footer -->
 <div class="row no-print">
   <div class="col-xs-12">
+  {% with drawdown.get_latest_status as latest_status %} 
     {% if latest_status.value == 'Pending' %}
       <!-- Show only if Approver Role -->
       {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}

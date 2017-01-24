@@ -12,7 +12,7 @@
 
     <div class="row">
       <div class="col-xs-12">
-        <a href="{% url 'drawdowns' %}"><i class="fa fa-angle-left"></i> Back</a>
+        {% include "_includes/docs/print_or_email.html" with href_back='drawdowns' href_print='print_drawdown' document=drawdown %}
       </div>
     </div>
 

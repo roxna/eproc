@@ -15,6 +15,7 @@ from django.views import generic
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import is_safe_url
 from datetime import datetime, timedelta
@@ -98,7 +99,7 @@ def get_started(request):
             ['requisitions','2. Approve/decline requests', req_exists],
         ],
         'procure_list': [
-            ['new_purchaseorder','1. Create a purchase order', po_exists],
+            ['new_po_items','1. Create a purchase order', po_exists],
             ['purchaseorders','2. View open/pending POs', po_exists],
         ],
         'pay_list': [
@@ -118,8 +119,8 @@ def dashboard(request):
     requisitions = get_documents_by_auth(buyer, Requisition)
     pos = get_documents_by_auth(buyer, PurchaseOrder)
 
-    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)    
+    all_requisitions, pending_requisitions, open_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
+    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)    
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department (in the past 7 days)
     items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
@@ -163,16 +164,16 @@ def new_requisition(request):
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})        
-    OrderItemFormSet = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=OrderItemForm, extra=1)
-    orderitem_formset = OrderItemFormSet(request.POST or None)
-    initialize_newreq_forms(buyer, requisition_form, orderitem_formset)    
+    OrderItemFormset = inlineformset_factory(parent_model=Requisition, model=NewReqItemForm, form=OrderItemForm, extra=1)
+    orderitem_formset = OrderItemFormset(request.POST or None)
+    initialize_req_form(buyer, requisition_form, orderitem_formset)
     
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = save_new_document(buyer, requisition_form)
             # Save order_items and OrderItemsStatus --> see utils.py
             save_orderitems(buyer, requisition, orderitem_formset)
-            save_newreq_statuses(buyer, requisition)
+            save_req_statuses(buyer, requisition)
             messages.success(request, 'Requisition submitted successfully')
             return redirect('requisitions')
         else:
@@ -198,7 +199,7 @@ def requisitions(request):
     requisitions = get_documents_by_auth(buyer, Requisition)
     
     # Returns relevant requisitions based on their status (see utils.py)
-    all_requisitions, pending_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
+    all_requisitions, pending_requisitions, open_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
     
     data = {
         'all_requisitions': all_requisitions,
@@ -218,7 +219,7 @@ def view_requisition(request, requisition_id):
         if 'approve' in request.POST:
             DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
             for order_item in requisition.order_items.all():
-                OrderItemStatus.objects.create(value='Pending', author=buyer, order_item=order_item)
+                OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
             messages.success(request, 'Requisition approved')
         elif 'deny' in request.POST:
             DocumentStatus.objects.create(value='Denied', author=buyer, document=requisition)
@@ -252,62 +253,101 @@ def print_requisition(request, requisition_id):
 ####################################
 
 @login_required
-def new_purchaseorder(request):
+def new_po_items(request):
     buyer = request.user.buyer_profile
     
     # Get list of Order Items with latest_status = 'Approved' from the company, where the PO hasn't already been allocated
     approved_order_items = OrderItem.latest_status_objects.approved.filter(requisition__buyer_co=buyer.company).exclude(purchase_order__isnull=False)
-    
-    po_form = PurchaseOrderForm(request.POST or None,
-                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})    
-    initialize_newpo_forms(buyer, po_form)
+        
     if request.method == 'POST':
-        if po_form.is_valid():
-            purchase_order = save_new_document(buyer, po_form)
-            DocumentStatus.objects.create(value='Pending', author=buyer, document=purchase_order)
+        # Get items selected and convert to comma-separated string
+        items = request.POST.getlist('order_items')
+        item_ids = ','.join(items)
+        
+        # Redirect to new_po_confirm with query parameters = ids of items
+        redirect_url = reverse('new_po_confirm')
+        query_params = '?item_ids=' + str(item_ids)
+        return HttpResponseRedirect (redirect_url + query_params)
 
-            item_ids = request.POST.getlist('order_items')
-            items = OrderItem.objects.filter(id__in=item_ids)
-            for item in items:
-                item.purchase_order = purchase_order          
-                item.qty_approved = item.qty_ordered
-                item.save()
-                OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=item)
-                purchase_order.sub_total += item.get_approved_subtotal
-            purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
-            purchase_order.save()
-            messages.success(request, 'PO created successfully')
-            return redirect('purchaseorders')  
-        else:
-            messages.error(request, 'Error. Purchase order not created')
     currency = buyer.company.currency
     data = {
         'approved_order_items': approved_order_items,
-        'po_form': po_form,
         'currency': currency,
-        'item_header': ['', 'Order No.', 'Item', 'Quantity', 'Vendor', 'Date Required', 'Total Cost ('+currency+')'],
-        'po_header': ['Item', 'Qty', 'Unit Price', 'Total Cost ('+currency+')', 'Vendor',],
+        'table_headers': ['', 'Order No.', 'Item', 'Vendor', 'Required', 'Cost ('+currency+')'],        
     }
-    return render(request, "pos/new_purchaseorder.html", data)
+    return render(request, "pos/new_po_items.html", data)
+
+@login_required
+def new_po_confirm(request):    
+    buyer = request.user.buyer_profile
+
+    # Get the items selected in new_po_items from the query parameter
+    item_ids = request.GET.get('item_ids')
+    item_id_array = item_ids.split(",")
+    items = OrderItem.objects.filter(id__in=item_id_array)
+
+    # PO Order Items Formset with editable unit_price
+    NewPOItemFormSet = modelformset_factory(model=OrderItem, form=NewPOItemForm, extra=0)
+    po_items_formset = NewPOItemFormSet(request.POST or None, queryset=items)
+
+    # PO Form
+    po_form = PurchaseOrderForm(request.POST or None,
+                                initial= {'number': "PO"+str(PurchaseOrder.objects.filter(buyer_co=buyer.company).count()+1)})
+    initialize_po_form(buyer, po_form)
+    
+    if request.method == 'POST':
+        if po_form.is_valid() and po_items_formset.is_valid():
+            purchase_order = save_new_document(buyer, po_form)
+            DocumentStatus.objects.create(value='Open', author=buyer, document=purchase_order)
+
+            for orderitem_form in po_items_formset.forms:
+                if orderitem_form.is_valid():
+                    item = orderitem_form.save(commit=False)
+                    item.purchase_order = purchase_order
+                    item.save()
+                    
+                    purchase_order.sub_total += item.get_approved_subtotal
+                    OrderItemStatus.objects.create(value='Ordered', author=buyer, order_item=item)
+
+                    # Create a new Order Item with the same details (Item#, Req# etc) as current
+                    # However, qty_requested = items that were approved but weren't ordered
+                    approved_not_ordered = item.qty_approved - item.qty_ordered
+                    if approved_not_ordered > 0:
+                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=item.qty_requested, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, requisition=item.requisition)            
+                        OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), order_item=approved_not_ordered_item)
+
+                    
+            purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
+            purchase_order.save()
+            messages.success(request, 'PO created successfully')
+            return redirect('purchaseorders')
+        else:
+            messages.error(request, 'Error. Purchase order not created')
+    
+    currency = buyer.company.currency
+    data = {
+        'po_form': po_form,
+        'po_items_formset': po_items_formset,
+        'currency': currency,
+    }
+    return render(request, "pos/new_po_confirm.html", data)
 
 @login_required
 def purchaseorders(request):
     buyer = request.user.buyer_profile
     
-    # Returns POs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
-    pos = get_documents_by_auth(buyer, PurchaseOrder)
+    # Not using get_documents_by_auth function because assume purchasing is a centralized (not location-based) function
+    pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     # Returns relevant POs based on document's status (see utils.py)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
+    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
     
     data = {
         'all_pos': all_pos,
-        'pending_pos': pending_pos,
-        'approved_pos': approved_pos,
+        'open_pos': open_pos,
         'closed_pos': closed_pos,        
         'paid_pos': paid_pos,
         'cancelled_pos': cancelled_pos,
-        'denied_pos': denied_pos,
-        'currency': buyer.company.currency,
+        'paid_pos': paid_pos,
         'href': 'view_purchaseorder',
         'title': 'Purchase Orders',
     }
@@ -325,25 +365,20 @@ def print_purchaseorder(request, po_id):
 def view_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
-    if request.method == 'POST':        
-        if 'approve' in request.POST:
-            DocumentStatus.objects.create(value='Approved', author=buyer, document=purchase_order)
-            for order_item in purchase_order.order_items.all():
-                OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
-            messages.success(request, 'Purchase Order approved')
-        elif 'deny' in request.POST:
-            DocumentStatus.objects.create(value='Denied', author=buyer, document=purchase_order)
-            for order_item in purchase_order.order_items.all():
-                OrderItemStatus.objects.create(value='Denied', author=buyer, order_item=order_item)
-            messages.success(request, 'Purchase Order denied')
-        elif 'cancel' in request.POST:
+    if request.method == 'POST':
+        if 'cancel' in request.POST:
             DocumentStatus.objects.create(value='Cancelled', author=buyer, document=purchase_order)
             for order_item in purchase_order.order_items.all():
                 OrderItemStatus.objects.create(value='Cancelled', author=buyer, order_item=order_item)
-            messages.success(request, 'PO Cancelled')        
+            messages.success(request, 'PO Cancelled')
+            return redirect('purchaseorders')
+        elif 'paid' in request.POST:
+            DocumentStatus.objects.create(value='Paid', author=buyer, document=purchase_order)
+            messages.success(request, 'PO marked as Paid') 
+            return redirect('purchaseorders')
         else:
             messages.error(request, 'Error. PO not updated')
-        return redirect('purchaseorders')
+        
     data = {
         'purchase_order': purchase_order,
     }
@@ -353,11 +388,9 @@ def view_purchaseorder(request, po_id):
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
-    all_pos, pending_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
+    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
     data = {
-        'approved_pos': approved_pos,
-        'currency': buyer.company.currency,
-        'href': 'receive_purchaseorder',
+        'open_pos': open_pos,
     }
     return render(request, "pos/receive_pos.html", data)
 
@@ -365,22 +398,28 @@ def receive_pos(request):
 def receive_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
-    ReceivePOFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOForm, extra=0)
-    receive_po_formset = ReceivePOFormSet(request.POST or None, instance=purchase_order)
+    ReceivePOItemFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOItemForm, extra=0)
+    receive_po_formset = ReceivePOItemFormSet(request.POST or None, instance=purchase_order)
 
     if request.method == 'POST':
         if 'close' in request.POST:
             DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
+            # TODO: CLOSE OUT ORDER ITEM STATUSES TOO            
             messages.success(request, 'Purchase Order closed')
+            return redirect('purchaseorders')
         elif 'save' in request.POST:
             for index, form in enumerate(receive_po_formset.forms):
                 if form.is_valid() and form.has_changed():
-                    quantity = form.cleaned_data['quantity']
+                    qty_ordered = form.cleaned_data['qty_ordered']
                     qty_delivered = form.cleaned_data['qty_delivered']
                     qty_returned = form.cleaned_data['qty_returned']
-                    if qty_delivered > quantity or qty_returned > quantity:
-                        messages.error(request, 'Error. Quantity delivered/returned must be less than quantity requested.')
-                    elif qty_delivered + qty_returned == quantity:
+                    if qty_delivered > qty_ordered:
+                        messages.error(request, 'Error. Quantity delivered must be less than quantity ordered.')
+                    elif qty_returned > qty_delivered:
+                        messages.error(request, 'Error. Quantity returned must be less than quantity delivered.')
+                    elif qty_returned > qty_ordered:
+                        messages.error(request, 'Error. Quantity returned must be less than quantity ordered.')                        
+                    elif qty_delivered + qty_returned == qty_ordered:
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, order_item=item)
                         messages.success(request, 'Orders updated successfully')
@@ -388,9 +427,9 @@ def receive_purchaseorder(request, po_id):
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, order_item=item)
                         messages.success(request, 'Orders updated successfully')
+            return redirect('receive_purchaseorder', purchase_order.pk)
         else:
-            messages.error(request, 'Error updating items')        
-        return redirect('receive_pos')
+            messages.error(request, 'Error updating items')            
     data = {
         'purchase_order': purchase_order,
         'receive_po_formset': receive_po_formset,
@@ -419,10 +458,8 @@ def new_invoice(request):
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
     invoice_form = InvoiceForm(request.POST or None,
-                                initial= {'number': "INV"+str(Invoice.objects.filter(buyer_co=buyer.company).count()+1)})
-    invoice_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
-    # TODO: POs with UNBILLED ITEMS ONLY 
-    invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=buyer.company)
+                                initial= {'number': "INV"+str(Invoice.objects.filter(buyer_co=buyer.company).count()+1)})    
+    initialize_invoice_form(buyer, invoice_form)
     file_form = FileForm(request.POST or None, request.FILES or None)
     if request.method == 'POST':
         file_form = FileForm(request.POST, request.FILES)
@@ -464,7 +501,7 @@ def invoices(request):
     # Returns Invoices where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     invoices = get_documents_by_auth(buyer, Invoice)
     # Returns relevant Invoices based on their status (see utils.py)
-    all_invoices, pending_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents_by_status(buyer, invoices)
+    all_invoices, pending_invoices, open_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents_by_status(buyer, invoices)
     
     data = {
         'all_invoices': all_invoices,
@@ -567,13 +604,13 @@ def new_drawdown(request):
                                        initial= {'number': 'DD'+str(Drawdown.objects.filter(buyer_co=buyer.company).count()+1)})
     DrawdownItemFormSet = inlineformset_factory(parent_model=Drawdown, model=OrderItem, form=DrawdownItemForm, extra=1)
     drawdownitem_formset = DrawdownItemFormSet(request.POST or None)
-    initialize_newdrawdown_forms(buyer, drawdown_form, drawdownitem_formset)    
+    initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset)    
     
     if request.method == "POST":
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
             save_orderitems(buyer, drawdown, drawdownitem_formset)
-            save_newdrawdown_statuses(buyer, drawdown)
+            save_drawdown_statuses(buyer, drawdown)
             messages.success(request, 'Drawdown submitted successfully')
             return redirect('drawdowns')
         else:
@@ -615,13 +652,21 @@ def view_drawdown(request, drawdown_id):
     return render(request, "inventory/view_drawdown.html", data)
 
 @login_required
+def print_drawdown(request, drawdown_id):
+    drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
+    data = {
+        'drawdown': drawdown,        
+    }
+    return render(request, "inventory/print_drawdown.html", data)
+
+@login_required
 def drawdowns(request):
     buyer = request.user.buyer_profile
 
     # Returns DDs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     drawdowns = get_documents_by_auth(buyer, Drawdown)
     # Returns relevant DDs based on document's status (see utils.py)
-    all_drawdowns, pending_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents_by_status(buyer, drawdowns)
+    all_drawdowns, pending_drawdowns, open_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents_by_status(buyer, drawdowns)
 
     data = {
         'all_drawdowns': all_drawdowns,

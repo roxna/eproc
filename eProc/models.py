@@ -151,7 +151,7 @@ class Document(models.Model):
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	comments = models.CharField(max_length=100, null=True, blank=True)
-	terms = models.CharField(max_length=5000, blank=True, null=True)
+	terms = models.CharField(max_length=5000, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
@@ -165,6 +165,9 @@ class Document(models.Model):
 
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
+
+	def get_status_with_value(self, value):
+		return self.status_updates.filter(value=value).order_by('-date')[0]
 
 	def is_past_due(self):
 		if timezone.now().date() > self.date_due:
@@ -191,6 +194,12 @@ class Requisition(Document):
 
 class PurchaseOrder(SalesOrder):	
 	pass	
+
+	def is_ready_to_close(self):
+		for item in self.order_items.all():
+			if item.qty_ordered != item.qty_delivered + item.qty_returned:
+				return False
+		return True
 
 class Invoice(SalesOrder):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
@@ -240,14 +249,15 @@ class CatalogItem(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
+
 class OrderItem(models.Model):
 	number = models.CharField(max_length=20)
 	qty_requested = models.IntegerField(default=1) 	
-	qty_approved = models.IntegerField(null=True, blank=True)	
-	qty_ordered = models.IntegerField(null=True, blank=True)
-	qty_delivered = models.IntegerField(null=True, blank=True)
-	qty_returned = models.IntegerField(null=True, blank=True)
-	qty_drawndown = models.IntegerField(null=True, blank=True)
+	qty_approved = models.IntegerField(null=True, blank=True, default=0)	
+	qty_ordered = models.IntegerField(null=True, blank=True, default=0)
+	qty_delivered = models.IntegerField(null=True, blank=True, default=0)
+	qty_returned = models.IntegerField(null=True, blank=True, default=0)
+	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	comments_request = models.CharField(max_length=500, blank=True, null=True)
 	comments_order = models.CharField(max_length=500, blank=True, null=True)	
@@ -278,9 +288,11 @@ class OrderItem(models.Model):
 		except TypeError: #If qty is not defined
 			return '-'
 
+	@property
 	def get_requested_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_requested)
 
+	@property
 	def get_approved_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_approved)
 
@@ -308,6 +320,9 @@ class Status(models.Model):
 
 	def __unicode__(self):
 		return "{}".format(self.value)
+
+	def get_author(self):
+		return self.author
 
 	def get_status_details(self):
 		return "{} ({})".format(self.author, self.date.date())

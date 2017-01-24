@@ -1,3 +1,4 @@
+  {% load eProc_filters %}
   <div class="row">
       <div class="col-xs-12 col-md-6">
         <p class="lead">Other</p>
@@ -10,34 +11,33 @@
           <table class="table" id="{{tableID}}">
             <tbody>
                 <tr>
-                  <td>Subtotal:</td>
-                  <!-- floatformat adds decimals if needed -->
-                  <td id="POSubTotal">{{sub_total|floatformat:2}}</td>
+                  <td>Subtotal:</td>                  
+                  <td id="POSubTotal">{{form.sub_total}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Tax:</td>
-                  <td class="amount">{{form.tax_amount|floatformat:2}}</td>
+                  <td class="amount">{{form.tax_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Shipping:</td>
-                  <td class="amount">{{form.cost_shipping|floatformat:2}}</td>
+                  <td class="amount">{{form.cost_shipping}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Discount:</td>
-                  <td class="amount discount">{{form.discount_amount|floatformat:2}}</td>
+                  <td class="amount discount">{{form.discount_amount}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
                   <td>Other costs:</td>
-                  <td class="amount">{{form.cost_other|floatformat:2}}</td>
+                  <td class="amount">{{form.cost_other}}</td>
                   <td>{{currency}}</td>
                 </tr>    
                 <tr class="lead">
                   <td>Total Cost</td>
-                  <td id="POTotal">{{grand_total|floatformat:2}}</td>
+                  <td id="POTotal">{{form.grand_total}}</td>
                   <td>{{currency}}</td>
                 </tr>	
               </tbody>

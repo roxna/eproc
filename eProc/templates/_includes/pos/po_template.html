@@ -1,6 +1,6 @@
 
   <!-- PO Header -->
-  {% include "_includes/pos/po_header.html" with purchase_order=purchase_order %}
+  {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_purchaseorder' %}
   
   <!-- PO Details -->
   {% include "_includes/pos/po_details.html" with purchase_order=purchase_order %}
@@ -13,24 +13,37 @@
   <!-- ***************************************
   Comments, Terms & Sub/Grand Total tables
   *************************************** -->
-
-  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=currency sub_total=purchase_order.sub_total grand_total=purchase_order.grand_total %}
+  
+  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=purchase_order.currency sub_total=purchase_order.sub_total grand_total=purchase_order.grand_total %}
 
   <!-- *****************
        Footer
   ***************** -->
   <div class="row no-print">
     <div class="col-xs-12">
-    {% with purchase_order.get_latest_status as latest_status %}
-        {% if latest_status.value == 'Pending' %}
-            {% include "_includes/approve_deny_cancel.html" with document=purchase_order user_role='Purchaser' %}
-        {% else %}
-          <div class="label text-grey">
-            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
-            [By {{latest_status.author}} on {{latest_status.date|date}}]
-            </em>
-          </div>
-      {% endif %}          
+    {% with purchase_order.get_latest_status as latest_status and user.buyer_profile as buyer %}       
+        
+        <form method="post">
+        {% csrf_token %}             
+        
+          {% if latest_status.value == 'Open' %}
+            {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' or buyer == purchase_order.preparer %}            
+                <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel</button>
+            {% endif %}
+          {% endif %}
+
+          {% if latest_status.value == 'Closed' %}
+            {% if buyer.role == 'SuperUser' or buyer.role == 'Payer' %}
+                <button type="submit" name="paid" value="paid" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Mark as Paid</button>
+            {% endif %}
+          {% endif %}
+        </form>
+
+        <div class="label text-grey">
+          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
+          [By {{latest_status.author}} on {{latest_status.date|date}}]
+          </em>
+        </div>        
     {% endwith %}
     </div>
   </div>

@@ -24,11 +24,13 @@ def get_documents_by_auth(buyer, document_type):
 
 # Returns relevant Docs (Reqs/POs etc) based on their status
 def get_documents_by_status(buyer, documents): 
-    pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], []
+    pending_docs, open_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], [], []
     
     for doc in documents:        
-        if doc.get_latest_status().value == 'Pending':            
+        if doc.get_latest_status().value == 'Pending':
             pending_docs.append(doc)
+        elif doc.get_latest_status().value == 'Open':
+            open_docs.append(doc)
         elif doc.get_latest_status().value == 'Approved':
             approved_docs.append(doc)
         elif doc.get_latest_status().value == 'Closed':
@@ -40,15 +42,53 @@ def get_documents_by_status(buyer, documents):
         elif doc.get_latest_status().value == 'Denied':
             denied_docs.append(doc)  
                        
-    all_docs = pending_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
-    return all_docs, pending_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs
+    all_docs = pending_docs + open_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
+    return all_docs, pending_docs, open_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs
+
 
 
 ################################
-###     COMMON METHODS     ### 
+###    INITIALIZE FORMS    ### 
+################################ 
+
+def initialize_req_form(buyer, requisition_form, orderitem_formset):
+    if buyer.role == 'SuperUser':
+        # If SuperUser, can select any department and approver, incl. self
+        requisition_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
+        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
+    else:
+        # Else, dept only of buyer's location and next_approver only in buyer's department
+        requisition_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
+    
+    for orderitem_form in orderitem_formset: 
+        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
+
+def initialize_po_form(buyer, po_form):
+    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
+    po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
+    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
+    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company) 
+
+def initialize_invoice_form(buyer, invoice_form):
+    invoice_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
+    # TODO: POs with UNBILLED ITEMS ONLY 
+    invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=buyer.company)
+
+def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
+    drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=buyer.user)
+    for drawdownitem_form in drawdownitem_formset: 
+        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+
+
+################################
+###   SAVE METHODS - COMMON  ### 
 ################################ 
 
 # Used by NEW_REQ, NEW_PO, NEW_INVOICE, NEW_DD
+
 def save_new_document(buyer, form):
     instance = form.save(commit=False)
     instance.preparer = buyer
@@ -71,10 +111,15 @@ def save_orderitems(buyer, document, orderitem_formset):
                 document.sub_total += item.get_requested_subtotal()
                 if buyer.role == 'SuperUser':
                     item.qty_approved = item.qty_requested
+                item.unit_price = item.product.unit_price
+            elif isinstance(document, Drawdown):
+                item.purchase_order = purchase_order
+                if buyer.role == 'SuperUser':
+                    item.qty_ordered = item.qty_approved            
             elif isinstance(document, Drawdown):
                 item.drawdown = document
             item.date_due = document.date_due
-            item.unit_price = item.product.unit_price
+            
             item.save()
     document.save()
 
@@ -102,24 +147,10 @@ def save_department(department_form, buyer, location):
 
 
 ################################
-###     NEW REQUISITION     ### 
+###   SAVE METHODS - STATUS  ### 
 ################################ 
 
-def initialize_newreq_forms(buyer, requisition_form, orderitem_formset):
-    if buyer.role == 'SuperUser':
-        # If SuperUser, can select any department and approver, incl. self
-        requisition_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
-        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
-    else:
-        # Else, dept only of buyer's location and next_approver only in buyer's department
-        requisition_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
-    
-    for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
-        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
-
-def save_newreq_statuses(buyer, requisition):
+def save_req_statuses(buyer, requisition):
     if buyer.role == 'SuperUser':
         DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
         for order_item in requisition.order_items.all():
@@ -129,28 +160,7 @@ def save_newreq_statuses(buyer, requisition):
         for order_item in requisition.order_items.all():
             OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
 
-################################
-###    NEW PURCHASE ORDER    ### 
-################################ 
-
-def initialize_newpo_forms(buyer, po_form):
-    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
-    po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
-
-
-################################
-###       DRAWDOWNS         ### 
-################################ 
-
-def initialize_newdrawdown_forms(buyer, drawdown_form, drawdownitem_formset):
-    drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=buyer.user)
-    for drawdownitem_form in drawdownitem_formset: 
-        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
-
-def save_newdrawdown_statuses(buyer, drawdown):
+def save_drawdown_statuses(buyer, drawdown):
     if buyer.role == 'SuperUser':
         DocumentStatus.objects.create(value='Approved', author=buyer, document=drawdown)
         for order_item in drawdown.order_items.all():
@@ -160,18 +170,23 @@ def save_newdrawdown_statuses(buyer, drawdown):
         for order_item in drawdown.order_items.all():
             OrderItemStatus.objects.create(value='Drawdown Requested', author=buyer, order_item=order_item)
 
+
+################################
+###        GET METHODS       ### 
+################################ 
+
 def get_inventory_received(all_items):
     available_for_drawdown_statuses = ['Delivered Partial', 'Delivered Complete']
     delivered_ids = [item.id for item in all_items if item.get_latest_status().value in available_for_drawdown_statuses]
     delivered_list = all_items.filter(id__in=delivered_ids)
-    delivered_count = delivered_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('quantity'))
+    delivered_count = delivered_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('qty_delivered'))
     return delivered_list, delivered_count
 
 def get_inventory_drawndown(all_items, multiplier=1):    
     drawndown_statuses = ['Drawdown Approved']
     drawndown_ids = [item.id for item in all_items if item.get_latest_status().value in drawndown_statuses]
     drawndown_list = all_items.filter(id__in=drawndown_ids)
-    drawndown_count = drawndown_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('quantity')*multiplier)    
+    drawndown_count = drawndown_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('qty_drawndown')*multiplier)    
     return drawndown_list, drawndown_count
 
 

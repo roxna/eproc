@@ -15,12 +15,12 @@
         <div class="box box-default">
         
 	        <div class="box-header with-border">
-	          <h3 class="box-title">List of Open / Approved POs</h3>
+	          <h3 class="box-title">List of Open POs</h3>
 	        </div>     
 
 	        <div class="box-body">
 		         <table id="openTable" class="table table-striped">
-		         {% include '_includes/pos/po_table.html' with purchaseorders=approved_pos href=href currency=currency %}
+		         {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href='receive_purchaseorder' %}
 		          </table>            
 		    </div>
 

@@ -3,7 +3,9 @@
 
 {% block title %}Requests{% endblock title %}
 
-{% block header %}<h1>Requisition Details</h1>{% endblock header %}
+{% block header %}
+  <h1>Requisition Details</h1> 
+{% endblock header %}
 
 
 {% block content %}
@@ -12,13 +14,13 @@
 
     <div class="row">
       <div class="col-xs-12">
-        {% include '_includes/back_to.html' with destination='requisitions' %}
-        
-        {% include "_includes/print_or_email.html" with href='print_requisition' document=requisition %}    
+                
+        {% include "_includes/docs/print_or_email.html" with href_back='requisitions' href_print='print_requisition' document=requisition %}
+
       </div>
     </div>
       
-    {% include "_includes/requisition_template.html" with requisition=requisition %}    
+    {% include "_includes//requisitions/requisition_template.html" with requisition=requisition %}    
     
     </section>       
     <div class="clearfix"></div>

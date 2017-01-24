@@ -1,0 +1,162 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}New Purchase Order{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}	
+	<i class="fa fa-angle-left"> </i><a href="{% url 'new_po_items' %}"> Back to Step 1 </a>
+	<h1>Create a Purchase Order (Step 2 of 2)</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+        	<form method="POST" action="">
+        	{% csrf_token %}
+			
+				<div class="pages">
+					<div class="box-header with-border">
+		          		<h3 class="box-title">Fill in Purchase Order Details</h3>
+		          	</div>        	
+
+		        	<div class="box-body"> 
+
+		        	  <div class="row">
+		        	  	<div class="col-xs-12">
+				      		<p class="lead">PO Information</p>
+				      	</div>
+		        	  </div>
+				      <div class="row invoice-info">		      	
+				      	<div class="col-sm-3 invoice-col">
+				          Vendor <br> {{po_form.vendor_co}}
+				        </div>
+				        <div class="col-sm-3 invoice-col">
+				          Billing Address <br>{{po_form.billing_add}}
+				        </div>
+				        <div class="col-sm-3 invoice-col">				          
+				          Shipping Address <br>{{po_form.shipping_add}}
+				        </div>
+				        <div class="col-sm-3 invoice-col">
+				          PO Num. {{po_form.number}}<br><br>
+				          Date Due {{po_form.date_due}}<br>
+				        </div>
+				      </div><br><br>
+
+				      <div class="row">
+		        	  	<div class="col-xs-12">
+				      		<p class="lead">Order Items</p>
+				      	</div>
+				      </div>
+				      <div class="row">
+				      	<div class="col-xs-12"> 
+				      		<table id="POOrdersTable" class="table table-striped">
+								<tbody>
+									{{ po_items_formset.management_form | crispy }}
+
+			                        {% for form in po_items_formset.forms %}                   
+			                            {% for hidden in form.hidden_fields %}
+			                                {{ hidden }}
+			                            {% endfor %}
+			                            <div class="item" id="{{form.prefix}}">
+			                                {% crispy form form.helper %}
+			                            </div>                            
+			                        {% endfor %}
+								</tbody>								
+							</table>
+
+						</div>
+		        	  </div><br><br>
+
+
+				        <!-- ***********************************
+				        Comments, Terms & Sub/Grand Total tables 
+				        ***********************************  -->
+				        {% include "_includes/comments_totals.html" with tableID="POTable" form=po_form currency=currency %}
+
+						<div class="row">
+					      	<div class="col-xs-12 col-lg-6"> </div>
+					      	<div class="col-xs-6 col-lg-3"> 
+					      		<p class="lead">Next approver</p>
+					      	</div>
+					        <div class="col-xs-6 col-lg-3"> {{po_form.next_approver}}<br></div>
+				        </div><br><br>
+						
+						<!-- Buttons to go SUBMIT or CANCEL -->
+						<div class="row">
+							<div class="col-xs-12">
+								<button type="submit" name="createPO" class="button btn basic-teal pull-right"><i class="fa fa-shopping-cart"></i> Create PO</button>
+								<a href="{% url 'new_po_items' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
+							</div>
+						</div>
+		        	</div>
+				</div>    
+
+			</form>
+
+		 </div>
+	  </div>
+  </div>
+
+</section>
+{% endblock content %}
+
+{% block js %}
+  <script>
+  	$(document).ready(function(){
+  		
+  		var POSubTotal = 0; 
+  		var POTotal = 0;  	
+
+  		// Function to update SUB TOTAL from qty & price
+  		var updateSubTotal = function(){
+  			// Multiply price and quantity for each item row
+  			$('.item').each(function(){
+  				POSubTotal = 0;
+  				var qty = $(this).find('.qty_ordered').find('input').val();
+  				var price = $(this).find('.item_price').find('input').val();
+  				POSubTotal += qty * price;
+  			});
+  			$('#POSubTotal').html(POSubTotal);
+
+  		};	  	
+	  	
+		// Function to update GRAND TOTAL from costs and sub_total
+		var updateGrandTotal = function(){
+			POTotal = POSubTotal;
+			$('#POTotal').html(POTotal);
+
+		    $('td.amount').each(function() {
+		    	// If cost, add; if discount, subtract
+		    	$(this).hasClass('discount') ? POTotal -= parseInt($(this).children().val()) : POTotal += parseInt($(this).children().val());		        
+		    });		     
+		    $('#POTotal').html(POTotal);
+		};
+
+		 // Set subtotal & grandtotal on page load
+  		updateSubTotal();
+  		POTotal = POSubTotal;
+		$('#POTotal').html(POTotal);
+
+  		// Update TOTALS functions called on keyup
+  		// SubTotal - on change in price or quantity
+	  	$('.qty_ordered, .item_price').keyup(function(){
+	  		updateSubTotal();	  		
+	  	});
+
+	  	// Grand Total - on change in price/qty OR costs
+	  	$('#POTable, .item').keyup(function(){  
+	  		updateGrandTotal();
+	  	});
+
+	})
+  </script>
+{% endblock js %}
+

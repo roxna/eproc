@@ -3,16 +3,7 @@
   <!-- *****************
     Header
   ***************** -->
-  <div class="row">
-    <div class="col-xs-12">
-      <h2 class="page-header">
-        <i class="fa fa-globe"></i> INVOICE #{{invoice.number}}
-        <small class="pull-right">
-          <b> {{invoice.number}}</b>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
-        </small><br> 
-      </h2>
-    </div>
-  </div>
+  {% include "_includes/docs/doc_header.html" with document=invoice href='view_invoice' %}
 
   <!-- *****************
     Invoice Details

@@ -155,14 +155,14 @@ COUNTRIES = (('India', 'India'),('USA', 'USA'))
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
 STATUSES = (
     #### REQUEST Order Items  ####
-    ('Pending', 'Pending'), #view_req --> req not yet approved
-    ('Approved', 'Approved'), #req approved or req created by superuser
-    ('Ordered', 'Ordered'), #view_po --> po approved
-    ('Denied', 'Denied'), #view_req . view_po --> po/req denied
+    ('Pending', 'Pending'), #new_req --> req not yet approved
+    ('Approved', 'Approved'), #view_req --> req approved or req created by superuser
+    ('Denied', 'Denied'), #view_req --> req denied
+    ('Ordered', 'Ordered'), #view_po --> po items    
     ('Cancelled', 'Cancelled'), #view_req or #view_po --> po/req cancelled
     ('Delivered Partial', 'Delivered Partial'), #receive_po
     ('Delivered Complete', 'Delivered Complete'), #receive_po
-#??    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
+    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
     ('Drawdown Requested', 'Drawdown Requested'), #new_drawdown
@@ -178,13 +178,13 @@ STATUSES = (
     # ('Denied', 'Denied'), #view_req 
     # ('Cancelled', 'Cancelled'), #view_req
 
-    #### POs ####
-    # ('Pending', 'Pending'), #new_po
-    # ('Approved', 'Approved'), #view_po --> CHANGED FROM OPEN
-    # ('Denied', 'Denied'), #view_po
+    #### POs ####    
+    ('Open', 'Open'), #new_po --> WAITING TO BE RECEIVED
+    # ('Partial', 'Partial'),  #?--> TODO!
     ('Closed', 'Closed'),  #receive_po --> all items received OR explicit CLOSE 
     # ('Cancelled', 'Cancelled'), #view_po
- #??   # ('Paid', 'Paid'),  #new_invoice   
+    # ('Paid', 'Paid'),  #view_po 
+    
 
     #### Invoices ####
     # ('Pending', 'Pending'), #TODO Update: On invoice creation
