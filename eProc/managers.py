@@ -1,11 +1,11 @@
 from django.db import models
-from django.db.models import Max
+from django.db.models import F, Max
 
 # Manager to get the latest status of each DOCUMENT or ORDER ITEM (manager shared between both models)
 class LatestStatusManager(models.Manager):
 
 	def _get_by_status(self, status_list):
-		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__value__in=status_list)
+		return super(LatestStatusManager, self).get_queryset().annotate(latest_update=Max('status_updates__date')).filter(status_updates__date=F('latest_update'), status_updates__value__in=status_list)
 
 	def _get_pending(self):
 		return self._get_by_status(['Pending'])
