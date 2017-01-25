@@ -181,13 +181,16 @@ class SalesOrder(Document):
 	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-	grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)	
+	grand_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
 
  	class Meta:
  		abstract = True	
+
+ 	def get_grand_total(self):
+ 		return self.sub_total + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
 class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
@@ -260,6 +263,7 @@ class OrderItem(models.Model):
 	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	comments_request = models.CharField(max_length=500, blank=True, null=True)
+	comments_approved = models.CharField(max_length=500, blank=True, null=True)
 	comments_order = models.CharField(max_length=500, blank=True, null=True)	
 	comments_delivery = models.CharField(max_length=500, blank=True, null=True)
 	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
@@ -277,22 +281,21 @@ class OrderItem(models.Model):
 	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
 	
 	def __unicode__(self):
-		return "{} {} at {} {}".format(self.qty_requested, self.product.name, self.product.currency, self.unit_price)
+		return "{} at {} {} [{} req, {} approved]".format(self.product.name, self.product.currency, self.unit_price, self.qty_requested, self.qty_approved)
 
 	def get_unit_price(self):
 		return self.unit_price
 
+	# Helper function for all get_x_subtotal functions
 	def get_subtotal(self, price, quantity):
 		try:
 			return price * quantity
 		except TypeError: #If qty is not defined
 			return '-'
 
-	@property
 	def get_requested_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_requested)
-
-	@property
+	
 	def get_approved_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_approved)
 
@@ -313,6 +316,11 @@ class OrderItem(models.Model):
 
 	def get_delivered_date(self):
 	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
+
+	def is_past_due(self):
+		if timezone.now().date() > self.date_due:
+			return True
+		return False
 
 ##########################################
 #####        OTHER DETAILS          ##### 

@@ -62,13 +62,16 @@ def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
 
 # Used by NEW_REQ, NEW_PO, NEW_INVOICE, NEW_DD
 
+def set_next_approver_not_required(buyer, form):
+    if buyer.role == 'SuperUser':
+        form.fields['next_approver'].required = False
+
 def save_new_document(buyer, form):
     instance = form.save(commit=False)
     instance.preparer = buyer
     instance.currency = buyer.company.currency
     instance.date_issued = timezone.now()
     instance.buyer_co = buyer.company
-    instance.sub_total = 0
     instance.save()
     return instance
 

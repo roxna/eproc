@@ -21,7 +21,7 @@
     <td>
       <b> {{ po.date_due }} </b>
       {% include '_includes/is_past_due.html' with doc=po %}<br>
-      <em><small><b>Submitted:</b> {{ po.date_created|date }}</small></em>      
+      <em><small><b>Created:</b> {{ po.date_created|date }}</small></em>      
     </td>                      
     <td>{{ po.vendor_co }} <br></td>
     <td> {{po.currency|currency_icon}} {{ po.grand_total }}<br></td>

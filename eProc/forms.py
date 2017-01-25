@@ -487,8 +487,8 @@ class ReceivePOItemForm(ModelForm):
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
-    qty_drawndown = forms.IntegerField(required=True, min_value=1)
-    comments_drawdown = forms.CharField(required=False)
+    qty_drawndown = forms.IntegerField(required=True, min_value=1, label='Quantity')
+    comments_drawdown = forms.CharField(required=False, label='Comments')
 
     def __init__(self, *args, **kwargs):
         super(DrawdownItemForm, self).__init__(*args, **kwargs)
@@ -499,7 +499,7 @@ class DrawdownItemForm(ModelForm):
             Div(
                 Div('product', css_class='col-md-4'),                
                 Div('qty_drawndown', css_class='col-md-2'),
-                Div('comments_drawdown', css_class='col-md-4'),
+                Div('comments_drawdown', css_class='col-md-5'),
                 HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
@@ -548,8 +548,6 @@ class PurchaseOrderForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'} ))
     comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':60}))
-    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=False)
-
     cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     cost_other = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
@@ -568,8 +566,8 @@ class PurchaseOrderForm(ModelForm):
 
     class Meta:
         model = PurchaseOrder
-        fields = ("number", "date_due", "date_issued", "comments", "cost_shipping", "cost_other", "next_approver",
-                  "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add")
+        fields = ("number", "date_due", "date_issued", "comments", "cost_shipping", "cost_other",
+                  "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add", "sub_total", "grand_total")
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label="Invoice Number")
@@ -614,8 +612,6 @@ class InvoiceForm(ModelForm):
         date_issued = self.cleaned_data['date_issued']
         if date_issued > date_due:
             raise forms.ValidationError('Date due must be after issue date')
-        # TODO: Add more checks
-        # TODO: Make {{form.errors}} show in {{messages}}
     
     # Override save to make datetime objects timezone aware    
     def save(self, commit=True):

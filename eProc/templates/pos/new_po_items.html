@@ -1,5 +1,6 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
+{% load eProc_filters %}
 
 {% block title %}New Purchase Order{% endblock title %}
 
@@ -34,14 +35,18 @@
 							      	by
 							      	{{ item.requisition.preparer.user.username }} <em>[{{item.requisition.preparer.department }}]</em></small>
 							    </td>
-							    <td>
-							    	<span class="itemName"><b>{{ item.product.name }}</span> </b><br>
-							    	<small><span class="itemQty">Qty: {{ item.qty_approved }}</small></span>
-							    </td>
+							    <td><span class="itemName">{{ item.product.name }}</span></td>
+							    <td><span class="itemQty">{{ item.qty_approved }}</span></td>
 							    <td> {{ item.product.vendor_co }}</td>
-							    <td> {{ item.date_due|date }}</td>
+							    <td>
+							    	{{ item.date_due|date }}
+							    	<!-- Same as is_past_due.html for docs; However doesn't work for items because status must be 'Approved' -->
+							    	{% if item.is_past_due %}
+									  <span class="label label-danger">Overdue</span>
+									{% endif %}
+							    </td>
 							    <td> 
-							    	<span class="itemSubTotal">{{ item.get_requested_subtotal }}</span><br>
+							    	<span class="itemSubTotal">{{item.requisition.currency|currency_icon}}{{ item.get_requested_subtotal }}</span><br>
 							    </td>
 							  </tr>
 							  {% endfor %}					

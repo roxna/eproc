@@ -6,7 +6,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 # NOTES:
-# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log Start
+# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -156,10 +156,10 @@ EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense'))
 STATUSES = (
     #### REQUEST Order Items  ####
     ('Pending', 'Pending'), #new_req --> req not yet approved
-    ('Approved', 'Approved'), #view_req --> req approved or req created by superuser
+    ('Approved', 'Approved'), #view_req, view_po --> req approved or req created by superuser; or po cancelled
     ('Denied', 'Denied'), #view_req --> req denied
     ('Ordered', 'Ordered'), #view_po --> po items    
-    ('Cancelled', 'Cancelled'), #view_req or #view_po --> po/req cancelled
+    ('Cancelled', 'Cancelled'), #view_req --> req cancelled
     ('Delivered Partial', 'Delivered Partial'), #receive_po
     ('Delivered Complete', 'Delivered Complete'), #receive_po (qty_ordered = delivered+returned)
     ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown

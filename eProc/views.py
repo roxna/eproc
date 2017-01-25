@@ -265,7 +265,7 @@ def new_po_items(request):
     data = {
         'approved_order_items': approved_order_items,
         'currency': currency,
-        'table_headers': ['', 'Order No.', 'Item', 'Vendor', 'Required', 'Cost ('+currency+')'],        
+        'table_headers': ['', 'Order No.', 'Item', 'Qty Approved', 'Vendor', 'Date Required', 'Cost ('+currency+')'],        
     }
     return render(request, "pos/new_po_items.html", data)
 
@@ -290,7 +290,7 @@ def new_po_confirm(request):
     if request.method == 'POST':
         if po_form.is_valid() and po_items_formset.is_valid():
             purchase_order = save_new_document(buyer, po_form)
-            save_doc_status(document=purchase_order, value='Open', author=buyer)
+            save_doc_status(document=purchase_order, doc_status='Open', author=buyer)
 
             for orderitem_form in po_items_formset.forms:
                 if orderitem_form.is_valid():
@@ -298,14 +298,13 @@ def new_po_confirm(request):
                     item.purchase_order = purchase_order
                     item.save()
                     
-                    purchase_order.sub_total += item.get_approved_subtotal
                     OrderItemStatus.objects.create(value='Ordered', author=buyer, order_item=item)
 
                     # Create a new Order Item with the same details (Item#, Req# etc) as current
                     # However, qty_requested = items that were approved but weren't ordered
                     approved_not_ordered = item.qty_approved - item.qty_ordered
                     if approved_not_ordered > 0:
-                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=item.qty_requested, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, requisition=item.requisition)            
+                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, requisition=item.requisition, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
                         OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), order_item=approved_not_ordered_item)
 
                     
@@ -357,7 +356,14 @@ def view_purchaseorder(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':
         if 'cancel' in request.POST:
-            save_status(document=purchase_order, doc_status='Cancelled', item_status='Cancelled', author=buyer)
+            # PO is Cancelled, Items go back into Approved list with reset #s
+            save_status(document=purchase_order, doc_status='Cancelled', item_status='Approved', author=buyer)
+            for item in purchase_order.order_items.all():
+                item.qty_approved = item.qty_ordered #In case a subset of initial approved items were ordered, not re-setting approved quantity to ordered quantity will increase approved items beyond the initial number
+                item.qty_ordered = 0
+                item.unit_price = item.product.unit_price
+                item.comments_order = None
+                item.purchase_order = None
             messages.success(request, 'PO Cancelled')
             return redirect('purchaseorders')
         elif 'paid' in request.POST:
@@ -620,6 +626,8 @@ def new_drawdown(request):
     initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset)    
     
     if request.method == "POST":
+        # Sets next_approver as not required field if user is SuperUser before is_valid() is called (see utils.py)
+        set_next_approver_not_required(buyer, drawdown_form)
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
             save_items(buyer, drawdown, drawdownitem_formset)
@@ -682,7 +690,7 @@ def drawdowns(request):
         'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
         'denied_drawdowns': Drawdown.latest_status_objects.denied.filter(pk__in=drawdowns),
         'cancelled_drawdowns': Drawdown.latest_status_objects.cancelled.filter(pk__in=drawdowns),
-        'table_headers': ['Drawdown No.', 'Date Requested', 'Comments']
+        'table_headers': ['Drawdown No.', 'Requested by', 'Requested Date', 'Due Date', 'Comments']
     }
     return render(request, "inventory/drawdowns.html", data)
 

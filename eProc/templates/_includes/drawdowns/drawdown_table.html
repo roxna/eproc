@@ -14,9 +14,11 @@
       <td> 
         {% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=drawdown.number href='view_drawdown' href_id=drawdown.id %}
       </td>
-      <td> 
-        <b>By: </b>{{ drawdown.preparer }}<br>
-        <b>On: </b>{{ drawdown.date_issued | date }}<br>
+      <td> {{ drawdown.preparer }}<br></td>
+      <td>{{ drawdown.date_issued | date }}<br></td>  
+      <td>
+        {{ drawdown.date_due | date }} 
+        {% include '_includes/is_past_due.html' with doc=drawdown %}<br>
       </td>  
       <td>{{ drawdown.comments }} <br></td>
     </tr>

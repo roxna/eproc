@@ -3,16 +3,17 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
-# PENDING etc filter docs not working
+
 # DD - quantity not drawndown stil remains to be drawndown
+# Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
 
 # form errors show as messages framework
 # Move form validation from view to form init
 
 # Attach files to PO
-# add ACCOUNTS PAYABLE SECTION
-# Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
-# Receiving Summary
+
+# Form checks - Total of docs can't be negative, qty approved can't be 0 etc
+
 
 # *****************************
 

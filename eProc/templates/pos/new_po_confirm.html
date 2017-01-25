@@ -115,47 +115,57 @@
   		var POSubTotal = 0; 
   		var POTotal = 0;  	
 
+  		/**************
+  		UPDATE TOTALS Function
+  		**************/
   		// Function to update SUB TOTAL from qty & price
   		var updateSubTotal = function(){
+  			POSubTotal = 0;
   			// Multiply price and quantity for each item row
-  			$('.item').each(function(){
-  				POSubTotal = 0;
+  			$('.item').each(function(){  				
   				var qty = $(this).find('.qty_ordered').find('input').val();
   				var price = $(this).find('.item_price').find('input').val();
   				POSubTotal += qty * price;
+  				console.log(POSubTotal);
   			});
-  			$('#POSubTotal').html(POSubTotal);
+  			$('#subTotal :input').val(POSubTotal);
 
   		};	  	
 	  	
 		// Function to update GRAND TOTAL from costs and sub_total
 		var updateGrandTotal = function(){
 			POTotal = POSubTotal;
-			$('#POTotal').html(POTotal);
+			$('#total :input').val(POTotal);
 
 		    $('td.amount').each(function() {
 		    	// If cost, add; if discount, subtract
 		    	$(this).hasClass('discount') ? POTotal -= parseInt($(this).children().val()) : POTotal += parseInt($(this).children().val());		        
-		    });		     
-		    $('#POTotal').html(POTotal);
+		    });
+		    console.log(POTotal);  
+		    $('#total :input').val(POTotal);
 		};
 
-		 // Set subtotal & grandtotal on page load
-  		updateSubTotal();
-  		POTotal = POSubTotal;
-		$('#POTotal').html(POTotal);
-
-  		// Update TOTALS functions called on keyup
+  		/************** 
+  		 Update TOTALS functions called on keyup
+  		**************/
   		// SubTotal - on change in price or quantity
 	  	$('.qty_ordered, .item_price').keyup(function(){
 	  		updateSubTotal();	  		
 	  	});
 
 	  	// Grand Total - on change in price/qty OR costs
-	  	$('#POTable, .item').keyup(function(){  
+	  	$('td, .item').keyup(function(){  
+	  		
 	  		updateGrandTotal();
 	  	});
 
+	  	/************** 
+	  	 SETUP
+		 **************/		
+  		$('#subTotal :input').prop('readonly', true);
+  		$('#total :input').prop('readonly', true);
+  		updateSubTotal();
+		$('#total :input').val(POTotal);
 	})
   </script>
 {% endblock js %}
