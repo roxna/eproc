@@ -1,31 +1,26 @@
 
-# git commit -m "Edit item price & qty in new PO; Remove 'pending','approved', add 'paid' status for PO; Docs template cleanup
-
-
-# Num not 'ordered' in PO is created into new Item linked to same Req
-#Order_Items into individual entries (new PO): Num not delivered is created into new Item linked to same PR 
-# receive_po: # TODO: CLOSE OUT ORDER ITEM STATUSES TOO
-
 # (Bug) New Req/New DD - add Order_Items incl. unit_price not updating
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
-
-
-
-# new_po second page - tax, etc fields non editable?
 # activate - url shouldnt be 127:00...
 
-# 
+# Latest_status_manager for docs (to replcate get_documents_by_status and by_auth in utils, but need to add another manager method for _by_auth replacement)
+# DD - quantity not drawndown stil remains to be drawndown
+
+# form errors show as messages framework
+# Move form validation from view to form init
+
 # *****************************
 
 # QUES:
 # ****************************
-# 1. Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
+# 1. WHO SHOULD SEE WHAT DOCS? Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
 # 4. Add approval process to invoices?? (new_invoice) #TODO --> Pending / Cancelled / Paid (view_invoice/1)
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
+# 8. 
 
 # BIG
 # ****************************
@@ -35,7 +30,6 @@
 # Refactor
 # Caching (eg. css files)
 # DECK
-# qty_ordered, approved etc - set up
 
 
 # NEW FEATURES
@@ -52,7 +46,7 @@
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # Multiple plans --> manage payment and subscription options
-# In request - choose NON CATALOG item
+# BULK ORDER
 # NEGOTIATE (Purchaser): 
 	# Bids (Proposals, quotes, specs)
 	# Reverse Auction
@@ -74,13 +68,13 @@
 # REFINEMENTS:
 # ****************************
 # Fasclick menu select
+# In request - choose NON CATALOG item
 #  Remove qty_ordered etc into own model??
 # DOc - sub and grand totals --> make into formuale, not indep fields
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
 # POs - partial
-# Latest_status_manager for docs (to replcate get_documents_by_status and by_auth in utils, but need to add another manager method for _by_auth replacement)
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF

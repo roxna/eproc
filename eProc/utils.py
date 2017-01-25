@@ -15,11 +15,9 @@ def send_verific_email(user,random_id):
 # User in requisitions, purchaseorders etc in views.py
 def get_documents_by_auth(buyer, document_type):
     if buyer.role == 'SuperUser':
-        documents = document_type.objects.filter(buyer_co=buyer.company)
-    else:
-        # .filter().filter() --> either or (vs. filter(x, y))
-        documents = document_type.objects.filter(preparer=buyer).filter(next_approver=buyer)
-    return documents
+        return document_type.objects.filter(buyer_co=buyer.company)
+    else:        
+        return document_type.objects.filter(preparer=buyer).filter(next_approver=buyer) # .filter().filter() --> either or (vs. filter(x, y))
 
 
 # Returns relevant Docs (Reqs/POs etc) based on their status
@@ -101,25 +99,24 @@ def save_new_document(buyer, form):
 
 # Save the data for each form in the order_items formset 
 # Used by NEW_REQ, NEW_DD
-def save_orderitems(buyer, document, orderitem_formset):    
+def save_items(buyer, document, orderitem_formset):    
     for index, orderitem_form in enumerate(orderitem_formset.forms):
         if orderitem_form.is_valid():
             item = orderitem_form.save(commit=False)
             item.number = document.number + "-" + str(index+1)
+            item.date_due = document.date_due
             if isinstance(document, Requisition):
                 item.requisition = document
                 document.sub_total += item.get_requested_subtotal()
                 if buyer.role == 'SuperUser':
                     item.qty_approved = item.qty_requested
                 item.unit_price = item.product.unit_price
-            elif isinstance(document, Drawdown):
+            elif isinstance(document, PurchaseOrder):
                 item.purchase_order = purchase_order
                 if buyer.role == 'SuperUser':
                     item.qty_ordered = item.qty_approved            
             elif isinstance(document, Drawdown):
-                item.drawdown = document
-            item.date_due = document.date_due
-            
+                item.drawdown = document        
             item.save()
     document.save()
 
@@ -143,33 +140,19 @@ def save_user(user_form, buyer_profile_form, company, location):
 def save_department(department_form, buyer, location):
     department = department_form.save(commit=False)
     department.location = location
-    department.save()
+    department.save() 
 
+# Updates document and order_item statuses with relevant values/author
+def save_status(document, doc_status, item_status, author):
+    save_doc_status(document, doc_status, author)
+    save_item_status(document, item_status, author)
 
-################################
-###   SAVE METHODS - STATUS  ### 
-################################ 
+def save_doc_status(document, doc_status, author):
+    DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
-def save_req_statuses(buyer, requisition):
-    if buyer.role == 'SuperUser':
-        DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
-        for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
-    else:
-        DocumentStatus.objects.create(value='Pending', author=buyer, document=requisition)
-        for order_item in requisition.order_items.all():
-            OrderItemStatus.objects.create(value='Requested', author=buyer, order_item=order_item)
-
-def save_drawdown_statuses(buyer, drawdown):
-    if buyer.role == 'SuperUser':
-        DocumentStatus.objects.create(value='Approved', author=buyer, document=drawdown)
-        for order_item in drawdown.order_items.all():
-            OrderItemStatus.objects.create(value='Drawdown Approved', author=buyer, order_item=order_item)
-    else:
-        DocumentStatus.objects.create(value='Pending', author=buyer, document=drawdown)
-        for order_item in drawdown.order_items.all():
-            OrderItemStatus.objects.create(value='Drawdown Requested', author=buyer, order_item=order_item)
-
+def save_item_status(document, item_status, author):
+    for order_item in document.order_items.all():
+        OrderItemStatus.objects.create(value=item_status, author=author, order_item=order_item)
 
 ################################
 ###        GET METHODS       ### 

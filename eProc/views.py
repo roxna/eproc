@@ -171,9 +171,12 @@ def new_requisition(request):
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = save_new_document(buyer, requisition_form)
-            # Save order_items and OrderItemsStatus --> see utils.py
-            save_orderitems(buyer, requisition, orderitem_formset)
-            save_req_statuses(buyer, requisition)
+            # Save order_items and statuses (Req & Order Item status) --> see utils.py
+            save_items(buyer, requisition, orderitem_formset)
+            if buyer.role == 'SuperUser':
+                save_status(document=requisition, doc_status='Approved', item_status='Approved', author=buyer)
+            else:
+                save_status(document=requisition, doc_status='Pending', item_status='Requested', author=buyer)
             messages.success(request, 'Requisition submitted successfully')
             return redirect('requisitions')
         else:
@@ -198,15 +201,13 @@ def requisitions(request):
     # Returns Reqs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     requisitions = get_documents_by_auth(buyer, Requisition)
     
-    # Returns relevant requisitions based on their status (see utils.py)
-    all_requisitions, pending_requisitions, open_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
-    
+    # Returns relevant requisitions based on their latest_status (see managers.py)    
     data = {
-        'all_requisitions': all_requisitions,
-        'pending_requisitions': pending_requisitions,
-        'approved_requisitions': approved_requisitions,
-        'denied_requisitions': denied_requisitions,
-        'cancelled_requisitions': cancelled_requisitions,
+        'all_requisitions': Requisition.latest_status_objects.filter(pk__in=requisitions),
+        'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
+        'approved_requisitions': Requisition.latest_status_objects.approved.filter(pk__in=requisitions),
+        'denied_requisitions': Requisition.latest_status_objects.denied.filter(pk__in=requisitions),
+        'cancelled_requisitions': Requisition.latest_status_objects.cancelled.filter(pk__in=requisitions),
     }
     return render(request, "requests/requisitions.html", data)
 
@@ -214,22 +215,16 @@ def requisitions(request):
 def view_requisition(request, requisition_id):
     buyer = request.user.buyer_profile
     requisition = get_object_or_404(Requisition, pk=requisition_id)    
-    # Manage approving/denying requisitions
+    # Manage approving/denying requisitions (see utils.py)
     if request.method == 'POST':
         if 'approve' in request.POST:
-            DocumentStatus.objects.create(value='Approved', author=buyer, document=requisition)
-            for order_item in requisition.order_items.all():
-                OrderItemStatus.objects.create(value='Approved', author=buyer, order_item=order_item)
+            save_status(document=requisition, doc_status='Approved', item_status='Approved', author=buyer)
             messages.success(request, 'Requisition approved')
         elif 'deny' in request.POST:
-            DocumentStatus.objects.create(value='Denied', author=buyer, document=requisition)
-            for order_item in requisition.order_items.all():
-                OrderItemStatus.objects.create(value='Denied', author=buyer, order_item=order_item)
+            save_status(document=requisition, doc_status='Denied', item_status='Denied', author=buyer)
             messages.success(request, 'Requisition denied')
         elif 'cancel' in request.POST:
-            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=requisition)
-            for order_item in requisition.order_items.all():
-                OrderItemStatus.objects.create(value='Cancelled', author=buyer, order_item=order_item)
+            save_status(document=requisition, doc_status='Cancelled', item_status='Cancelled', author=buyer)
             messages.success(request, 'Requisition Cancelled')          
         else:
             messages.error(request, 'Error. Requisition not updated')
@@ -298,7 +293,7 @@ def new_po_confirm(request):
     if request.method == 'POST':
         if po_form.is_valid() and po_items_formset.is_valid():
             purchase_order = save_new_document(buyer, po_form)
-            DocumentStatus.objects.create(value='Open', author=buyer, document=purchase_order)
+            save_doc_status(document=purchase_order, value='Open', author=buyer)
 
             for orderitem_form in po_items_formset.forms:
                 if orderitem_form.is_valid():
@@ -338,16 +333,13 @@ def purchaseorders(request):
     
     # Not using get_documents_by_auth function because assume purchasing is a centralized (not location-based) function
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
-    # Returns relevant POs based on document's status (see utils.py)
-    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
     
     data = {
-        'all_pos': all_pos,
-        'open_pos': open_pos,
-        'closed_pos': closed_pos,        
-        'paid_pos': paid_pos,
-        'cancelled_pos': cancelled_pos,
-        'paid_pos': paid_pos,
+        'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
+        'open_pos': PurchaseOrder.latest_status_objects.open.filter(pk__in=pos),
+        'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
+        'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
+        'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
         'href': 'view_purchaseorder',
         'title': 'Purchase Orders',
     }
@@ -367,13 +359,11 @@ def view_purchaseorder(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':
         if 'cancel' in request.POST:
-            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=purchase_order)
-            for order_item in purchase_order.order_items.all():
-                OrderItemStatus.objects.create(value='Cancelled', author=buyer, order_item=order_item)
+            save_status(document=purchase_order, doc_status='Cancelled', item_status='Cancelled', author=buyer)
             messages.success(request, 'PO Cancelled')
             return redirect('purchaseorders')
         elif 'paid' in request.POST:
-            DocumentStatus.objects.create(value='Paid', author=buyer, document=purchase_order)
+            save_status(document=purchase_order, doc_status='Paid', item_status='Paid', author=buyer)
             messages.success(request, 'PO marked as Paid') 
             return redirect('purchaseorders')
         else:
@@ -404,7 +394,8 @@ def receive_purchaseorder(request, po_id):
     if request.method == 'POST':
         if 'close' in request.POST:
             DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
-            # TODO: CLOSE OUT ORDER ITEM STATUSES TOO            
+            # No Order Item status updates needed because 'Close' only shows if doc.is_ready_to_close:
+            # order item statuses should be uptodate i.e. qty_ordered = qty_delivered + qty_returned)
             messages.success(request, 'Purchase Order closed')
             return redirect('purchaseorders')
         elif 'save' in request.POST:
@@ -500,15 +491,13 @@ def invoices(request):
     
     # Returns Invoices where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     invoices = get_documents_by_auth(buyer, Invoice)
-    # Returns relevant Invoices based on their status (see utils.py)
-    all_invoices, pending_invoices, open_invoices, approved_invoices, closed_invoices, paid_invoices, cancelled_invoices, denied_invoices = get_documents_by_status(buyer, invoices)
     
     data = {
-        'all_invoices': all_invoices,
-        'pending_invoices': pending_invoices,
-        'approved_invoices': approved_invoices,
-        'cancelled_invoices': cancelled_invoices,
-        'paid_invoices': paid_invoices,
+        'all_invoices': Invoice.latest_status_objects.filter(pk__in=invoices),
+        'pending_invoices': Invoice.latest_status_objects.pending.filter(pk__in=invoices),
+        'approved_invoices': Invoice.latest_status_objects.approved.filter(pk__in=invoices),
+        'cancelled_invoices': Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
+        'paid_invoices': Invoice.latest_status_objects.paid.filter(pk__in=invoices),
         'table_headers': ['Invoice No.', 'Amount ('+buyer.company.currency+')', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
     }
     return render(request, "invoices/invoices.html", data)
@@ -527,9 +516,7 @@ def view_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     if request.method == 'POST':
         if 'paid' in request.POST:
-            DocumentStatus.objects.create(value='Paid', author=buyer, document=invoice)
-            for order_item in invoice.order_items.all():
-                OrderItemStatus.objects.create(value='Paid', author=buyer, order_item=order_item)
+            save_status(document=invoice, doc_status='Paid', item_status='Paid', author=buyer)
             messages.success(request, 'Invoice marked as Paid')
         else:
             messages.error(request, 'Error. Invoice not updated')
@@ -609,8 +596,11 @@ def new_drawdown(request):
     if request.method == "POST":
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
-            save_orderitems(buyer, drawdown, drawdownitem_formset)
-            save_drawdown_statuses(buyer, drawdown)
+            save_items(buyer, drawdown, drawdownitem_formset)
+            if buyer.role == 'SuperUser':
+                save_status(document=drawdown, doc_status='Approved', item_status='Drawdown Approved', author=buyer)
+            else:
+                save_status(document=drawdown, doc_status='Pending', item_status='Drawdown Requested', author=buyer)
             messages.success(request, 'Drawdown submitted successfully')
             return redirect('drawdowns')
         else:
@@ -629,19 +619,13 @@ def view_drawdown(request, drawdown_id):
     # pdb.set_trace()
     if request.method == 'POST':
         if 'approve' in request.POST:
-            DocumentStatus.objects.create(value='Approved', author=buyer, document=drawdown)
-            for order_item in drawdown.order_items.all():
-                OrderItemStatus.objects.create(value='Drawdown Approved', author=buyer, order_item=order_item)
+            save_status(document=drawdown, doc_status='Approved', item_status='Drawdown Approved', author=buyer)
             messages.success(request, 'Drawdown Approved')
         elif 'deny' in request.POST:
-            DocumentStatus.objects.create(value='Denied', author=buyer, document=drawdown)
-            for order_item in drawdown.order_items.all():
-                OrderItemStatus.objects.create(value='Drawdown Denied', author=buyer, order_item=order_item)
+            save_status(document=drawdown, doc_status='Denied', item_status='Drawdown Denied', author=buyer)            
             messages.success(request, 'Drawdown Denied')     
         elif 'cancel' in request.POST:
-            DocumentStatus.objects.create(value='Cancelled', author=buyer, document=drawdown)
-            for order_item in drawdown.order_items.all():
-                OrderItemStatus.objects.create(value='Drawdown Cancelled', author=buyer, order_item=order_item)
+            save_status(document=drawdown, doc_status='Cancelled', item_status='Drawdown Cancelled', author=buyer)
             messages.success(request, 'Drawdown Cancelled')                        
         else:
             messages.error(request, 'Error. Drawdown not updated')
@@ -665,15 +649,13 @@ def drawdowns(request):
 
     # Returns DDs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     drawdowns = get_documents_by_auth(buyer, Drawdown)
-    # Returns relevant DDs based on document's status (see utils.py)
-    all_drawdowns, pending_drawdowns, open_drawdowns, approved_drawdowns, closed_drawdowns, paid_drawdowns, cancelled_drawdowns, denied_drawdowns = get_documents_by_status(buyer, drawdowns)
 
     data = {
-        'all_drawdowns': all_drawdowns,
-        'pending_drawdowns': pending_drawdowns,
-        'approved_drawdowns': approved_drawdowns,
-        'denied_drawdowns': denied_drawdowns,
-        'cancelled_drawdowns': cancelled_drawdowns,
+        'all_drawdowns': Drawdown.latest_status_objects.filter(pk__in=drawdowns),
+        'pending_drawdowns': Drawdown.latest_status_objects.pending.filter(pk__in=drawdowns),
+        'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
+        'denied_drawdowns': Drawdown.latest_status_objects.denied.filter(pk__in=drawdowns),
+        'cancelled_drawdowns': Drawdown.latest_status_objects.cancelled.filter(pk__in=drawdowns),
         'table_headers': ['Drawdown No.', 'Date Requested', 'Comments']
     }
     return render(request, "inventory/drawdowns.html", data)
