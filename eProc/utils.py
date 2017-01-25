@@ -20,31 +20,6 @@ def get_documents_by_auth(buyer, document_type):
         return document_type.objects.filter(preparer=buyer).filter(next_approver=buyer) # .filter().filter() --> either or (vs. filter(x, y))
 
 
-# Returns relevant Docs (Reqs/POs etc) based on their status
-def get_documents_by_status(buyer, documents): 
-    pending_docs, open_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs = [], [], [], [], [], [], []
-    
-    for doc in documents:        
-        if doc.get_latest_status().value == 'Pending':
-            pending_docs.append(doc)
-        elif doc.get_latest_status().value == 'Open':
-            open_docs.append(doc)
-        elif doc.get_latest_status().value == 'Approved':
-            approved_docs.append(doc)
-        elif doc.get_latest_status().value == 'Closed':
-            closed_docs.append(doc)
-        elif doc.get_latest_status().value == 'Paid':
-            paid_docs.append(doc)                
-        elif doc.get_latest_status().value == 'Cancelled':
-            cancelled_docs.append(doc)        
-        elif doc.get_latest_status().value == 'Denied':
-            denied_docs.append(doc)  
-                       
-    all_docs = pending_docs + open_docs + approved_docs + closed_docs + paid_docs + cancelled_docs + denied_docs
-    return all_docs, pending_docs, open_docs, approved_docs, closed_docs, paid_docs, cancelled_docs, denied_docs
-
-
-
 ################################
 ###    INITIALIZE FORMS    ### 
 ################################ 

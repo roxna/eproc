@@ -3,11 +3,15 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
-# Latest_status_manager for docs (to replcate get_documents_by_status and by_auth in utils, but need to add another manager method for _by_auth replacement)
 # DD - quantity not drawndown stil remains to be drawndown
 
 # form errors show as messages framework
 # Move form validation from view to form init
+
+# Attach files to PO
+# add ACCOUNTS PAYABLE SECTION
+# Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
+# Receiving Summary
 
 # *****************************
 
@@ -20,7 +24,8 @@
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
-# 8. 
+# 8. Mark PO as paid or Invoice as Paid? Correspondingly mark OrderItems as paid too?
+# 9. When Invoice approved/denied, what happens to order_items statuses?
 
 # BIG
 # ****************************

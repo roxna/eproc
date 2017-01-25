@@ -19,27 +19,33 @@
   Comments, Terms & Sub/Grand Total tables
   *************************************** -->
 
-  {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice currency=currency sub_total=invoice.sub_total grand_total=invoice.grand_total %}
+  {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice currency=invoice.currency sub_total=invoice.sub_total grand_total=invoice.grand_total %}
 
   <!-- *****************
        Footer
   ***************** -->
   <div class="row no-print">
     <div class="col-xs-12">
-      {% if latest_status.value == 'Pending' %}
-        {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
-            <form method="post">
-              {% csrf_token %}              
-              <button type="submit" name="paid" value="paid" class="btn basic-teal pull-right"><i class="fa fa-arrow-right"></i> Mark as Paid</button>
-            </form>
+      <form method="post">
+      {% csrf_token %}
+        {% if latest_status.value == 'Pending' %}        
+          {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' or buyer == purchase_order.preparer %}                
+                {% include "_includes/approve_deny_cancel.html" with document=invoice user_role='Payer' %}                
+          {% endif %}
         {% endif %}
-      {% else %}
-          <div class="label text-grey">
-            Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
-            [By {{latest_status.author}} on {{latest_status.date|date}}]
-            </em>
-          </div>
-      {% endif %}          
+        {% if latest_status.value == 'Approved' %}
+            {% if buyer.role == 'SuperUser' or buyer.role == 'Payer' %}
+                <button type="submit" name="paid" value="paid" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Mark as Paid</button>
+            {% endif %}
+          {% endif %}
+      </form>
+
+      <div class="label text-grey">
+        Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
+        [By {{latest_status.author}} on {{latest_status.date|date}}]
+        </em>
+      </div>
+      
     </div>
   </div>
 {% endwith %}

@@ -118,17 +118,14 @@ def dashboard(request):
     # Only show documents where user is preparer or next_approver (unless SuperUser)
     requisitions = get_documents_by_auth(buyer, Requisition)
     pos = get_documents_by_auth(buyer, PurchaseOrder)
-
-    all_requisitions, pending_requisitions, open_requisitions, approved_requisitions, closed_requisitions, paid_requisitions, cancelled_requisitions, denied_requisitions = get_documents_by_status(buyer, requisitions)
-    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)    
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department (in the past 7 days)
     items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
     items_received = items_received.filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
     data = {
-        'pending_requisitions': pending_requisitions,
-        'pending_pos': pending_pos,
+        'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
+        'pending_pos': PurchaseOrder.latest_status_objects.pending.filter(pk__in=pos),
         'items_received': items_received,
     }
     return render(request, "main/dashboard.html", data)
@@ -378,9 +375,8 @@ def view_purchaseorder(request, po_id):
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
-    all_pos, pending_pos, open_pos, approved_pos, closed_pos, paid_pos, cancelled_pos, denied_pos = get_documents_by_status(buyer, pos)
     data = {
-        'open_pos': open_pos,
+        'open_pos': PurchaseOrder.latest_status_objects.open.filter(pk__in=pos),
     }
     return render(request, "pos/receive_pos.html", data)
 
@@ -472,7 +468,7 @@ def new_invoice(request):
             upload_file.save()
             
             # TODO: Make Invoice "Open", Add Approval process to Invoices
-            DocumentStatus.objects.create(value='Approved', author=buyer, document=invoice)
+            DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
             DocumentStatus.objects.create(value='Paid', author=buyer, document=purchase_order)
             messages.success(request, 'Invoice created successfully')
             return redirect('invoices')  
@@ -496,7 +492,7 @@ def invoices(request):
         'all_invoices': Invoice.latest_status_objects.filter(pk__in=invoices),
         'pending_invoices': Invoice.latest_status_objects.pending.filter(pk__in=invoices),
         'approved_invoices': Invoice.latest_status_objects.approved.filter(pk__in=invoices),
-        'cancelled_invoices': Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
+        'denied_invoices': Invoice.latest_status_objects.denied.filter(pk__in=invoices)|Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
         'paid_invoices': Invoice.latest_status_objects.paid.filter(pk__in=invoices),
         'table_headers': ['Invoice No.', 'Amount ('+buyer.company.currency+')', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
     }
@@ -514,8 +510,19 @@ def print_invoice(request, invoice_id):
 def view_invoice(request, invoice_id):
     buyer = request.user.buyer_profile
     invoice = get_object_or_404(Invoice, pk=invoice_id)
+    
     if request.method == 'POST':
-        if 'paid' in request.POST:
+        # Only Invoice statuses updated
+        if 'approve' in request.POST:
+            save_doc_status(document=invoice, doc_status='Approved',author=buyer)
+            messages.success(request, 'Invoice Approved')
+        elif 'deny' in request.POST:
+            save_doc_status(document=invoice, doc_status='Denied', author=buyer)
+            messages.success(request, 'Invoice Denied')
+        elif 'cancel' in request.POST:
+            save_doc_status(document=invoice, doc_status='Cancelled', author=buyer)
+            messages.success(request, 'Invoice Cancelled')
+        elif 'paid' in request.POST:
             save_status(document=invoice, doc_status='Paid', item_status='Paid', author=buyer)
             messages.success(request, 'Invoice marked as Paid')
         else:

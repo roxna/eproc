@@ -21,7 +21,7 @@
               <li><a href="#all" data-toggle="tab">All</a></li>
               <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
               <li><a href="#approved" data-toggle="tab">Approved</a></li>
-              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
+              <li><a href="#denied" data-toggle="tab">Denied/Withdrawn</a></li>
               <li><a href="#paid" data-toggle="tab">Paid</a></li>
             </ul>          
 
@@ -29,27 +29,27 @@
             <div class="tab-content">
               <div class="tab-pane" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/invoices/invoice_table.html" with invoices=all_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=all_invoices %}
                   </table>
               </div>
               <div class="tab-pane active" id="pending"> 
                  <table id="pendingTable" class="table table-striped">
-                 {% include "_includes/invoices/invoice_table.html" with invoices=pending_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=pending_invoices %}
                   </table>
               </div>
               <div class="tab-pane" id="approved">
                  <table id="approvedTable" class="table table-striped">
-                 {% include "_includes/invoices/invoice_table.html" with invoices=approved_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=approved_invoices %}
                   </table>
               </div>
-              <div class="tab-pane" id="cancelled">
-                 <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes/invoices/invoice_table.html" with invoices=cancelled_invoices headers=table_headers %}
+              <div class="tab-pane" id="denied">
+                 <table id="deniedTable" class="table table-striped">
+                 {% include "_includes/invoices/invoice_table.html" with invoices=denied_invoices %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include "_includes/invoices/invoice_table.html" with invoices=paid_invoices headers=table_headers %}
+                 {% include "_includes/invoices/invoice_table.html" with invoices=paid_invoices %}
                   </table>
               </div>              
             </div>
@@ -69,7 +69,7 @@
     $('#allTable').DataTable();
     $("#pendingTable").DataTable();
     $("#approvedTable").DataTable();
-    $("#cancelledTable").DataTable();
+    $("#deniedTable").DataTable();
     $("#paidTable").DataTable();
   });
 </script>
