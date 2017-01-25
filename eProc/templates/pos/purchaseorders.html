@@ -1,5 +1,6 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
+{% load eProc_filters %}
 
 {% block title %}{{title}}{% endblock title %}
 
@@ -13,14 +14,14 @@
   <div class="row">
     <div class="col-xs-12">
         <div class="box">
-
-          <div class="nav-tabs-custom">
+          
+          <div class="nav-tabs-custom">          
 
             <!-- TABS -->
             <ul class="nav nav-tabs">
-              <li class="active"><a href="#all" data-toggle="tab">All</a></li>
-              <li><a href="#open" data-toggle="tab">Open</a></li>
-              <!-- <li><a href="#partial" data-toggle="tab">Partial</a></li> -->
+              <li><a href="#all" data-toggle="tab">All</a></li>
+              <li class="active"><a href="#open" data-toggle="tab">Open</a></li>
+              <li><a href="#partial" data-toggle="tab">Partial</a></li>
               <li><a href="#closed" data-toggle="tab">Closed</a></li>
               <li><a href="#paid" data-toggle="tab">Paid</a></li>
               <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
@@ -28,16 +29,21 @@
 
             <!-- TABLES -->
             <div class="tab-content">
-              <div class="tab-pane active" id="all">
+              <div class="tab-pane" id="all">
                  <table id="allTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=all_pos href=href %}
                   </table>
               </div>
-              <div class="tab-pane" id="open"> 
+              <div class="tab-pane active" id="open"> 
                  <table id="openTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href=href %}
                   </table>
               </div>
+              <div class="tab-pane" id="partial"> 
+                 <table id="partialTable" class="table table-striped">
+                 {% include '_includes/pos/po_table.html' with purchaseorders=partial_pos href=href %}
+                  </table>
+              </div>              
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=closed_pos href=href %}
@@ -52,8 +58,7 @@
                  <table id="cancelledTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=cancelled_pos href=href %}
                   </table>
-              </div>                          
-
+              </div>
             </div>
           </div>
         </div>

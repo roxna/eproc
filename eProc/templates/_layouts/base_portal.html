@@ -139,12 +139,24 @@
             {% endif %}
 
             <!--****************************
-            ******  INVOICES (Payer)  ******
+            ******  RECEIVE DELIVERY  ******   
+            ******************************-->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
+              <li>
+                <a href="{%url 'receive_pos' %}">
+                  <i class="fa fa-truck"></i> 
+                  <span>Receive Items</span>
+                </a>
+              </li>
+            {% endif %}
+
+            <!--****************************
+            *****  INVOICES (Payer/AP) *****
             ******************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
               <li class="treeview">
                 <a href="#">
-                  <i class="fa fa-money"></i> <span>Invoices</span>
+                  <i class="fa fa-money"></i> <span>Accounts Payable</span>
                   <span class="pull-right-container">
                     <i class="fa fa-angle-left pull-right"></i>
                   </span>
@@ -160,20 +172,13 @@
                       <i class="fa fa-money"></i> View Invoices
                     </a>
                   </li>
+                  <li>
+                    <a href="{%url 'receiving_summary' %}">
+                      <i class="fa fa-arrow-down"></i> Receiving Summary
+                    </a>
+                  </li>                  
                 </ul>
               </li> 
-            {% endif %}
-
-            <!--****************************
-            ******  RECEIVE DELIVERY  ******   
-            ******************************-->
-            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-              <li>
-                <a href="{%url 'receive_pos' %}">
-                  <i class="fa fa-truck"></i> 
-                  <span>Receive Items</span>
-                </a>
-              </li>
             {% endif %}
 
             <!--************************

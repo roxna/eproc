@@ -120,8 +120,8 @@ def dashboard(request):
     pos = get_documents_by_auth(buyer, PurchaseOrder)
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department (in the past 7 days)
-    items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
-    items_received = items_received.filter(latest_update__gte=datetime.now()-timedelta(days=7))
+    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items_received_this_week = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
     data = {
         'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
@@ -333,12 +333,13 @@ def purchaseorders(request):
     
     data = {
         'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
-        'open_pos': PurchaseOrder.latest_status_objects.open.filter(pk__in=pos),
+        'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
+        'partial_pos': PurchaseOrder.latest_status_objects.partial.filter(pk__in=pos),
         'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
         'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
         'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
-        'href': 'view_purchaseorder',
         'title': 'Purchase Orders',
+        'href': 'view_purchaseorder',
     }
     return render(request, "pos/purchaseorders.html", data)
 
@@ -376,9 +377,12 @@ def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
     data = {
-        'open_pos': PurchaseOrder.latest_status_objects.open.filter(pk__in=pos),
+        'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
+        'partial_pos': PurchaseOrder.latest_status_objects.partial.filter(pk__in=pos),
+        'title': 'Receive Purchase Order Items',
+        'href': 'receive_purchaseorder',
     }
-    return render(request, "pos/receive_pos.html", data)
+    return render(request, "pos/purchaseorders.html", data)
 
 @login_required
 def receive_purchaseorder(request, po_id):
@@ -437,7 +441,7 @@ def po_orderitems(request, po_id):
 
 
 ####################################
-###           INVOICES           ### 
+###     INVOICES & A/PAYABLE     ### 
 ####################################
 
 @login_required
@@ -546,6 +550,21 @@ def vendor_invoices(request, vendor_id):
         pass
     return HttpResponse(data, content_type='application/json')
 
+
+def receiving_summary(request):
+    buyer = request.user.buyer_profile
+    
+    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items_received_this_week = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
+    items_received_this_month = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=30))
+
+    data = {
+        'items_received_all': items_received_all,
+        'items_received_this_week': items_received_this_week,
+        'items_received_this_month': items_received_this_month,
+        'table_headers': ['Item No.', 'PO', 'Vendor', 'Product', 'Most Recent Delivery', 'Qty Recd.', 'Amout Recd.', 'Total Order', 'Recd. %']
+    }
+    return render(request, "acpayable/receiving_summary.html", data)
 
 ####################################
 ###          INVENTORY           ### 

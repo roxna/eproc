@@ -308,6 +308,11 @@ class OrderItem(models.Model):
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
 
+	def get_approved_date(self):
+	    return self.status_updates.filter(value='Approved').date
+
+	def get_delivered_date(self):
+	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
 
 ##########################################
 #####        OTHER DETAILS          ##### 

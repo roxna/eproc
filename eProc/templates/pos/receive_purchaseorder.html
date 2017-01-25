@@ -51,7 +51,7 @@
             <div class="label text-grey">
                 <form method="post">
                 {% csrf_token %}    
-                    <button type="submit" name="save" value="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                    <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
 
                     {% if purchase_order.is_ready_to_close and user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                      
                         <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>                      
@@ -74,4 +74,17 @@
 
 
 {% block js %}
+  <script>
+    $(document).ready(function(){
+      
+      // Save Button is disabled on page load
+      $('#save').attr('disabled', 'disabled');
+
+      // Save Button is enabled only if any input field is changed
+      $('.item :input').keyup(function() {
+        $('#save').removeAttr('disabled');
+      });
+
+    })
+  </script>
 {% endblock js %}

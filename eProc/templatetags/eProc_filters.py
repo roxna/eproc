@@ -28,3 +28,11 @@ def currency_icon(currency_string):
 		return '$'
 	else:
 		return currency_string
+
+
+@register.filter(name='as_percentage_of')
+def as_percentage_of(part, whole):
+    try:
+        return "%d%%" % (part / whole * 100)
+    except:
+        return "0%"

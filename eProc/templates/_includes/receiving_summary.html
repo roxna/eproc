@@ -1,0 +1,22 @@
+
+    {% load eProc_filters %}
+
+    {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
+    
+    <tbody>
+      {% for item in items %}           
+      <tr>
+        <td> {{item.number}}</td>        
+        {% with item.purchase_order as po %}
+          <td> {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_purchaseorder' href_id=po.id %}</td>
+        {% endwith %}
+        <td> {{item.product.vendor_co.name}}</td>
+        <td> {{item.product.name}}</td>        
+        <td> {{item.get_delivered_date|date}}</td>
+        <td> {{item.qty_delivered}}</td>
+        <td> {{item.product.currency|currency_icon}}{{item.get_delivered_subtotal}}</td>
+        <td> {{item.product.currency|currency_icon}}{{item.get_ordered_subtotal}}</td>
+        <td> {{item.get_delivered_subtotal|as_percentage_of:item.get_ordered_subtotal}}</td>
+      </tr>
+    {% endfor %}
+  </tbody>

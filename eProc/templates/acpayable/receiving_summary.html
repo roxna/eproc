@@ -1,0 +1,62 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Receiving Summary{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Receiving Summary</h1>{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+          <div class="nav-tabs-custom">
+
+            <!-- TABS -->
+            <ul class="nav nav-tabs">              
+              <li class="active"><a href="#all" data-toggle="tab">All</a></li>
+              <li><a href="#week" data-toggle="tab">This Week</a></li>
+              <li><a href="#month" data-toggle="tab">This Month</a></li>
+            </ul>          
+
+            <!-- TABLES -->
+            <div class="tab-content">
+              <div class="tab-pane active" id="all">
+                 <table id="allTable" class="table table-striped">
+                 {% include "_includes/receiving_summary.html" with items=items_received_all %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="week">
+                 <table id="weekTable" class="table table-striped">
+                 {% include "_includes/receiving_summary.html" with items=items_received_this_week %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="month">
+                 <table id="monthTable" class="table table-striped">
+                 {% include "_includes/receiving_summary.html" with items=items_received_this_month %}
+                  </table>
+              </div>             
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" %}
+  <script type="text/javascript">
+  $(function () {
+    $('#allTable').DataTable();
+    $("#weekTable").DataTable();
+    $("#monthTable").DataTable();
+  });
+</script>
+{% endblock js %}

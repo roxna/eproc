@@ -1,5 +1,4 @@
-{% load staticfiles %}
-
+  {% load staticfiles %}
   
   {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
   
@@ -35,5 +34,5 @@
       </td>
       <td>{{ invoice.comments }} <br></td>
     </tr>
-    {% endfor %}
-  </tbody>
+  {% endfor %}
+</tbody>

@@ -74,11 +74,14 @@ urlpatterns=[
         url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
     ])),
 
-    url(r'^invoices/$', eProc_views.invoices, name='invoices'),    
-    url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),   
-    url(r'^invoice/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
-    url(r'^invoices/print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
-    url(r'^invoices/(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
+    url(r'^accounts-payable/', include([
+        url(r'^invoices/$', eProc_views.invoices, name='invoices'),    
+        url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),   
+        url(r'^invoice/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
+        url(r'^invoices/print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
+        url(r'^invoices/(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
+        url(r'^receiving-summary/$', eProc_views.receiving_summary, name='receiving_summary'),
+    ])),
     
     url(r'^inventory/$', eProc_views.inventory, name='inventory'),
     url(r'^inventory/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),

@@ -3,6 +3,7 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
+# PENDING etc filter docs not working
 # DD - quantity not drawndown stil remains to be drawndown
 
 # form errors show as messages framework
