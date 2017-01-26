@@ -15,46 +15,54 @@
     <div class="col-xs-12">
         <div class="box">
 
-          <div class="nav-tabs-custom">
-          
-            <!-- TABS -->
-            <ul class="nav nav-tabs">
-              <li><a href="#all" data-toggle="tab">All</a></li>
-              <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
-              <li><a href="#approved" data-toggle="tab">Approved</a></li>
-              <li><a href="#denied" data-toggle="tab">Denied</a></li>
-              <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
-            </ul>
+            {% if not all_requisitions %}
+              <!-- If no requisitions have been created, CREATE NEW REQ  button -->
+              {% include "_includes/docs/no_docs_add_now.html" with doc='Requests' href='new_requisition' %}
+              
+            {% else %}
+            <div class="nav-tabs-custom">
+            
+              <!-- TABS -->
+              <ul class="nav nav-tabs">
+                <li><a href="#all" data-toggle="tab">All</a></li>
+                <li class="active"><a href="#pending" data-toggle="tab">Pending</a></li>
+                <li><a href="#approved" data-toggle="tab">Approved</a></li>
+                <li><a href="#denied" data-toggle="tab">Denied</a></li>
+                <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
+              </ul>
 
-            <!-- TABLES -->
-            <div class="tab-content">
-              <div class="tab-pane" id="all">
-                 <table id="allTable" class="table table-striped">
-                 {% include "_includes//requisitions/requisitions_table.html" with requisitions=all_requisitions %}
-                  </table>
-              </div>
-              <div class="tab-pane active" id="pending">
-                 <table id="pendingTable" class="table table-striped">
-                 {% include "_includes//requisitions/requisitions_table.html" with requisitions=pending_requisitions %}
-                  </table>
-              </div>
-              <div class="tab-pane" id="approved">
-                 <table id="approvedTable" class="table table-striped">
-                 {% include "_includes//requisitions/requisitions_table.html" with requisitions=approved_requisitions %}
-                  </table>
-              </div>
-              <div class="tab-pane" id="denied">
-                 <table id="deniedTable" class="table table-striped">
-                 {% include "_includes//requisitions/requisitions_table.html" with requisitions=denied_requisitions %}
-                  </table>
-              </div>
-              <div class="tab-pane" id="cancelled">
-                 <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes//requisitions/requisitions_table.html" with requisitions=cancelled_requisitions %}
-                  </table>
+              <!-- TABLES -->
+              <div class="tab-content">
+                <div class="tab-pane" id="all">
+                   <table id="allTable" class="table table-striped">
+                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=all_requisitions %}
+                    </table>
+                </div>
+                <div class="tab-pane active" id="pending">
+                   <table id="pendingTable" class="table table-striped">
+                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=pending_requisitions %}
+                    </table>
+                </div>
+                <div class="tab-pane" id="approved">
+                   <table id="approvedTable" class="table table-striped">
+                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=approved_requisitions %}
+                    </table>
+                </div>
+                <div class="tab-pane" id="denied">
+                   <table id="deniedTable" class="table table-striped">
+                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=denied_requisitions %}
+                    </table>
+                </div>
+                <div class="tab-pane" id="cancelled">
+                   <table id="cancelledTable" class="table table-striped">
+                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=cancelled_requisitions %}
+                    </table>
+                </div>
               </div>
             </div>
-          </div>
+
+          {% endif %}
+
         </div>
       </div>
     </div>

@@ -14,6 +14,11 @@
     <div class="col-xs-12">
         <div class="box">
 
+          {% if not all_invoices %}
+              <!-- If no requisitions have been created, CREATE NEW INVOICE -->
+              {% include "_includes/docs/no_docs_add_now.html" with doc='Invoices' href='new_invoice' %}
+              
+          {% else %}
           <div class="nav-tabs-custom">
 
             <!-- TABS -->
@@ -55,6 +60,7 @@
             </div>
 
           </div>
+          {% endif %}
 
         </div>
       </div>

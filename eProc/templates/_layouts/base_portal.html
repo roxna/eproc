@@ -71,8 +71,7 @@
               <img src="{% static 'dist/img/photo4.jpg' %}" class="img-circle" alt="User Image">
             </div>
             <div class="pull-left info">
-              <p>{{user.username}} [{{user.buyer_profile.role}}]</p>
-              <!-- <a href="#"><i class="fa fa-circle text-success"></i> Online</a> -->
+              <p>{{user.username}} [{{user.buyer_profile.role}}]</p>              
             </div>
           </div>
 
@@ -85,7 +84,7 @@
             <!-- everyone has access -->
             <li class="active treeview">
               <a href="{%url 'dashboard' %}">
-                <i class="fa fa-dashboard"></i> 
+                <i class="fa {{ICONS.dashboard}}"></i> 
                 <span>Dashboard</span>
               </a>
             </li>        
@@ -96,20 +95,20 @@
             <!-- everyone has access to create req / view status-->          
             <li class="treeview">
               <a href="#">
-                <i class="fa fa-book"></i> 
+                <i class="fa {{ICONS.requisition}}"></i> 
                 <span>Requests</span>
                 <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
               </a>
               <ul class="treeview-menu">
                 <li>
                   <a href="{%url 'new_requisition' %}">
-                    <i class="fa fa-pencil-square-o"></i> New Order
+                    <i class="fa {{ICONS.new}}"></i> New Order
                   </a>
                 </li>
                 <li>
                   <a href="{%url 'requisitions' %}">
                   <!-- only superuser & approver have access to approve (managed in view_req) -->
-                  <i class="fa fa-book"></i> 
+                  <i class="fa {{ICONS.requisition}}"></i> 
                   {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
                     View/Approve Orders
                   {% else %}
@@ -132,8 +131,8 @@
                   </span>
                 </a>
                 <ul class="treeview-menu">
-                  <li><a href="{%url 'new_po_items' %}"><i class="fa fa-pencil-square-o"></i> New PO</a></li>
-                  <li><a href="{%url 'purchaseorders' %}"><i class="fa fa-shopping-cart"></i> Purchase Orders</a></li>
+                  <li><a href="{%url 'new_po_items' %}"><i class="fa {{ICONS.new}}"></i> New PO</a></li>
+                  <li><a href="{%url 'purchaseorders' %}"><i class="fa {{ICONS.po}}"></i> Purchase Orders</a></li>
                 </ul>
               </li>   
             {% endif %}
@@ -156,7 +155,7 @@
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
               <li class="treeview">
                 <a href="#">
-                  <i class="fa fa-money"></i> <span>Accounts Payable</span>
+                  <i class="fa {{ICONS.payment}}"></i> <span>Accounts Payable</span>
                   <span class="pull-right-container">
                     <i class="fa fa-angle-left pull-right"></i>
                   </span>
@@ -164,17 +163,17 @@
                 <ul class="treeview-menu">
                   <li>
                     <a href="{%url 'new_invoice' %}">
-                      <i class="fa fa-pencil-square-o"></i> New Invoice
+                      <i class="fa {{ICONS.new}}"></i> New Invoice
                     </a>
                   </li>
                   <li>
                     <a href="{%url 'invoices' %}">
-                      <i class="fa fa-money"></i> View Invoices
+                      <i class="fa {{ICONS.payment}}"></i> View Invoices
                     </a>
                   </li>
                   <li>
                     <a href="{%url 'receiving_summary' %}">
-                      <i class="fa fa-arrow-down"></i> Receiving Summary
+                      <i class="fa {{ICONS.receive}}"></i> Receiving Summary
                     </a>
                   </li>                  
                 </ul>
@@ -195,7 +194,7 @@
               <ul class="treeview-menu">
                 <li>
                   <a href="{%url 'new_drawdown' %}">
-                    <i class="fa fa-pencil-square-o"></i> New Request
+                    <i class="fa {{ICONS.new}}"></i> New Request
                   </a>
                 </li>
                 <li>
@@ -218,7 +217,7 @@
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Inventory Manager' %}
               <li>
                 <a href="{%url 'inventory' %}">
-                  <i class="fa fa-list-alt"></i> 
+                  <i class="fa {{ICONS.inventory}}"></i> 
                   <span>Inventory (In & Out)</span>
                 </a>
               </li>

@@ -79,10 +79,12 @@
       
       // Save Button is disabled on page load
       $('#save').attr('disabled', 'disabled');
+      $('#save').addClass('disabled');
 
       // Save Button is enabled only if any input field is changed
       $('.item :input').keyup(function() {
         $('#save').removeAttr('disabled');
+        $('#save').removeClass('disabled');
       });
 
     })

@@ -136,7 +136,6 @@ EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
-
 ROLES = (
     ('SuperUser', 'SuperUser'),
     ('Requester', 'Requester'),
@@ -148,14 +147,8 @@ ROLES = (
     # ('Branch Manager', 'Branch Manager')
     ('Payer', 'Payer'), #Accounts Payable
 )
-
-
-ICONS = {
-    'PO': '<i class="fa fa-shopping-cart"></i>',
-    'Invoice': 'fa-shopping-cart',
-}
-
 # Add Controller: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
+
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
 LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))

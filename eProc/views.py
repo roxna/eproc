@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
-from django.conf import settings as conf_settings
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site

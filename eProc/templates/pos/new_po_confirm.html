@@ -126,7 +126,6 @@
   				var qty = $(this).find('.qty_ordered').find('input').val();
   				var price = $(this).find('.item_price').find('input').val();
   				POSubTotal += qty * price;
-  				console.log(POSubTotal);
   			});
   			$('#subTotal :input').val(POSubTotal);
 
@@ -141,7 +140,6 @@
 		    	// If cost, add; if discount, subtract
 		    	$(this).hasClass('discount') ? POTotal -= parseInt($(this).children().val()) : POTotal += parseInt($(this).children().val());		        
 		    });
-		    console.log(POTotal);  
 		    $('#total :input').val(POTotal);
 		};
 
