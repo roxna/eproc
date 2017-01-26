@@ -28,6 +28,7 @@
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
 # 8. Mark PO as paid or Invoice as Paid? Correspondingly mark OrderItems as paid too?
 # 9. When Invoice approved/denied, what happens to order_items statuses?
+# 10. DDs, Reqs (and PO/Invoices) - link to Dept? Location? or none?
 
 # BIG
 # ****************************

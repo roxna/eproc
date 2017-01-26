@@ -36,9 +36,14 @@ class CategoryAdmin(admin.ModelAdmin):
 	list_display = ['id', 'code', 'name']	
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_ordered','qty_approved', 'unit_price', 'get_latest_status']
+    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_ordered','qty_approved', 'qty_delivered', 'unit_price', 'get_latest_status']
     search_fields = ['product',  ]
     list_filter = ['product', 'requisition', 'purchase_order', 'invoice']
+
+class DrawdownItemAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_approved', 'unit_price', 'get_latest_status']
+    search_fields = ['product',  ]
+    list_filter = ['product', 'drawdown']
 
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
@@ -54,8 +59,12 @@ class DocumentStatusAdmin(admin.ModelAdmin):
     list_filter = ['document']
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
-    list_display = ['id', 'value', 'date', 'author', 'order_item',]    
-    list_filter = ['value', 'order_item__product', 'order_item__product__buyer_co', ]   
+    list_display = ['id', 'value', 'date', 'author', 'item',]    
+    list_filter = ['value', 'item__product', 'item__product__buyer_co', ]   
+
+class DrawdownItemStatusAdmin(admin.ModelAdmin):
+    list_display = ['id', 'value', 'date', 'author', 'item',]    
+    list_filter = ['value', 'item__product', 'item__product__buyer_co', ]  
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'loc_type', 'company']  
@@ -70,6 +79,7 @@ admin.site.register(AccountCode, AccountCodeAdmin)
 admin.site.register(CatalogItem, CatalogItemAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(DrawdownItem, DrawdownItemAdmin)
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(BuyerCo, CompanyAdmin)
 admin.site.register(VendorCo, CompanyAdmin)
@@ -83,5 +93,6 @@ admin.site.register(Drawdown, DrawdownAdmin)
 admin.site.register(Rating)
 admin.site.register(DocumentStatus, DocumentStatusAdmin)
 admin.site.register(OrderItemStatus, OrderItemStatusAdmin)
+admin.site.register(DrawdownItemStatus, DrawdownItemStatusAdmin)
 admin.site.register(File, FileAdmin)
 admin.site.register(Tax)

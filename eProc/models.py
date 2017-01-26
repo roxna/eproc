@@ -51,7 +51,7 @@ class Location(models.Model):
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Shipping')
 	name = models.CharField(max_length=50, default='')
 	address1 = models.CharField(max_length=40, null=True, blank=True)
-	address2 = models.CharField(max_length=40, null=True, blank=True)
+	address2 = models.CharField(max_length=40, default='-')
 	city = models.CharField(max_length=20, null=True, blank=True)
 	state = models.CharField(max_length=20, null=True, blank=True)
 	country = models.CharField(choices=settings.COUNTRIES, max_length=20, null=True, blank=True)
@@ -81,7 +81,7 @@ class Department(models.Model):
 
 	def get_spend_approved_ytd(self):		
 		requisitions = self.requisitions.all()
-		order_items = requisitions.order_items.all()
+		order_items = [requisition.items.all() for requisition in requisitions]
 		approved_order_items = order_items.filter(get_latest_status=='Approved')
 		spend_approved_ytd = approved_order_items
 		return spend_approved_ytd
@@ -199,7 +199,7 @@ class PurchaseOrder(SalesOrder):
 	pass	
 
 	def is_ready_to_close(self):
-		for item in self.order_items.all():
+		for item in self.items.all():
 			if item.qty_ordered != item.qty_delivered + item.qty_returned:
 				return False
 		return True
@@ -208,7 +208,7 @@ class Invoice(SalesOrder):
 	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
 
 class Drawdown(Document):
-	pass
+	location = models.ForeignKey(Location, related_name='drawdowns')
 
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
@@ -252,33 +252,48 @@ class CatalogItem(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
-
-class OrderItem(models.Model):
-	number = models.CharField(max_length=20)
+class Item(models.Model):
 	qty_requested = models.IntegerField(default=1) 	
-	qty_approved = models.IntegerField(null=True, blank=True, default=0)	
-	qty_ordered = models.IntegerField(null=True, blank=True, default=0)
-	qty_delivered = models.IntegerField(null=True, blank=True, default=0)
-	qty_returned = models.IntegerField(null=True, blank=True, default=0)
-	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
+	qty_approved = models.IntegerField(null=True, blank=True, default=0)
+	product = models.ForeignKey(CatalogItem, related_name='items')
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+	number = models.CharField(max_length=20)
 	comments_request = models.CharField(max_length=500, blank=True, null=True)
 	comments_approved = models.CharField(max_length=500, blank=True, null=True)
-	comments_order = models.CharField(max_length=500, blank=True, null=True)	
-	comments_delivery = models.CharField(max_length=500, blank=True, null=True)
-	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
 	date_due = models.DateField(default=timezone.now)
-	tax = models.ForeignKey(Tax, related_name='order_items', null=True, blank=True)
-	account_code = models.ForeignKey(AccountCode, related_name="order_items", null=True, blank=True)
-	product = models.ForeignKey(CatalogItem, related_name='order_items')
-	requisition = models.ForeignKey(Requisition, related_name='order_items', null=True, blank=True)
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name='order_items', null=True, blank=True)
-	invoice = models.ForeignKey(Invoice, related_name='order_items', null=True, blank=True)
-	drawdown = models.ForeignKey(Drawdown, related_name='order_items', null=True, blank=True)
 
 	# Managers - overridden in managers.py
 	objects = models.Manager() # default manager
 	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
+
+	# class Meta:
+	# 	abstract = True
+
+	def get_requested_date(self):
+	    return self.status_updates.filter(value='Pending').date
+
+	def get_approved_date(self):
+	    return self.status_updates.filter(value='Approved').date
+	
+	def is_past_due(self):
+		if timezone.now().date() > self.date_due:
+			return True
+		return False
+
+	def get_latest_status(self):
+	    return self.status_updates.latest('date')	
+
+class OrderItem(Item):		
+	qty_ordered = models.IntegerField(null=True, blank=True, default=0)
+	qty_delivered = models.IntegerField(null=True, blank=True, default=0)
+	qty_returned = models.IntegerField(null=True, blank=True, default=0)	
+	comments_order = models.CharField(max_length=500, blank=True, null=True)	
+	comments_delivery = models.CharField(max_length=500, blank=True, null=True)		
+	tax = models.ForeignKey(Tax, related_name='items', null=True, blank=True)
+	account_code = models.ForeignKey(AccountCode, related_name="items", null=True, blank=True)	
+	requisition = models.ForeignKey(Requisition, related_name='items', null=True, blank=True)
+	purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', null=True, blank=True)
+	invoice = models.ForeignKey(Invoice, related_name='items', null=True, blank=True)
 	
 	def __unicode__(self):
 		return "{} at {} {} [{} req, {} approved]".format(self.product.name, self.product.currency, self.unit_price, self.qty_requested, self.qty_approved)
@@ -308,22 +323,20 @@ class OrderItem(models.Model):
 	def get_refund_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_returned)
 
-	def get_latest_status(self):
-	    return self.status_updates.latest('date')
-
-	def get_approved_date(self):
-	    return self.status_updates.filter(value='Approved').date
-
 	def get_delivered_date(self):
 	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
+	
 
-	def is_past_due(self):
-		if timezone.now().date() > self.date_due:
-			return True
-		return False
+class DrawdownItem(Item):
+	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
+	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)
+	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
+
+	def get_drawdown_date(self):
+	    return self.status_updates.filter(value='Drawdown').date
 
 ##########################################
-#####        OTHER DETAILS          ##### 
+#####      STATUS (DOC & ITEM)       ##### 
 ########################################## 
 
 class Status(models.Model):
@@ -344,11 +357,18 @@ class Status(models.Model):
 		abstract = True
 		get_latest_by = 'date'
 
-class OrderItemStatus(Status):
-	order_item = models.ForeignKey(OrderItem, related_name='status_updates')
-
 class DocumentStatus(Status):
 	document = models.ForeignKey(Document, related_name="status_updates")
+
+class OrderItemStatus(Status):
+	item = models.ForeignKey(OrderItem, related_name='status_updates')
+
+class DrawdownItemStatus(Status):
+	item = models.ForeignKey(DrawdownItem, related_name='status_updates')
+
+##########################################
+#####           RATINGS              ##### 
+########################################## 
 
 class Rating(models.Model):
 	SCORES = (

@@ -7,6 +7,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 # NOTES:
 # Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+# psql postgres then create database dbname; then \connect dbname
+# python manage.py migrate --run-syncdb
+
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -33,13 +36,13 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     'django.contrib.admin',
     'eProc',
+    'home',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize', #Converts numbers/totals to comma-separated
-    'home',    
+    'django.contrib.humanize', #Converts numbers/totals to comma-separated     
     'rest_framework',
     'crispy_forms',    
 )
@@ -91,6 +94,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
+                'eProc.processors.icons',
             ],
         },
     },
@@ -133,8 +137,6 @@ EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
 
-SCALAR = 570
-
 ROLES = (
     ('SuperUser', 'SuperUser'),
     ('Requester', 'Requester'),
@@ -146,6 +148,12 @@ ROLES = (
     # ('Branch Manager', 'Branch Manager')
     ('Payer', 'Payer'), #Accounts Payable
 )
+
+
+ICONS = {
+    'PO': '<i class="fa fa-shopping-cart"></i>',
+    'Invoice': 'fa-shopping-cart',
+}
 
 # Add Controller: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 CURRENCIES = (('USD', 'USD'),('INR', 'INR'),)
@@ -165,12 +173,12 @@ STATUSES = (
     ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
-    ('Drawdown Requested', 'Drawdown Requested'), #new_drawdown
-    ('Drawdown Approved', 'Drawdown Approved'), #view_drawdown
-    ('Drawdown Denied', 'Drawdown Denied'), #view_drawdown
-    ('Drawdown Cancelled', 'Drawdown Cancelled'), #view_drawdown
-    # ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
-    # ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
+    # ('Pending', 'Pending'), #new_drawdown (Drawdown Requested)
+    # ('Approved', 'Approved'), #view_drawdown
+    # ('Denied', 'Denied'), #view_drawdown
+    # ('Cancelled', 'Cancelled'), #view_drawdown
+    ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
+    ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
 
     #### Requisitions ####
     # ('Pending', 'Pending'), #new_req

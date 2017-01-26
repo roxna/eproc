@@ -22,6 +22,12 @@ class LatestStatusManager(models.Manager):
 	def _get_delivered(self):
 		return self._get_by_status(['Delivered Partial', 'Delivered Complete'])
 
+	def _get_delivered_partial(self):
+		return self._get_by_status(['Delivered Partial'])
+
+	def _get_delivered_complete(self):
+		return self._get_by_status(['Delivered Complete'])	
+		
 	def _get_denied(self):
 		return self._get_by_status(['Denied'])
 	
@@ -38,25 +44,8 @@ class LatestStatusManager(models.Manager):
 		return self._get_by_status(['Closed'])
 
 	def _get_archived(self):
-		return self._get_by_status(['Archived'])	
+		return self._get_by_status(['Archived'])		
 
-	def _get_delivered_partial(self):
-		return self._get_by_status(['Delivered Partial'])
-
-	def _get_delivered_complete(self):
-		return self._get_by_status(['Delivered Complete'])		
-
-	def _get_drawdown_requested(self):
-		return self._get_by_status(['Drawdown Requested'])
-
-	def _get_drawdown_approved(self):
-		return self._get_by_status(['Drawdown Approved'])	
-
-	def _get_drawdown_denied(self):
-		return self._get_by_status(['Drawdown Denied'])
-
-	def _get_drawdown_cancelled(self):
-		return self._get_by_status(['Drawdown Cancelled'])	
 
 	# Set them as properties so can call OrderItem.latest_status_objects.delivered etc
 	pending = property(_get_pending)
@@ -74,8 +63,4 @@ class LatestStatusManager(models.Manager):
 	closed = property(_get_closed)
 	archived = property(_get_archived)
 
-	drawdown_requested = property(_get_drawdown_requested)
-	drawdown_approved = property(_get_drawdown_approved)
-	drawdown_denied = property(_get_drawdown_denied)
-	drawdown_cancelled = property(_get_drawdown_cancelled)
 

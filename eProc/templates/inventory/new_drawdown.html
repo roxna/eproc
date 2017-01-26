@@ -11,28 +11,24 @@
 
 {% block content %}
 <section class="content">
-
     <form method="POST">
-	{% csrf_token %}
+    {% csrf_token %}
 
         <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
-        <div class="box box-default">	    
+        <div class="box box-default">
             <div class="box-header with-border">
               <h3 class="box-title">Order Details</h3>
             </div>       
              <div class="box-body">
-              <div class="row">
-            	<div class="col-xs-12">
-    				<div class="box-body no-padding">
-                        {% crispy drawdown_form drawdown_form.helper %}
-    	            </div>
-    	        </div>
-    		</div> 
+                  <div class="row">
+                	<div class="col-xs-12">
+        				<div class="box-body no-padding">
+                            {% crispy drawdown_form drawdown_form.helper %}
+        	            </div>
+        	        </div>
+        		</div> 
             </div>
-        </div>
-
-        <!-- ORDER DETAILS -->
-        <div class="box box-default">        
+     
             <div class="box-header with-border">
               <h3 class="box-title">Order Items List</h3>
             </div>
@@ -55,7 +51,7 @@
     	        </div>
     		  </div>
               <button type="submit" class="button btn basic-teal pull-right">                
-                Request New Drawdown <i class="fa fa-sign-out"></i>
+                Create Request <i class="fa {{ICONS.drawdown}}"></i> 
               </button>
             </div>
         </div>        

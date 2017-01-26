@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
-from django.conf import settings
+from django.conf import settings as conf_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
@@ -18,6 +18,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import is_safe_url
+from django.utils.text import slugify
 from datetime import datetime, timedelta
 from rest_framework.renderers import JSONRenderer
 from eProc.models import *
@@ -28,6 +29,8 @@ from itertools import chain
 from collections import defaultdict
 import csv
 import pdb
+
+SCALAR = 570
 
 
 ####################################
@@ -43,12 +46,12 @@ def register(request):
             company = buyer_company_form.save()
             location = Location.objects.create(loc_type='HQ', name=company.name+' - HQ', company=company)
             department = Department.objects.create(name='Admin', location=location)
-            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, company=company)
+            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, location=location, company=company)
             messages.info(request, "Thank you for registering. You are now logged in.")
             user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
             user.is_active=False #User not active until activate account through email
             user.save()
-            send_verific_email(user, user.id*settings.SCALAR)
+            send_verific_email(user, user.id*SCALAR)
             return redirect('thankyou')
         else:
             messages.error(request, 'Error. Registration unsuccessful') #TODO: Figure out how to show errors
@@ -59,7 +62,7 @@ def register(request):
     return render(request, "registration/register.html", data)
 
 def activate(request):
-    user_id = int(request.GET.get('id'))/settings.SCALAR
+    user_id = int(request.GET.get('id'))/SCALAR
     try:
         user = User.objects.get(id=user_id)
         user.is_active=True
@@ -85,12 +88,12 @@ def get_started(request):
     data = {        
         'settings_list': [
             # url (name), text_to_display, action_completed?
-            ['locations','1. Add locations & departments', Location.objects.filter(company=buyer.company).exists()],
+            ['locations','1. Add locations & departments', Location.objects.filter(company=buyer.company).exclude(loc_type='HQ').exists()],
             ['vendors','2. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
             ['categories','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
             ['products','4. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
             ['account_codes','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
-            ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gte=100).exists()],
+            ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gt=100).exists()],
             ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
             
         ],
@@ -161,7 +164,7 @@ def new_requisition(request):
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
                                        initial= {'number': "RO"+str(Requisition.objects.filter(buyer_co=buyer.company).count()+1)})        
-    OrderItemFormset = inlineformset_factory(parent_model=Requisition, model=NewReqItemForm, form=OrderItemForm, extra=1)
+    OrderItemFormset = inlineformset_factory(parent_model=Requisition, model=OrderItem, form=NewReqItemForm, extra=1)
     orderitem_formset = OrderItemFormset(request.POST or None)
     initialize_req_form(buyer, requisition_form, orderitem_formset)
     
@@ -298,14 +301,14 @@ def new_po_confirm(request):
                     item.purchase_order = purchase_order
                     item.save()
                     
-                    OrderItemStatus.objects.create(value='Ordered', author=buyer, order_item=item)
+                    OrderItemStatus.objects.create(value='Ordered', author=buyer, item=item)
 
                     # Create a new Order Item with the same details (Item#, Req# etc) as current
                     # However, qty_requested = items that were approved but weren't ordered
                     approved_not_ordered = item.qty_approved - item.qty_ordered
                     if approved_not_ordered > 0:
                         approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, requisition=item.requisition, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
-                        OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), order_item=approved_not_ordered_item)
+                        OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
 
                     
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
@@ -358,7 +361,7 @@ def view_purchaseorder(request, po_id):
         if 'cancel' in request.POST:
             # PO is Cancelled, Items go back into Approved list with reset #s
             save_status(document=purchase_order, doc_status='Cancelled', item_status='Approved', author=buyer)
-            for item in purchase_order.order_items.all():
+            for item in purchase_order.items.all():
                 item.qty_approved = item.qty_ordered #In case a subset of initial approved items were ordered, not re-setting approved quantity to ordered quantity will increase approved items beyond the initial number
                 item.qty_ordered = 0
                 item.unit_price = item.product.unit_price
@@ -418,11 +421,11 @@ def receive_purchaseorder(request, po_id):
                         messages.error(request, 'Error. Quantity returned must be less than quantity ordered.')                        
                     elif qty_delivered + qty_returned == qty_ordered:
                         item = form.save()
-                        OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, order_item=item)
+                        OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, item=item)
                         messages.success(request, 'Orders updated successfully')
                     else:
                         item = form.save()
-                        OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, order_item=item)
+                        OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, item=item)
                         messages.success(request, 'Orders updated successfully')
             return redirect('receive_purchaseorder', purchase_order.pk)
         else:
@@ -468,7 +471,7 @@ def new_invoice(request):
             invoice.billing_add = purchase_order.billing_add
             invoice.shipping_add = purchase_order.shipping_add
             invoice.save()
-            for order_item in purchase_order.order_items.all():
+            for order_item in purchase_order.items.all():
                 order_item.invoice = invoice
                 order_item.save()
 
@@ -621,7 +624,7 @@ def new_drawdown(request):
     buyer = request.user.buyer_profile
     drawdown_form = DrawdownForm(request.POST or None,
                                        initial= {'number': 'DD'+str(Drawdown.objects.filter(buyer_co=buyer.company).count()+1)})
-    DrawdownItemFormSet = inlineformset_factory(parent_model=Drawdown, model=OrderItem, form=DrawdownItemForm, extra=1)
+    DrawdownItemFormSet = inlineformset_factory(parent_model=Drawdown, model=DrawdownItem, form=DrawdownItemForm, extra=1)
     drawdownitem_formset = DrawdownItemFormSet(request.POST or None)
     initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset)    
     
@@ -632,9 +635,9 @@ def new_drawdown(request):
             drawdown = save_new_document(buyer, drawdown_form)
             save_items(buyer, drawdown, drawdownitem_formset)
             if buyer.role == 'SuperUser':
-                save_status(document=drawdown, doc_status='Approved', item_status='Drawdown Approved', author=buyer)
+                save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
             else:
-                save_status(document=drawdown, doc_status='Pending', item_status='Drawdown Requested', author=buyer)
+                save_status(document=drawdown, doc_status='Pending', item_status='Pending', author=buyer)
             messages.success(request, 'Drawdown submitted successfully')
             return redirect('drawdowns')
         else:
@@ -650,16 +653,15 @@ def new_drawdown(request):
 def view_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
-    # pdb.set_trace()
     if request.method == 'POST':
         if 'approve' in request.POST:
-            save_status(document=drawdown, doc_status='Approved', item_status='Drawdown Approved', author=buyer)
+            save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
             messages.success(request, 'Drawdown Approved')
         elif 'deny' in request.POST:
-            save_status(document=drawdown, doc_status='Denied', item_status='Drawdown Denied', author=buyer)            
+            save_status(document=drawdown, doc_status='Denied', item_status='Denied', author=buyer)            
             messages.success(request, 'Drawdown Denied')     
         elif 'cancel' in request.POST:
-            save_status(document=drawdown, doc_status='Cancelled', item_status='Drawdown Cancelled', author=buyer)
+            save_status(document=drawdown, doc_status='Cancelled', item_status='Cancelled', author=buyer)
             messages.success(request, 'Drawdown Cancelled')                        
         else:
             messages.error(request, 'Error. Drawdown not updated')
@@ -717,7 +719,7 @@ def users(request):
         #         buyer_profile.user = user                
         #         buyer_profile.company = buyer.company
         #         buyer_profile.save()
-        #         send_verific_email(user, user.id*settings.SCALAR)
+        #         send_verific_email(user, user.id*SCALAR)
         #         messages.success(request, 'User successfully invited')
         #         return redirect('users')
         #     else:
@@ -794,7 +796,7 @@ def view_location(request, location_id, location_name):
             print 'addUser'
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)                
-                send_verific_email(user, user.id*settings.SCALAR)
+                send_verific_email(user, user.id*SCALAR)
                 messages.success(request, 'User successfully invited')                
             else:
                 messages.error(request, 'Error. User not added. Please try again.')
@@ -805,7 +807,7 @@ def view_location(request, location_id, location_name):
                 messages.success(request, 'Department added successfully')                
             else:
                 messages.error(request, 'Error. Department not added. Please try again.')
-        return redirect('view_location', location.id, location.name)
+        return redirect('view_location', location.id, slugify(location.name))
     data = {
         'location': location,
         'location_form': location_form,

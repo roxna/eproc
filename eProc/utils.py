@@ -34,12 +34,11 @@ def initialize_req_form(buyer, requisition_form, orderitem_formset):
         requisition_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
         requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
     
-    for orderitem_form in orderitem_formset: 
-        orderitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
-        orderitem_form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
+    for form in orderitem_formset: 
+        form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+        form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
 def initialize_po_form(buyer, po_form):
-    po_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
     po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company) 
@@ -48,12 +47,14 @@ def initialize_invoice_form(buyer, invoice_form):
     invoice_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
     # TODO: POs with UNBILLED ITEMS ONLY 
     invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=buyer.company)
+    invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
 
 def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
     drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
     drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=buyer.user)
     for drawdownitem_form in drawdownitem_formset: 
         drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser'])
 
 
 ################################
@@ -78,23 +79,24 @@ def save_new_document(buyer, form):
 # Save the data for each form in the order_items formset 
 # Used by NEW_REQ, NEW_DD
 def save_items(buyer, document, orderitem_formset):    
-    for index, orderitem_form in enumerate(orderitem_formset.forms):
-        if orderitem_form.is_valid():
-            item = orderitem_form.save(commit=False)
-            item.number = document.number + "-" + str(index+1)
+    for index, form in enumerate(orderitem_formset.forms):
+        if form.is_valid():
+            item = form.save(commit=False)
             item.date_due = document.date_due
             if isinstance(document, Requisition):
+                item.number = document.number + "-" + str(index+1)
                 item.requisition = document
                 document.sub_total += item.get_requested_subtotal()
                 if buyer.role == 'SuperUser':
                     item.qty_approved = item.qty_requested
                 item.unit_price = item.product.unit_price
             elif isinstance(document, PurchaseOrder):
-                item.purchase_order = purchase_order
+                item.purchase_order = document
                 if buyer.role == 'SuperUser':
                     item.qty_ordered = item.qty_approved            
             elif isinstance(document, Drawdown):
-                item.drawdown = document        
+                item.unit_price = item.product.unit_price  #Don't like this being set here
+                item.drawdown = document
             item.save()
     document.save()
 
@@ -129,8 +131,11 @@ def save_doc_status(document, doc_status, author):
     DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
 def save_item_status(document, item_status, author):
-    for order_item in document.order_items.all():
-        OrderItemStatus.objects.create(value=item_status, author=author, order_item=order_item)
+    for item in document.items.all():
+        if isinstance(document, Drawdown):
+            DrawdownItemStatus.objects.create(value=item_status, author=author, item=item)
+        else:
+            OrderItemStatus.objects.create(value=item_status, author=author, item=item)
 
 ################################
 ###        GET METHODS       ### 

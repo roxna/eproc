@@ -19,18 +19,18 @@
 	    </div>       
 	    <div class="box-body">          
           {% if user.buyer_profile.role == 'SuperUser' %}
-            <h4><a href="{%url 'locations' %}"><i class="fa fa-building"></i> Locations</a></h4>
+            <h4><a href="{%url 'locations' %}"><i class="fa {{ICONS.locations}}"></i> Locations</a></h4>
             <p class="text-muted">Manage locations and corresponding departments</p>
             
-            <h4><a href="{%url 'users' %}"><i class="fa fa-user"></i> Users</a></h4>
+            <h4><a href="{%url 'users' %}"><i class="fa {{ICONS.users}}"></i> Users</a></h4>
             <p class="text-muted">View all users by department/location</p>  
 
-            <h4><a href="{%url 'company_profile' %}"><i class="fa fa-institution"></i> Company Profile</a></h4>
+            <h4><a href="{%url 'company_profile' %}"><i class="fa {{ICONS.locations}}"></i> Company Profile</a></h4>
             <p class="text-muted">Manage company profile details</p>           
 
           {% endif %}    
 
-            <h4><a href="{%url 'user_profile' %}"><i class="fa fa-user"></i> Profile</a></h4>
+            <h4><a href="{%url 'user_profile' %}"><i class="fa {{ICONS.profile}}"></i> Profile</a></h4>
             <p class="text-muted">Manage your own profile details</p> 
 	    </div>        
 	  </div>    
@@ -43,19 +43,19 @@
 	    </div>       
 	    <div class="box-body">
           {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
-            <h4><a href="{%url 'categories' %}"><i class="fa fa-file-pdf-o"></i> Product Categories</a></h4>
+            <h4><a href="{%url 'categories' %}"><i class="fa {{ICONS.products}}"></i> Product Categories</a></h4>
             <h5>Manage product categories</h5>
 
-            <h4><a href="{%url 'vendors' %}"><i class="fa fa-credit-card"></i> Vendors</a></h4>
+            <h4><a href="{%url 'vendors' %}"><i class="fa {{ICONS.vendors}}"></i> Vendors</a></h4>
             <p class="text-muted">Manage vendors incl. CSV upload</p>
 
-            <h4><a href="{%url 'products' %}"><i class="fa fa-file-excel-o"></i> Products</a></h4>
+            <h4><a href="{%url 'products' %}"><i class="fa {{ICONS.products}}"></i> Products</a></h4>
             <p class="text-muted">Manage products incl. CSV upload</p>
 
-            <h4><a href="{%url 'account_codes' %}"><i class="fa fa-book"></i> Chart of Accounts</a></h4>
+            <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
 
-            <h4><a href="{%url 'approval_routing' %}"><i class="fa fa-book"></i> Approval Routing</a></h4>
+            <h4><a href="{%url 'approval_routing' %}"><i class="fa {{ICONS.approval}}"></i> Approval Routing</a></h4>
             <p class="text-muted">Manage approvers and threshold amounts</p>            
 
           {% else %}

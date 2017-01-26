@@ -29,7 +29,7 @@
         {{ requisition.comments }}         
       </td>
       <td> {{ requisition.currency }} {{ requisition.sub_total }}<br>
-        <em><small><b>Num. items:</b> {{ requisition.order_items.count }}</small></em>
+        <em><small><b>Num. items:</b> {{ requisition.items.count }}</small></em>
       </td>
     </tr>
   {% endfor %}

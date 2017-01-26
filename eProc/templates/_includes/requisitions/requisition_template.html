@@ -46,7 +46,7 @@
         </thead>
 
         <tbody>        
-          {% for item in requisition.order_items.all %}
+          {% for item in requisition.items.all %}
             <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
             {% with item.product.currency|currency_icon as currency %}
             <tr id="orderItemList">

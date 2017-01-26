@@ -53,7 +53,7 @@
                 <li class="dropdown user user-menu">
                   <a href="{% url 'logout' %}">
                     <span class="hidden-xs">Sign out</span>
-                    <span class="pull-right-container"><i class="fa fa-sign-out"></i></span>                
+                    <span class="pull-right-container"><i class="fa {{ICONS.drawdown}}"></i></span>                
                   </a>
                 </li>
               </ul>
@@ -126,7 +126,7 @@
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
               <li class="treeview">
                 <a href="#">
-                  <i class="fa fa-shopping-cart"></i> <span>Purchase Orders</span>
+                  <i class="fa {{ICONS.po}}"></i> <span>Purchase Orders</span>
                   <span class="pull-right-container">
                     <i class="fa fa-angle-left pull-right"></i>
                   </span>
@@ -144,7 +144,7 @@
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
               <li>
                 <a href="{%url 'receive_pos' %}">
-                  <i class="fa fa-truck"></i> 
+                  <i class="fa {{ICONS.receive}}"></i> 
                   <span>Receive Items</span>
                 </a>
               </li>
@@ -187,7 +187,7 @@
             <!-- everyone has access to create / view status-->             
             <li class="treeview">
               <a href="#">
-                <i class="fa fa-sign-out"></i> <span>Drawdowns</span>
+                <i class="fa {{ICONS.drawdown}}"></i> <span>Drawdowns</span>
                 <span class="pull-right-container">
                   <i class="fa fa-angle-left pull-right"></i>
                 </span>
@@ -200,7 +200,7 @@
                 </li>
                 <li>
                   <a href="{%url 'drawdowns' %}">
-                  <i class="fa fa-sign-out"></i>
+                  <i class="fa {{ICONS.drawdown}}"></i>
                   <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
                   {% if user.buyer_profile.role == 'SuperUser' or   user.buyer_profile.role == 'Approver' %}
                     View/Approve Drawdowns
@@ -230,7 +230,7 @@
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.department == 'Admin' %}
               <li>
                 <a href="{%url 'analysis' %}">
-                  <i class="fa fa-area-chart"></i> 
+                  <i class="fa {{ICONS.analysis}}"></i> 
                   <span>Reports & Analysis</span>
                 </a>
               </li>
@@ -241,7 +241,7 @@
             ******************************-->
             <li>
               <a href="{%url 'settings' %}">
-                <i class="fa fa-gear"></i> 
+                <i class="fa {{ICONS.settings}}"></i> 
                 <span>Settings</span>
               </a>
             </li> 

@@ -233,7 +233,7 @@ class LocationForm(ModelForm):
     city = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> City")
     state = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> State")
     zipcode = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> Zip Code")
-    country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='India', label="<i class='fa fa-globe'></i> Country")
+    country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='USA', label="<i class='fa fa-globe'></i> Country")
     phone = forms.CharField(required=False, label="<i class='fa fa-phone'></i> Phone Number")
     email = forms.EmailField(required=False, label="<i class='fa fa-envelope'></i> Email")
     
@@ -506,7 +506,7 @@ class DrawdownItemForm(ModelForm):
         )
 
     class Meta:
-        model = OrderItem
+        model = DrawdownItem
         fields = ("product", "qty_drawndown", "comments_drawdown")
 
 ####################################
@@ -600,6 +600,7 @@ class InvoiceForm(ModelForm):
                 css_class='row'
             ),
             Div(
+                Div('next_approver', css_class='col-md-6'),
                 Div('comments', css_class='col-md-6'),
                 css_class='row',
             )
@@ -624,7 +625,7 @@ class InvoiceForm(ModelForm):
 
     class Meta:
         model = Invoice
-        fields = ("number", "date_issued", "date_due", "comments", "purchase_order", "vendor_co")
+        fields = ("number", "date_issued", "date_due", "next_approver", "comments", "purchase_order", "vendor_co")
  
 
 class DrawdownForm(ModelForm):       
