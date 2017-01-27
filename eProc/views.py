@@ -123,8 +123,8 @@ def dashboard(request):
     pos = get_documents_by_auth(buyer, PurchaseOrder)
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department (in the past 7 days)
-    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
-    items_received_this_week = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
+    items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items_received_this_week = items_received.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
     data = {
         'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
@@ -358,7 +358,12 @@ def view_purchaseorder(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':
-        if 'cancel' in request.POST:
+        if 'close' in request.POST:            
+            DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
+            # No Order Item status updates needed 
+            messages.success(request, 'Purchase Order closed')            
+            return redirect('purchaseorders')
+        elif 'cancel' in request.POST:
             # PO is Cancelled, Items go back into Approved list with reset #s
             save_status(document=purchase_order, doc_status='Cancelled', item_status='Approved', author=buyer)
             for item in purchase_order.items.all():
@@ -401,13 +406,7 @@ def receive_purchaseorder(request, po_id):
     receive_po_formset = ReceivePOItemFormSet(request.POST or None, instance=purchase_order)
 
     if request.method == 'POST':
-        if 'close' in request.POST:
-            DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
-            # No Order Item status updates needed because 'Close' only shows if doc.is_ready_to_close:
-            # order item statuses should be uptodate i.e. qty_ordered = qty_delivered + qty_returned)
-            messages.success(request, 'Purchase Order closed')
-            return redirect('purchaseorders')
-        elif 'save' in request.POST:
+        if 'save' in request.POST:
             for index, form in enumerate(receive_po_formset.forms):
                 if form.is_valid() and form.has_changed():
                     qty_ordered = form.cleaned_data['qty_ordered']
@@ -415,10 +414,13 @@ def receive_purchaseorder(request, po_id):
                     qty_returned = form.cleaned_data['qty_returned']
                     if qty_delivered > qty_ordered:
                         messages.error(request, 'Error. Quantity delivered must be less than quantity ordered.')
+                        break
                     elif qty_returned > qty_delivered:
                         messages.error(request, 'Error. Quantity returned must be less than quantity delivered.')
+                        break
                     elif qty_returned > qty_ordered:
                         messages.error(request, 'Error. Quantity returned must be less than quantity ordered.')                        
+                        break
                     elif qty_delivered + qty_returned == qty_ordered:
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, item=item)
@@ -427,6 +429,12 @@ def receive_purchaseorder(request, po_id):
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, item=item)
                         messages.success(request, 'Orders updated successfully')
+                    
+                    # If form.is_ready_to_close (qty_delivered + qty_returned), then automatically closed
+                    if form.is_ready_to_close():
+                        save_doc_status(purchase_order, 'Closed', buyer)
+                    else:
+                        save_doc_status(purchase_order, 'Partial', buyer)
             return redirect('receive_purchaseorder', purchase_order.pk)
         else:
             messages.error(request, 'Error updating items')            
@@ -592,12 +600,13 @@ def inventory(request):
 def view_location_inventory(request, location_id, location_name):
     buyer = request.user.buyer_profile
     location = get_object_or_404(Location, pk=location_id)
-    all_items = OrderItem.objects.filter(invoice__shipping_add=location)    
+    order_items = OrderItem.objects.filter(invoice__shipping_add=location)
+    drawdown_items = DrawdownItem.objects.filter(drawdown__location=location)    
     
     # _list: querylist with individual items // _count: aggregate sum of qty for item in querylist
-    delivered_list, delivered_count = get_inventory_received(all_items) #(for inventory_delivered)
-    drawndown_list, drawndown_count = get_inventory_drawndown(all_items) #(for inventory_drawdown)
-    neg_drawndown_list, neg_drawndown_count = get_inventory_drawndown(all_items, -1) # Negate drawdown items (for inventory_current)
+    delivered_list, delivered_count = get_inventory_received(order_items) #(for inventory_delivered)
+    drawndown_list, drawndown_count = get_inventory_drawndown(drawdown_items) #(for inventory_drawdown)
+    neg_drawndown_list, neg_drawndown_count = get_inventory_drawndown(drawdown_items, -1) # Negate drawdown items (for inventory_current)
     
     # Chain/combine the two querysets into a list, not another Queryset (can't use annotate etc)
     # TypeError for empty list
@@ -940,11 +949,12 @@ def vendors(request):
 def view_vendor(request, vendor_id, vendor_name):
     vendor = get_object_or_404(VendorCo, pk=vendor_id)
     location = Location.objects.filter(company=vendor)[0]
-    vendor_form = VendorCoForm(request.POST or None, instance=vendor)
-    location_form = LocationForm(request.POST or None, instance=location)
+    # Prefix so the name field (common to both forms) isn't confused
+    vendor_form = VendorCoForm(request.POST or None, prefix="vendor", instance=vendor)
+    location_form = LocationForm(request.POST or None, prefix="location", instance=location)
     doc_ids = [doc.id for doc in vendor.invoice.all()]
     documents = File.objects.filter(document__in=doc_ids)
-    if request.method == 'POST':
+    if request.method == 'POST':        
         if vendor_form.is_valid() and location_form.is_valid():
             vendor = vendor_form.save()
             location = location_form.save()

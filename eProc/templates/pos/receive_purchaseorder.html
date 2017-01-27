@@ -52,10 +52,6 @@
                 <form method="post">
                 {% csrf_token %}    
                     <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
-
-                    {% if purchase_order.is_ready_to_close and user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}                      
-                        <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>                      
-                    {% endif %}
                 </form>
             </div>
 

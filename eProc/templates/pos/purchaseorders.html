@@ -13,13 +13,14 @@
 <section class="content">
   <div class="row">
     <div class="col-xs-12">
-        <div class="box">
           
-          {% if not all_pos %}
-              <!-- If no requisitions have been created, link to CREATE NEW PO -->
-              {% include "_includes/docs/no_docs_add_now.html" with doc='Purchase Orders' href='new_po_items' %}
-              
-          {% else %}
+        {% if not all_pos %}
+            <!-- If no POs have been created, link to CREATE NEW PO -->
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Purchase Orders' href='new_po_items' %}
+            
+        {% else %}
+
+        <div class="box">          
           <div class="nav-tabs-custom">          
 
             <!-- TABS -->

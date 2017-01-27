@@ -13,13 +13,14 @@
 <section class="content">
   <div class="row">
     <div class="col-xs-12">
-        <div class="box">
-
-            {% if not all_requisitions %}
-              <!-- If no requisitions have been created, CREATE NEW REQ  button -->
-              {% include "_includes/docs/no_docs_add_now.html" with doc='Requests' href='new_requisition' %}
-              
-            {% else %}
+    
+          {% if not all_requisitions %}
+            <!-- If no requisitions have been created, CREATE NEW REQ  button -->
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Requests' href='new_requisition' %}
+            
+          {% else %}
+        
+          <div class="box">            
             <div class="nav-tabs-custom">
             
               <!-- TABS -->

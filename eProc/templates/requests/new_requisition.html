@@ -16,7 +16,22 @@
 
     <form method="POST">
 	{% csrf_token %}
+    {{ orderitem_formset.management_form | crispy }}
 
+    {% with user.buyer_profile.company as company %}
+
+        <!-- If set up (Vendors, Products, Categories, Account Codes etc) hasn't been completed -->
+        {% if not company.vendor_cos.all %}        
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Vendors' href='vendors' %}        
+        {% elif not company.categories.all %}
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Categories' href='categories' %}
+        {% elif not company.catalog_items.all %}
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Products' href='products' %}
+        {% elif not company.account_codes.all %}
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Account Codes' href='account_codes' %}            
+
+        <!-- If set up completed, only then show the New Requisition form -->
+        {% else %}        
         <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
         <div class="box box-default">	    
             <div class="box-header with-border">
@@ -41,9 +56,7 @@
             <div class="box-body">
               <div class="row">
             	<div class="col-xs-12">                
-    				<div class="box-body">    		        	
-                        {{ orderitem_formset.management_form | crispy }}
-
+    				<div class="box-body">
                         {% for form in orderitem_formset.forms %}                   
                             {% for hidden in form.hidden_fields %}
                                 {{ hidden }}
@@ -59,7 +72,9 @@
               <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.requisition}}"></i> New Request </button>
             </div>
         </div>        
+        {% endif %}
 
+    {% endwith %}
     </form>
 
 </section>

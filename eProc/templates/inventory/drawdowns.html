@@ -12,13 +12,14 @@
 <section class="content">
   <div class="row">
     <div class="col-xs-12">
-        <div class="box">
 
-          {% if not all_drawdowns %}
-              <!-- If no drawdowns have been created, link to CREATE NEW DD  -->
-              {% include "_includes/docs/no_docs_add_now.html" with doc='Drawdowns' href='new_drawdown' %}
-              
-          {% else %}
+        {% if not all_drawdowns %}
+            <!-- If no drawdowns have been created, link to CREATE NEW DD  -->
+            {% include "_includes/docs/no_docs_add_now.html" with doc='Drawdowns' href='new_drawdown' %}
+            
+        {% else %}
+          
+        <div class="box">          
           <div class="nav-tabs-custom">
 
             <!-- TABS -->

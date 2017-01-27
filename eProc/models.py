@@ -48,8 +48,8 @@ class VendorCo(Company):
 	    return model._meta.fields
 
 class Location(models.Model):
-	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='Shipping')
 	name = models.CharField(max_length=50, default='')
+	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='HQ')	
 	address1 = models.CharField(max_length=40, null=True, blank=True)
 	address2 = models.CharField(max_length=40, default='-')
 	city = models.CharField(max_length=20, null=True, blank=True)
@@ -79,12 +79,9 @@ class Department(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
+	# Total amount approved for spend or actually spent
 	def get_spend_approved_ytd(self):		
-		requisitions = self.requisitions.all()
-		order_items = [requisition.items.all() for requisition in requisitions]
-		approved_order_items = order_items.filter(get_latest_status=='Approved')
-		spend_approved_ytd = approved_order_items
-		return spend_approved_ytd
+		return self.requisitions.all().aggregate(spend_approved=Sum('spend_approved')) 
 
 	def get_spend_percent_of_budget(self):
 		try:
@@ -194,6 +191,9 @@ class SalesOrder(Document):
 
 class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
+
+	def get_spend_approved_ytd(self):
+		return self.latest_status_objects.filter(status_updates='Approved').aggregate(spend_approved=Sum(F('qty_approved')*F('unit_price')), output_field=models.FloatField())
 
 class PurchaseOrder(SalesOrder):	
 	pass	

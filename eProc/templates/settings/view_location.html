@@ -21,8 +21,8 @@
             <!-- TABS -->
             <ul class="nav nav-tabs">
               <li class="active"><a href="#details" data-toggle="tab">Details</a></li>
-              <li><a href="#users" data-toggle="tab">Users</a></li>
               <li><a href="#departments" data-toggle="tab">Departments</a></li>
+              <li><a href="#users" data-toggle="tab">Users</a></li>
             </ul>
 
             <!-- TABLES -->
@@ -41,6 +41,33 @@
                 </div>        
               </div>
               
+              <!-- Departments -->
+              <div class="tab-pane" id="departments">
+                 <div class="box-header">
+                    <h3 class="box-title">Departments</h3>
+                    <!-- Add Department Modal Button -->
+                    <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Dept</button>
+                    {% include "_includes/modal_singleform.html" with target="Department" form=department_form %} 
+
+                </div>       
+                <div class="box-body">     
+                    <!-- Department List Table-->
+                    <table id="departmentTable" class="table table-striped">
+                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=dept_table_headers %}           
+
+                      <tbody>              
+                        {% for dept in departments %}
+                          <tr>
+                            <td>{{ dept.name }}</td>
+                            <td>{{ dept.budget }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>  
+                    
+                </div>
+              </div>
+
               <!-- Users -->
               <div class="tab-pane" id="users">
                 
@@ -75,34 +102,7 @@
                     </table>  
                 </div>
 
-              </div>
-              
-              <!-- Departments -->
-              <div class="tab-pane" id="departments">
-                 <div class="box-header">
-                    <h3 class="box-title">Departments</h3>
-                    <!-- Add Department Modal Button -->
-                    <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i> Add Dept</button>
-                    {% include "_includes/modal_singleform.html" with target="Department" form=department_form %} 
-
-                </div>       
-                <div class="box-body">     
-                    <!-- Department List Table-->
-                    <table id="departmentTable" class="table table-striped">
-                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=dept_table_headers %}           
-
-                      <tbody>              
-                        {% for dept in departments %}
-                          <tr>
-                            <td>{{ dept.name }}</td>
-                            <td>{{ dept.budget }}</td>
-                          </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>  
-                    
-                </div>
-              </div>
+              </div>              
 
             </div>
           </div>

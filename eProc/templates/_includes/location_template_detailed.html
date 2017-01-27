@@ -9,15 +9,25 @@
 
       <div class="col-sm-6 border-right">
         <div class="description-block">
-          <h5 class="description-header">{{location.num_users}}</h5>
-          <span class="description-text">USERS</span>
+          {% if location.num_users == 0 %}
+            <span class="text-muted">No users yet</span><br>
+            <span class="description-header"><a href="{% url 'view_location' location.id location.name|slugify %}">ADD A USER</a></span>
+          {% else %}
+            <h5 class="description-header">{{location.num_users}}</h5>
+            <span class="description-text">USERS</span>
+          {% endif %}
         </div>
       </div>
 
       <div class="col-sm-6">
         <div class="description-block">
-          <h5 class="description-header">{{location.num_depts}}</h5>
-          <span class="description-text">DEPARTMENTS</span>
+          {% if location.num_depts == 0 %}
+            <span class="text-muted">No depts yet</span><br>
+            <span class="description-header"><a href="{% url 'view_location' location.id location.name|slugify %}">ADD A DEPT</a></span>
+          {% else %}
+            <h5 class="description-header">{{location.num_depts}}</h5>
+            <span class="description-text">USERS</span>
+          {% endif %}
         </div>
       </div>
 

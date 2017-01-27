@@ -27,7 +27,11 @@
         {% csrf_token %}             
         
           {% if latest_status.value == 'Open' %}
-            {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' or buyer == purchase_order.preparer %}            
+            {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' %}
+                <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel</button>
+                <button type="submit" name="close" value="close" class="btn basic-teal pull-right"><i class="fa fa-times"></i> Cancel</button>
+            {% endif %}
+            {% if buyer == purchase_order.preparer %}
                 <button type="submit" name="cancel" value="cancel" class="btn basic-grey pull-right"><i class="fa fa-times"></i> Cancel</button>
             {% endif %}
           {% endif %}

@@ -14,7 +14,10 @@ def icons(request):
 		"drawdown": "fa-sign-out",
 		"payment": "fa-money",
 		"inventory": "fa-list-alt",
+		
 		"new": "fa-pencil-square-o",
+		"incoming": "fa-arrow-down",
+		"outgoing": "fa-arrow-up",
 
 		# Other
 		"dashboard": "fa-dashboard",
@@ -34,3 +37,5 @@ def icons(request):
 	return {'ICONS': icons}
 
 
+def buyer(request):
+	return {'buyer': request.user.buyer_profile}
