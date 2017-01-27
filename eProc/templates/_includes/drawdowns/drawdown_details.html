@@ -1,0 +1,16 @@
+{% load eProc_filters %}
+
+<div class="row invoice-info">
+	<div class="col-sm-6 invoice-col">
+    <p class="lead">Requester Info</p>
+    Preparer:<b> {{ drawdown.preparer }}</b><br>
+    Next Approver:<b> {{ drawdown.next_approver }}</b><br>
+  </div>
+<div class="col-sm-6 invoice-col">
+    <p class="lead">Details</p>
+    Number:<b> {{ drawdown.number }}</b><br>
+    Date Requested:<b> {{ drawdown.date_issued | date }}</b><br>
+    <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
+    Date Due:<b> {{ drawdown.date_due | get_date_as_string}}</b><br>        
+  </div>  
+</div><br><br>

@@ -51,7 +51,10 @@
             <div class="label text-grey">
                 <form method="post">
                 {% csrf_token %}    
+                  <!-- If the PO is closed, don't show the button -->
+                  {% if latest_status.value != 'Closed' %}
                     <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                  {% endif %}
                 </form>
             </div>
 

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
+from django.db.models import Sum
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
@@ -80,12 +81,15 @@ class Department(models.Model):
 		return "{}".format(self.name)
 
 	# Total amount approved for spend or actually spent
-	def get_spend_approved_ytd(self):		
-		return self.requisitions.all().aggregate(spend_approved=Sum('spend_approved')) 
+	def get_spend_approved_ytd(self):
+		spend = 0
+		for requisition in self.requisitions.all():
+			spend += requisition.get_spend_approved_ytd()
+		return spend
 
 	def get_spend_percent_of_budget(self):
 		try:
-			return self.get_spend_approved_ytd()/self.budget
+			return "{} %".format(self.get_spend_approved_ytd()/self.budget*100)
 		except ZeroDivisionError:
 			return "No budget defined"
 
@@ -146,7 +150,7 @@ class Document(models.Model):
 	date_issued = models.DateTimeField(default=timezone.now, null=True, blank=True)
 	date_due = models.DateField(default=timezone.now)
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
-	sub_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	terms = models.CharField(max_length=5000, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
@@ -193,7 +197,10 @@ class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
 	def get_spend_approved_ytd(self):
-		return self.latest_status_objects.filter(status_updates='Approved').aggregate(spend_approved=Sum(F('qty_approved')*F('unit_price')), output_field=models.FloatField())
+		spend = 0
+		for item in self.items.all():
+			spend += item.get_approved_subtotal()
+		return spend
 
 class PurchaseOrder(SalesOrder):	
 	pass	

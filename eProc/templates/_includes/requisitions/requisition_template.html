@@ -9,59 +9,45 @@
 <!-- *****************
   Request Details
 ***************** -->
-<div class="row invoice-info">
-	<div class="col-sm-6 invoice-col">
-    <p class="lead">Requester Info</p>
-    Requested by:<b> {{ requisition.preparer }}</b><br>
-    Location:<b> {{ requisition.location }}</b><br>
-    Department: <b>{{ requisition.department }}</b><br>             
-  </div>
-<div class="col-sm-6 invoice-col">
-    <p class="lead">Details</p>
-    Next Approver:<b> {{ requisition.next_approver }}</b><br>
-    Date Requested:<b> {{ requisition.date_issued | date }}</b><br>
-    <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
-    Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br> 
-  </div>  
-</div><br><br>
+{% include "_includes/requisitions/requisition_details.html" with requisition=requisition %}
 
 
 <!-- *****************
   Order Items Table
 ***************** -->
-  <div class="row">
-    <div class="col-xs-12">
-     <p class="lead">Line Items</p>
-    </div>
-    <div class="col-xs-12 table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Quantity Requested</th>
-            <th>Unit Price</th>
-            <th>Sub Total</th>
-            <th>Comments</th>
-          </tr>
-        </thead>
+<div class="row">
+  <div class="col-xs-12">
+   <p class="lead">Line Items</p>
+  </div>
+  <div class="col-xs-12 table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Quantity Requested</th>
+          <th>Unit Price</th>
+          <th>Sub Total</th>
+          <th>Comments</th>
+        </tr>
+      </thead>
 
-        <tbody>        
-          {% for item in requisition.items.all %}
-            <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
-            {% with item.product.currency|currency_icon as currency %}
-            <tr id="orderItemList">
-              <td id="">{{ item.product.name }}</td>
-              <td>{{ item.qty_requested }}</td>              
-              <td>{{ currency }} {{ item.unit_price }}</td>
-              <td>{{ currency }} {{ item.get_requested_subtotal }}</td>
-              <td>{{ item.comments_request }}</td>
-            </tr>
-            {% endwith %}
-          {% endfor %}          
-        </tbody>
-      </table>
-    </div>
-  </div><br>
+      <tbody>        
+        {% for item in requisition.items.all %}
+          <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
+          {% with item.product.currency|currency_icon as currency %}
+          <tr id="orderItemList">
+            <td id="">{{ item.product.name }}</td>
+            <td>{{ item.qty_requested }}</td>              
+            <td>{{ currency }} {{ item.unit_price }}</td>
+            <td>{{ currency }} {{ item.get_requested_subtotal }}</td>
+            <td>{{ item.comments_request }}</td>
+          </tr>
+          {% endwith %}
+        {% endfor %}          
+      </tbody>
+    </table>
+  </div>
+</div><br>
 
 <!-- *****************
   Comments & Totals
@@ -81,7 +67,23 @@
   Footer
 ***************** -->
 <div class="row no-print">
-  <div class="col-xs-12">
+  
+  <!-- BUDGET -->
+  <div class="col-lg-6 col-md-36 col-sm-6 col-xs-12">
+    <div class="info-box">
+      <span class="info-box-icon bg-yellow"><i class="fa fa-files-o"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">DEPT BUDGET SPENT YTD</span>
+        {% with requisition.department as dept %}
+        <span class="info-box-number">{{dept.get_spend_percent_of_budget}}</span>
+        ({{requisition.currency|currency_icon}}{{dept.get_spend_approved_ytd}} of {{requisition.currency|currency_icon}}{{dept.budget}})
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCEL/DENY/APPROVE -->
+  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
   {% with requisition.get_latest_status as latest_status %} 
     <!-- If req is PENDING -->
     {% if latest_status.value == 'Pending' %}
@@ -93,8 +95,9 @@
           Status: <em>{% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
         </div>
     {% endif %}          
-  </div>
+  </div>  
 </div>
+
 {% endwith %}
 
 

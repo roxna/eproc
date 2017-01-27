@@ -78,14 +78,16 @@ def save_new_document(buyer, form):
 
 # Save the data for each form in the order_items formset 
 # Used by NEW_REQ, NEW_DD
-def save_items(buyer, document, orderitem_formset):    
-    for index, form in enumerate(orderitem_formset.forms):
+def save_items(buyer, document, item_formset):    
+    for index, form in enumerate(item_formset.forms):
         if form.is_valid():
             item = form.save(commit=False)
+            item.unit_price = item.product.unit_price  #Don't like this being set here            
             item.date_due = document.date_due
             if isinstance(document, Requisition):
                 item.number = document.number + "-" + str(index+1)
                 item.requisition = document
+                item.save() #Need to save to get item.get_requested_subtotal
                 document.sub_total += item.get_requested_subtotal()
                 if buyer.role == 'SuperUser':
                     item.qty_approved = item.qty_requested
@@ -95,7 +97,6 @@ def save_items(buyer, document, orderitem_formset):
                 if buyer.role == 'SuperUser':
                     item.qty_ordered = item.qty_approved            
             elif isinstance(document, Drawdown):
-                item.unit_price = item.product.unit_price  #Don't like this being set here
                 item.drawdown = document
             item.save()
     document.save()

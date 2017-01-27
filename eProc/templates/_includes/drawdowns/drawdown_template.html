@@ -1,20 +1,8 @@
 
 {% include "_includes/docs/doc_header.html" with document=drawdown href='view_drawdown' %}
 
-<!-- Request Details -->
-<div class="row invoice-info">
-	<div class="col-sm-6 invoice-col">
-    <p class="lead">Requester Info</p>
-    Preparer:<b> {{ drawdown.preparer }}</b><br>
-    Next Approver:<b> {{ drawdown.next_approver }}</b><br>
-  </div>
-<div class="col-sm-6 invoice-col">
-    <p class="lead">Details</p>
-    Number:<b> {{ drawdown.number }}</b><br>
-    Date Requested:<b> {{ drawdown.date_issued | date }}</b><br>
-    Date Due:<b> {{ drawdown.date_due }}</b><br>        
-  </div>  
-</div><br><br>
+<!-- DD Details -->
+{% include "_includes/drawdowns/drawdown_details.html" with drawdown=drawdown %}
 
 <!-- Order Items Table-->
 {% include "_includes/drawdowns/drawdown_item_table.html" with items=drawdown.items.all %}

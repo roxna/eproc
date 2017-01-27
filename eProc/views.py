@@ -307,7 +307,7 @@ def new_po_confirm(request):
                     # However, qty_requested = items that were approved but weren't ordered
                     approved_not_ordered = item.qty_approved - item.qty_ordered
                     if approved_not_ordered > 0:
-                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, requisition=item.requisition, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
+                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
                         OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
 
                     
@@ -391,8 +391,12 @@ def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
     data = {
+        'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
         'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
         'partial_pos': PurchaseOrder.latest_status_objects.partial.filter(pk__in=pos),
+        'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
+        'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
+        'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
         'title': 'Receive Purchase Order Items',
         'href': 'receive_purchaseorder',
     }
@@ -431,8 +435,10 @@ def receive_purchaseorder(request, po_id):
                         messages.success(request, 'Orders updated successfully')
                     
                     # If form.is_ready_to_close (qty_delivered + qty_returned), then automatically closed
-                    if form.is_ready_to_close():
-                        save_doc_status(purchase_order, 'Closed', buyer)
+                    if purchase_order.is_ready_to_close():
+                        save_doc_status(purchase_order, 'Closed', buyer)                        
+                        messages.success(request, 'PO Closed')
+                        return redirect('receive_pos')
                     else:
                         save_doc_status(purchase_order, 'Partial', buyer)
             return redirect('receive_purchaseorder', purchase_order.pk)

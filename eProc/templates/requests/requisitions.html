@@ -36,27 +36,27 @@
               <div class="tab-content">
                 <div class="tab-pane" id="all">
                    <table id="allTable" class="table table-striped">
-                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=all_requisitions %}
+                   {% include "_includes/requisitions/requisition_table.html" with requisitions=all_requisitions %}
                     </table>
                 </div>
                 <div class="tab-pane active" id="pending">
                    <table id="pendingTable" class="table table-striped">
-                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=pending_requisitions %}
+                   {% include "_includes/requisitions/requisition_table.html" with requisitions=pending_requisitions %}
                     </table>
                 </div>
                 <div class="tab-pane" id="approved">
                    <table id="approvedTable" class="table table-striped">
-                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=approved_requisitions %}
+                   {% include "_includes/requisitions/requisition_table.html" with requisitions=approved_requisitions %}
                     </table>
                 </div>
                 <div class="tab-pane" id="denied">
                    <table id="deniedTable" class="table table-striped">
-                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=denied_requisitions %}
+                   {% include "_includes/requisitions/requisition_table.html" with requisitions=denied_requisitions %}
                     </table>
                 </div>
                 <div class="tab-pane" id="cancelled">
                    <table id="cancelledTable" class="table table-striped">
-                   {% include "_includes//requisitions/requisitions_table.html" with requisitions=cancelled_requisitions %}
+                   {% include "_includes/requisitions/requisition_table.html" with requisitions=cancelled_requisitions %}
                     </table>
                 </div>
               </div>
