@@ -1,9 +1,10 @@
 
-# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating
+# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
 # DD - quantity not drawndown stil remains to be drawndown
+# new DD messages show funny
 # Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
 
 # form errors show as messages framework

@@ -164,6 +164,7 @@ STATUSES = (
     ('Cancelled', 'Cancelled'), #view_req --> req cancelled
     ('Delivered Partial', 'Delivered Partial'), #receive_po
     ('Delivered Complete', 'Delivered Complete'), #receive_po (qty_ordered = delivered+returned)
+    ('Returned', 'Returned'), #TODOOOO??????
     ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####

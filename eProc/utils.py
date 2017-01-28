@@ -2,6 +2,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.db.models import Max, Sum
 from django.utils import timezone
+from eProc.forms import *
 from eProc.models import *
 
 def send_verific_email(user,random_id):
@@ -50,11 +51,16 @@ def initialize_invoice_form(buyer, invoice_form):
     invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
 
 def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
-    drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company).exclude(user=buyer.user)
+    drawdown_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
+    if buyer.role == 'SuperUser':
+        drawdown_form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
+        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
+    else:
+        drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser']).exclude(user=buyer.user)
+    
     for drawdownitem_form in drawdownitem_formset: 
-        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
-    drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser'])
+        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)    
 
 
 ################################

@@ -632,7 +632,6 @@ class DrawdownForm(ModelForm):
     number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
-    department = forms.ModelChoiceField(queryset=Department.objects.all(), required=True)
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
 
     def __init__(self, *args, **kwargs):
@@ -641,9 +640,10 @@ class DrawdownForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(            
             Div(
-                Div('number', css_class='col-md-3'),
-                Div('department', css_class='col-md-3'),
-                Div('date_due', css_class='col-md-3'),
+                Div('number', css_class='col-md-1'),
+                Div('date_due', css_class='col-md-2'),
+                Div('location', css_class='col-md-3'),
+                Div('department', css_class='col-md-3'),                
                 Div('next_approver', css_class='col-md-3'),
                 css_class='row',
             ),
@@ -655,7 +655,7 @@ class DrawdownForm(ModelForm):
 
     class Meta:
         model = Drawdown
-        fields = ("number", "date_due", "comments", "department", "next_approver")      
+        fields = ("number", "date_due", "comments", "location", "department", "next_approver")      
 
 ####################################
 ###         OTHER FORMS          ### 

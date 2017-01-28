@@ -16,65 +16,65 @@
 
     <form method="POST">
 	{% csrf_token %}
-    {{ orderitem_formset.management_form | crispy }}
+        {{ orderitem_formset.management_form | crispy }}
 
-    {% with user.buyer_profile.company as company %}
+        {% with user.buyer_profile.company as company %}
 
-        <!-- If set up (Vendors, Products, Categories, Account Codes etc) hasn't been completed -->
-        {% if not company.vendor_cos.all %}        
-            {% include "_includes/docs/no_docs_add_now.html" with doc='Vendors' href='vendors' %}        
-        {% elif not company.categories.all %}
-            {% include "_includes/docs/no_docs_add_now.html" with doc='Categories' href='categories' %}
-        {% elif not company.catalog_items.all %}
-            {% include "_includes/docs/no_docs_add_now.html" with doc='Products' href='products' %}
-        {% elif not company.account_codes.all %}
-            {% include "_includes/docs/no_docs_add_now.html" with doc='Account Codes' href='account_codes' %}            
+            <!-- If set up (Vendors, Products, Categories, Account Codes etc) hasn't been completed -->
+            {% if not company.vendor_cos.all %}        
+                {% include "_includes/docs/no_docs_add_now.html" with doc='Vendors' href='vendors' %}        
+            {% elif not company.categories.all %}
+                {% include "_includes/docs/no_docs_add_now.html" with doc='Categories' href='categories' %}
+            {% elif not company.catalog_items.all %}
+                {% include "_includes/docs/no_docs_add_now.html" with doc='Products' href='products' %}
+            {% elif not company.account_codes.all %}
+                {% include "_includes/docs/no_docs_add_now.html" with doc='Account Codes' href='account_codes' %}            
 
-        <!-- If set up completed, only then show the New Requisition form -->
-        {% else %}        
-        <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
-        <div class="box box-default">	    
-            <div class="box-header with-border">
-              <h3 class="box-title">Order Details</h3>
-            </div>       
-             <div class="box-body">
-              <div class="row">
-            	<div class="col-xs-12">
-    				<div class="box-body no-padding">
-                        {% crispy requisition_form requisition_form.helper %}
-    	            </div>
-    	        </div>
-    		</div> 
+            <!-- If set up completed, only then show the New Requisition form -->
+            {% else %}        
+            <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
+            <div class="box box-default">	    
+                <div class="box-header with-border">
+                  <h3 class="box-title">Order Details</h3>
+                </div>       
+                 <div class="box-body">
+                  <div class="row">
+                	<div class="col-xs-12">
+        				<div class="box-body no-padding">
+                            {% crispy requisition_form requisition_form.helper %}
+        	            </div>
+        	        </div>
+        		</div> 
+                </div>
             </div>
-        </div>
 
-        <!-- ORDER DETAILS -->
-        <div class="box box-default">        
-            <div class="box-header with-border">
-              <h3 class="box-title">Order Items List</h3>
-            </div>
-            <div class="box-body">
-              <div class="row">
-            	<div class="col-xs-12">                
-    				<div class="box-body">
-                        {% for form in orderitem_formset.forms %}                   
-                            {% for hidden in form.hidden_fields %}
-                                {{ hidden }}
+            <!-- ORDER DETAILS -->
+            <div class="box box-default">        
+                <div class="box-header with-border">
+                  <h3 class="box-title">Order Items List</h3>
+                </div>
+                <div class="box-body">
+                  <div class="row">
+                	<div class="col-xs-12">                
+        				<div class="box-body">
+                            {% for form in orderitem_formset.forms %}                   
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                <div class="item" id="{{form.prefix}}">
+                                    {% crispy form form.helper %}                                
+                                </div>                            
                             {% endfor %}
-                            <div class="item" id="{{form.prefix}}">
-                                {% crispy form form.helper %}                                
-                            </div>                            
-                        {% endfor %}
-                        <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>
-    	           </div>
-    	        </div>
-    		  </div>
-              <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.requisition}}"></i> New Request </button>
-            </div>
-        </div>        
-        {% endif %}
+                            <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>
+        	           </div>
+        	        </div>
+        		  </div>
+                  <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.requisition}}"></i> New Request </button>
+                </div>
+            </div>        
+            {% endif %}
 
-    {% endwith %}
+        {% endwith %}
     </form>
 
 </section>

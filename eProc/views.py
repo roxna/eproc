@@ -140,21 +140,21 @@ def analysis(request):
     buyer = request.user.buyer_profile
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
 
-    location_spend = items.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    dept_spend = items.values('requisition__department__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    categ_spend = items.values('product__category__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items.values('product__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    vendor_spend = items.values('product__vendor_co__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    requester_spend = items.values('requisition__preparer__user__username').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    approver_spend = items.values('requisition__next_approver__user__username').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    location_spend = items.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    category_spend = items.values('product__category__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items.values('product__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    vendor_spend = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    requester_spend = items.values('requisition__preparer__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    approver_spend = items.values('requisition__next_approver__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
 
     data = {
         'items': items,
         'location_spend': location_spend,
         'dept_spend': dept_spend,
-        'categ_spend': categ_spend,
+        'category_spend': category_spend,
         'product_spend': product_spend,
         'requester_spend': requester_spend,
         'approver_spend': approver_spend,        

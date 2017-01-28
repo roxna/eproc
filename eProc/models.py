@@ -216,6 +216,7 @@ class Invoice(SalesOrder):
 
 class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')
+	department = models.ForeignKey(Department, related_name='drawdowns')
 
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
