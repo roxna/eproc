@@ -27,7 +27,6 @@
             <ul class="nav nav-tabs">
               <li><a href="#all" data-toggle="tab">All</a></li>
               <li class="active"><a href="#open" data-toggle="tab">Open</a></li>
-              <li><a href="#partial" data-toggle="tab">Partial</a></li>
               <li><a href="#closed" data-toggle="tab">Closed</a></li>
               <li><a href="#paid" data-toggle="tab">Paid</a></li>
               <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
@@ -44,12 +43,7 @@
                  <table id="openTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href=href %}
                   </table>
-              </div>
-              <div class="tab-pane" id="partial"> 
-                 <table id="partialTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=partial_pos href=href %}
-                  </table>
-              </div>              
+              </div>       
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
                  {% include '_includes/pos/po_table.html' with purchaseorders=closed_pos href=href %}
@@ -81,7 +75,6 @@
   $(function () {
     $('#allTable').DataTable();
     $("#openTable").DataTable();
-    $("#partialTable").DataTable();
     $("#closedTable").DataTable();
     $("#cancelledTable").DataTable();
     $("#paidTable").DataTable();

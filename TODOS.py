@@ -3,7 +3,6 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
-
 # DD - quantity not drawndown stil remains to be drawndown
 # Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
 
@@ -82,7 +81,6 @@
 # INVENTORY: 
 	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
-# POs - partial
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF

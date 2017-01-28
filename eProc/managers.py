@@ -13,9 +13,6 @@ class LatestStatusManager(models.Manager):
 	def _get_open(self):
 		return self._get_by_status(['Open'])
 
-	def _get_partial(self):
-		return self._get_by_status(['Partial'])
-
 	def _get_approved(self):
 		return self._get_by_status(['Approved'])
 
@@ -50,7 +47,6 @@ class LatestStatusManager(models.Manager):
 	# Set them as properties so can call OrderItem.latest_status_objects.delivered etc
 	pending = property(_get_pending)
 	opened = property(_get_open)
-	partial = property(_get_partial)
 	approved = property(_get_approved)
 	delivered = property(_get_delivered)
 	delivered_partial = property(_get_delivered_partial)

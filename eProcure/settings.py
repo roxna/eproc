@@ -182,7 +182,7 @@ STATUSES = (
 
     #### POs ####    
     ('Open', 'Open'), #new_po --> WAITING TO BE RECEIVED
-    # ('Partial', 'Partial'),  #?--> TODO!
+    # ('Partial', 'Partial'),  NO - REMOVED 1/27
     ('Closed', 'Closed'),  #receive_po --> all items received OR explicit CLOSE 
     # ('Cancelled', 'Cancelled'), #view_po
     # ('Paid', 'Paid'),  #view_po 

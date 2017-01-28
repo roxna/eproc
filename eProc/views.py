@@ -343,7 +343,6 @@ def purchaseorders(request):
     data = {
         'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
         'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
-        'partial_pos': PurchaseOrder.latest_status_objects.partial.filter(pk__in=pos),
         'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
         'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
         'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
@@ -400,7 +399,6 @@ def receive_pos(request):
     data = {
         'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
         'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
-        'partial_pos': PurchaseOrder.latest_status_objects.partial.filter(pk__in=pos),
         'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
         'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
         'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
@@ -446,8 +444,6 @@ def receive_purchaseorder(request, po_id):
                         save_doc_status(purchase_order, 'Closed', buyer)                        
                         messages.success(request, 'PO Closed')
                         return redirect('receive_pos')
-                    else:
-                        save_doc_status(purchase_order, 'Partial', buyer)
             return redirect('receive_purchaseorder', purchase_order.pk)
         else:
             messages.error(request, 'Error updating items')            
