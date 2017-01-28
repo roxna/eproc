@@ -14,7 +14,6 @@
 
 # Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 
-
 # *****************************
 
 # QUES:
@@ -29,6 +28,7 @@
 # 8. Mark PO as paid or Invoice as Paid? Correspondingly mark OrderItems as paid too?
 # 9. When Invoice approved/denied, what happens to order_items statuses?
 # 10. DDs, Reqs (and PO/Invoices) - link to Dept? Location? or none?
+# 11. Restrictions on who can add vendors/products/categories? If product not in the list and user wants to request it?
 
 # BIG
 # ****************************

@@ -41,8 +41,8 @@
 	    <div class="box-header with-border">
 	      <h3 class="box-title">Operations</h3>
 	    </div>       
-	    <div class="box-body">
-          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+	    <div class="box-body">          
+        <!-- No restrictions on who can add vendors/products/categories if not in the list -->
             <h4><a href="{%url 'vendors' %}"><i class="fa {{ICONS.vendors}}"></i> Vendors</a></h4>
             <p class="text-muted">Manage vendors incl. CSV upload</p>
                         
@@ -51,7 +51,8 @@
 
             <h4><a href="{%url 'products' %}"><i class="fa {{ICONS.products}}"></i> Products</a></h4>
             <p class="text-muted">Manage products incl. CSV upload</p>
-
+        
+        {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
             <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
 

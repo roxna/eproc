@@ -73,6 +73,9 @@ used in status_formatting_w/wo_href.html
 .label-open{
 	background-color: #f39c12 !important;
 }
+.label-partial{
+	background-color: #f39c12 !important;
+}
 .label-approved{
 	background-color: #00a65a !important;
 }

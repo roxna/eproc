@@ -11,13 +11,22 @@
 {% block content %}
 <section class="content"> 
   
-  <!-- CHARTS -->
-  <div class="row">
-    {% include "_includes/analysis_chart.html" with chartID='locationChart' legendID='locationLegend' title='Spend by Location' %}
-    {% include "_includes/analysis_chart.html" with chartID='categoryChart' legendID='categoryLegend' title='Spend by Category' %}
-    {% include "_includes/analysis_chart.html" with chartID='productChart' legendID='productLegend' title='Spend by Product' %}
-    {% include "_includes/analysis_chart.html" with chartID='supplierChart' legendID='supplierLegend' title='Spend by Supplier' %}
-  </div>
+  {% if not items %}
+    <!-- If no items have been received -->
+      {% include "_includes/docs/no_docs_add_now.html" with doc='Received Items' href='receive_pos' %}
+      
+  {% else %}
+    <!-- CHARTS -->
+    <div class="row">
+      {% include "_includes/analysis_chart.html" with chartID='locationChart' legendID='locationLegend' title='Spend by Location' %}
+      {% include "_includes/analysis_chart.html" with chartID='deptChart' legendID='deptLegend' title='Spend by Department' %}
+      {% include "_includes/analysis_chart.html" with chartID='categoryChart' legendID='categoryLegend' title='Spend by Category' %}
+      {% include "_includes/analysis_chart.html" with chartID='productChart' legendID='productLegend' title='Spend by Product' %}
+      {% include "_includes/analysis_chart.html" with chartID='requesterChart' legendID='requesterLegend' title='Spend by Requester' %}
+      {% include "_includes/analysis_chart.html" with chartID='approverChart' legendID='approverLegend' title='Spend by Approver' %}
+      {% include "_includes/analysis_chart.html" with chartID='vendorChart' legendID='vendorLegend' title='Spend by vendor' %}
+    </div>
+  {% endif %}
 
 {% endblock content %}
 
@@ -66,7 +75,24 @@
       var locationCtx = $("#locationChart").get(0).getContext("2d");
       var locationChart = new Chart(locationCtx).Pie(locationData, options);
       $('#locationLegend').append(locationChart.generateLegend());
-      
+
+      /****************** 
+      Spend by Department      
+      ********************/
+      var deptData = [];
+      {% for item in dept_spend %}
+        deptData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.requisition__department__name}}',
+          color: pastelColors(),
+        };
+      {% endfor %}
+
+      // Pass in data/options, generate chart & legend
+      var deptDataCtx = $("#deptDataChart").get(0).getContext("2d");
+      var deptDataChart = new Chart(deptDataCtx).Pie(deptDataData, options);
+      $('#locationLegend').append(deptDataChart.generateLegend());
+
       /****************** 
       Spend by Category      
       ********************/
@@ -98,19 +124,48 @@
       $('#productLegend').append(productChart.generateLegend());
 
       /****************** 
-      Spend by Supplier      
+      Spend by Requester      
       ********************/     
-      var supplierData = [];
-      {% for item in supplier_spend %}
-        supplierData[{{forloop.counter0}}] = {
+      var requesterData = [];
+      {% for item in requester_spend %}
+        requesterData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.requisition__preparer__user__username}}',
+          color: pastelColors(),
+        };
+      {% endfor %}
+      var requesterCtx = $("#requesterChart").get(0).getContext("2d");
+      var requesterChart = new Chart(requesterCtx).Pie(requesterData, options);
+      $('#productLegend').append(requesterChart.generateLegend());
+
+      /****************** 
+      Spend by Product      
+      ********************/     
+      var approverData = [];
+      {% for item in product_spend %}
+        productData[{{forloop.counter0}}] = {
+          value: {{item.total_cost}},
+          label: '{{item.requisition__next_approver__user__username}}',
+          color: pastelColors(),
+        };
+      {% endfor %}
+      var approverCtx = $("#approverChart").get(0).getContext("2d");
+      var approverChart = new Chart(approverCtx).Pie(approverData, options);
+      $('#approverLegend').append(approverChart.generateLegend());      
+      /****************** 
+      Spend by Vendor      
+      ********************/     
+      var vendorData = [];
+      {% for item in vendor_spend %}
+        vendorData[{{forloop.counter0}}] = {
           value: {{item.total_cost}},
           label: '{{item.product__vendor_co__name}}',
           color: pastelColors(),
         };
       {% endfor %}
-      var supplierCtx = $("#supplierChart").get(0).getContext("2d");
-      var supplierChart = new Chart(supplierCtx).Pie(supplierData, options);
-      $('#supplierLegend').append(supplierChart.generateLegend());
+      var vendorCtx = $("#vendorChart").get(0).getContext("2d");
+      var vendorChart = new Chart(vendorCtx).Pie(vendorData, options);
+      $('#vendorLegend').append(vendorChart.generateLegend());
 
     });
 

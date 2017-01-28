@@ -25,10 +25,12 @@ from eProc.models import *
 from eProc.serializers import *
 from eProc.forms import *
 from eProc.utils import *
-from itertools import chain
 from collections import defaultdict
 import csv
+from itertools import chain
 import pdb
+from random import randint
+import unicodedata
 
 SCALAR = 570
 
@@ -133,25 +135,30 @@ def dashboard(request):
     }
     return render(request, "main/dashboard.html", data)
 
-import unicodedata
-from random import randint
 @login_required()
 def analysis(request):
     buyer = request.user.buyer_profile
     
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items_received = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
 
-    location_spend = items_received.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
-    categ_spend = items_received.values('product__category__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items_received.values('product__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
-    supplier_spend = items_received.values('product__vendor_co__name').annotate(total_cost=Sum(F('qty_ordered')*F('unit_price'), output_field=models.DecimalField()))
+    location_spend = items.values('invoice__shipping_add__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    dept_spend = items.values('requisition__department__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    categ_spend = items.values('product__category__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items.values('product__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    vendor_spend = items.values('product__vendor_co__name').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    requester_spend = items.values('requisition__preparer__user__username').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    approver_spend = items.values('requisition__next_approver__user__username').annotate(total_cost=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
 
     data = {
-        'location_spend': location_spend,        
+        'items': items,
+        'location_spend': location_spend,
+        'dept_spend': dept_spend,
         'categ_spend': categ_spend,
         'product_spend': product_spend,
-        'supplier_spend': supplier_spend,
+        'requester_spend': requester_spend,
+        'approver_spend': approver_spend,        
+        'vendor_spend': vendor_spend,
     }    
     return render(request, "main/analysis.html", data)
 
