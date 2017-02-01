@@ -218,6 +218,12 @@ class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')
 	department = models.ForeignKey(Department, related_name='drawdowns')
 
+	def is_ready_to_close(self):
+		for item in self.items.all():
+			if item.qty_approved != item.qty_drawndown:
+				return False
+		return True
+
 # File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
 def file_directory_path(instance, filename):	    
 	    return '{0}/docs/{1}'.format(instance.document.buyer_co.name, filename)
@@ -261,11 +267,11 @@ class CatalogItem(models.Model):
 		return "{}".format(self.name)
 
 class Item(models.Model):
-	qty_requested = models.IntegerField(default=1) 	
-	qty_approved = models.IntegerField(null=True, blank=True, default=0)
+	number = models.CharField(max_length=20)
 	product = models.ForeignKey(CatalogItem, related_name='items')
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	number = models.CharField(max_length=20)
+	qty_requested = models.IntegerField(default=1) 	
+	qty_approved = models.IntegerField(null=True, blank=True, default=0)	
 	comments_request = models.CharField(max_length=500, blank=True, null=True)
 	comments_approved = models.CharField(max_length=500, blank=True, null=True)
 	date_due = models.DateField(default=timezone.now)
@@ -337,8 +343,8 @@ class OrderItem(Item):
 
 class DrawdownItem(Item):
 	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
-	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)
 	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
+	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)	
 
 	def get_drawdown_date(self):
 	    return self.status_updates.filter(value='Drawdown').date

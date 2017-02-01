@@ -487,8 +487,8 @@ class ReceivePOItemForm(ModelForm):
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
-    qty_drawndown = forms.IntegerField(required=True, min_value=1, label='Quantity')
-    comments_drawdown = forms.CharField(required=False, label='Comments')
+    qty_requested = forms.IntegerField(required=True, min_value=1, label='Quantity')
+    comments_requested = forms.CharField(required=False, label='Comments')
 
     def __init__(self, *args, **kwargs):
         super(DrawdownItemForm, self).__init__(*args, **kwargs)
@@ -498,8 +498,8 @@ class DrawdownItemForm(ModelForm):
         self.helper.layout = Layout(
             Div(
                 Div('product', css_class='col-md-4'),                
-                Div('qty_drawndown', css_class='col-md-2'),
-                Div('comments_drawdown', css_class='col-md-5'),
+                Div('qty_requested', css_class='col-md-2'),
+                Div('comments_requested', css_class='col-md-5'),
                 HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
@@ -507,7 +507,44 @@ class DrawdownItemForm(ModelForm):
 
     class Meta:
         model = DrawdownItem
-        fields = ("product", "qty_drawndown", "comments_drawdown")
+        fields = ("product", "qty_requested", "comments_requested")
+
+
+class CallDrawdownItemForm(ModelForm):
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    qty_approved = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Approved')
+    qty_drawndown = forms.IntegerField(required=True, label='Drawndown')
+    comments_drawdown = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
+
+
+    def __init__(self, *args, **kwargs):
+        super(CallDrawdownItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('number', css_class='col-md-2'),   
+                Div('product', css_class='col-md-3'),
+                Div('qty_approved', css_class='col-md-2'),
+                Div('qty_drawndown', css_class='col-md-2'),
+                Div('comments_drawdown', css_class='col-md-3'),
+                css_class='row',
+            ),
+        )  
+
+    # Ensure readonly 'product' field is not editable by users 
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
+    def clean_product(self):
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+
+    class Meta:
+        model = DrawdownItem
+        fields = ('number', 'product', 'qty_approved', 'qty_drawndown', 'comments_drawdown')
+
 
 ####################################
 ###       DOCUMENT FORMS         ### 

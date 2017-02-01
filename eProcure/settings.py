@@ -172,8 +172,8 @@ STATUSES = (
     # ('Approved', 'Approved'), #view_drawdown
     # ('Denied', 'Denied'), #view_drawdown
     # ('Cancelled', 'Cancelled'), #view_drawdown
-    ('Drawdown Partial', 'Drawdown Partial'), #view_drawdown TODOOOO
-    ('Drawdown Complete', 'Drawdown Complete'), #view_drawdown TO UPDATEEEE
+    ('Drawdown Partial', 'Drawdown Partial'), #call_drawdown
+    ('Drawdown Complete', 'Drawdown Complete'), #call_drawdown
 
     #### Requisitions ####
     # ('Pending', 'Pending'), #new_req
@@ -200,7 +200,8 @@ STATUSES = (
     # ('Approved', 'Approved'),  #view_drawdown
     # ('Denied', 'Denied'),  #view_drawdown
     # ('Cancelled', 'Cancelled'), #view_drawdown
-    # ('Completed', 'Completed'), #TODO
+    # ('Partial', 'Partial'), #NOT DOING FOR NOW
+    # ('Closed', 'Closed'), #call_drawdown
 
     #### ALL #### 
     ('Archived', 'Archived'),

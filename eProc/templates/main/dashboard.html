@@ -23,7 +23,7 @@
     
     {% include "_includes/dashboard_list.html" with title='Pending Requests' color="bg-yellow" documents=pending_requisitions url='view_requisition' empty_text='No pending requests.' %}
     
-    {% include "_includes/dashboard_list.html" with title='Pending POs' color="bg-blue" documents=pending_pos url='view_purchaseorder' empty_text='No open POs.'%}    
+    {% include "_includes/dashboard_list.html" with title='Pending POs' color="bg-blue" documents=pending_pos url='view_po' empty_text='No open POs.'%}    
 
     <!-- Shipments -->
      <div class="col-xs-12 col-md-4 col-lg-4">
@@ -33,7 +33,7 @@
         </div>       
         <div class="box-body">
           {% for item in items_received %}
-             <a href="{% url 'view_purchaseorder' item.purchase_order.id %}">
+             <a href="{% url 'view_po' item.purchase_order.id %}">
                 <span class="label bg-red">{{item.purchase_order}}</span>
               </a>
              {{item}}<br><br>

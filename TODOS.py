@@ -3,9 +3,10 @@
 # Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
-# DD - quantity not drawndown stil remains to be drawndown
-# new DD messages show funny
 # Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
+
+# RECEIVING REPORT
+##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
 
 # form errors show as messages framework
 # Move form validation from view to form init
@@ -42,7 +43,11 @@
 
 # NEW FEATURES
 # ****************************
-# PRICING
+# PAYMENTSS:
+	# https://www.procurify.com/product/pay
+	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
+	# Payment method for vendor (http://kb.procurify.com/?st_kb=accounts-payable-vendor-payment-methods-set)
+	# PRICING
 	# API - live commodities prices with alerts
 	# Wholesale prices for select products
 # COST BENCHMARKS
@@ -73,6 +78,7 @@
 # AUDIT LOGGGG for each item/doc
 
 
+
 # REFINEMENTS:
 # ****************************
 # Fasclick menu select
@@ -89,9 +95,7 @@
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
 # Sub-GL codes?
-# CLEANER IMPLEMENTATION OF get_docu_by_status(utils.py)
-	# pending_requisitions = requisitions.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
-    # pending_pos = pos.annotate(latest_update=Max('status_updates__date')).filter(status_updates__value='Pending')
+
 
 # LOW PRIO REFINEMENTS
 # ****************************
@@ -99,8 +103,10 @@
 # CUSTOM DJANGO FILTERS: # Template filters (https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/#writing-custom-template-filters)
 # New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
-# ADD_USER functionality in USERS when able to filter dept based on location
-# Approver - Assign alt. approver
+# ADD_USER functionality in USERS when able to filter dept based on location 
+# Approval routing:
+	# For orders - Assign alt. approver
+	# For bills/payments
 # Profile no pw
 # Move company from buyer_profile to user
 # PW_change (urls.py) - # TODO: password_change isn't passing messages framework as extra_context to show pw changed success

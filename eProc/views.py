@@ -347,20 +347,20 @@ def purchaseorders(request):
         'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
         'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
         'title': 'Purchase Orders',
-        'href': 'view_purchaseorder',
+        'href': 'view_po',
     }
     return render(request, "pos/purchaseorders.html", data)
 
 @login_required
-def print_purchaseorder(request, po_id):
+def print_po(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     data = {
         'purchase_order': purchase_order,        
     }
-    return render(request, "pos/print_purchaseorder.html", data)
+    return render(request, "pos/print_po.html", data)
 
 @login_required
-def view_purchaseorder(request, po_id):
+def view_po(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':
@@ -390,7 +390,7 @@ def view_purchaseorder(request, po_id):
     data = {
         'purchase_order': purchase_order,
     }
-    return render(request, "pos/view_purchaseorder.html", data)
+    return render(request, "pos/view_po.html", data)
 
 @login_required
 def receive_pos(request):
@@ -403,12 +403,12 @@ def receive_pos(request):
         'paid_pos': PurchaseOrder.latest_status_objects.paid.filter(pk__in=pos),
         'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
         'title': 'Receive Purchase Order Items',
-        'href': 'receive_purchaseorder',
+        'href': 'receive_po',
     }
     return render(request, "pos/purchaseorders.html", data)
 
 @login_required
-def receive_purchaseorder(request, po_id):
+def receive_po(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     ReceivePOItemFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOItemForm, extra=0)
@@ -434,24 +434,28 @@ def receive_purchaseorder(request, po_id):
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Complete', author=buyer, item=item)
                         messages.success(request, 'Orders updated successfully')
+                    elif qty_ordered == qty_returned:
+                        item = form.save()
+                        OrderItemStatus.objects.create(value='Returned', author=buyer, item=item)
+                        messages.success(request, 'Orders updated successfully')
                     else:
                         item = form.save()
                         OrderItemStatus.objects.create(value='Delivered Partial', author=buyer, item=item)
                         messages.success(request, 'Orders updated successfully')
                     
-                    # If form.is_ready_to_close (qty_delivered + qty_returned), then automatically closed
+                    # If form.is_ready_to_close (qty_delivered + qty_returned for all items), then automatically closed
                     if purchase_order.is_ready_to_close():
                         save_doc_status(purchase_order, 'Closed', buyer)                        
                         messages.success(request, 'PO Closed')
                         return redirect('receive_pos')
-            return redirect('receive_purchaseorder', purchase_order.pk)
+            return redirect('receive_po', purchase_order.pk)
         else:
             messages.error(request, 'Error updating items')            
     data = {
         'purchase_order': purchase_order,
         'receive_po_formset': receive_po_formset,
     }
-    return render(request, "pos/receive_purchaseorder.html", data)
+    return render(request, "pos/receive_po.html", data)
 
 @login_required
 def po_orderitems(request, po_id):
@@ -665,13 +669,13 @@ def new_drawdown(request):
         'drawdownitem_formset': drawdownitem_formset,
         'table_headers': ['Product', 'Quantity', 'Comments'],
     }
-    return render(request, "inventory/new_drawdown.html", data)
+    return render(request, "drawdowns/new_drawdown.html", data)
 
 @login_required
 def view_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
-    if request.method == 'POST':
+    if request.method == 'POST': 
         if 'approve' in request.POST:
             save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
             messages.success(request, 'Drawdown Approved')
@@ -687,7 +691,7 @@ def view_drawdown(request, drawdown_id):
     data = {
         'drawdown': drawdown,
     }
-    return render(request, "inventory/view_drawdown.html", data)
+    return render(request, "drawdowns/view_drawdown.html", data)
 
 @login_required
 def print_drawdown(request, drawdown_id):
@@ -695,7 +699,7 @@ def print_drawdown(request, drawdown_id):
     data = {
         'drawdown': drawdown,        
     }
-    return render(request, "inventory/print_drawdown.html", data)
+    return render(request, "drawdowns/print_drawdown.html", data)
 
 @login_required
 def drawdowns(request):
@@ -710,9 +714,59 @@ def drawdowns(request):
         'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
         'denied_drawdowns': Drawdown.latest_status_objects.denied.filter(pk__in=drawdowns),
         'cancelled_drawdowns': Drawdown.latest_status_objects.cancelled.filter(pk__in=drawdowns),
+        'closed_drawdowns': Drawdown.latest_status_objects.closed.filter(pk__in=drawdowns),
         'table_headers': ['Drawdown No.', 'Requested by', 'Requested Date', 'Due Date', 'Comments']
     }
-    return render(request, "inventory/drawdowns.html", data)
+    return render(request, "drawdowns/drawdowns.html", data)
+
+@login_required
+def call_drawdowns(request):
+    buyer = request.user.buyer_profile
+    drawdowns = get_documents_by_auth(buyer, Drawdown)
+    data = {
+        'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
+        'table_headers': ['Drawdown No.', 'Requested by', 'Requested Date', 'Due Date', 'Comments']
+    }
+    return render(request, "drawdowns/call_drawdowns.html", data)
+
+@login_required
+def call_drawdown(request, drawdown_id):
+    buyer = request.user.buyer_profile
+    drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
+    CallDDItemFormSet = inlineformset_factory(Drawdown, DrawdownItem, CallDrawdownItemForm, extra=0)
+    call_dd_formset = CallDDItemFormSet(request.POST or None, instance=drawdown)
+
+    if request.method == 'POST':
+        if 'save' in request.POST:
+            for index, form in enumerate(call_dd_formset.forms):
+                if form.is_valid() and form.has_changed():
+                    qty_approved = form.cleaned_data['qty_approved']
+                    qty_drawndown = form.cleaned_data['qty_drawndown']
+                    if qty_drawndown > qty_approved:
+                        messages.error(request, 'Error. Quantity drawdown must be less than quantity approved.')
+                        break
+                    elif qty_drawndown == qty_approved:
+                        item = form.save()
+                        DrawdownItemStatus.objects.create(value='Drawdown Complete', author=buyer, item=item)
+                        messages.success(request, 'Drawdown updated successfully')
+                    else:
+                        item = form.save()
+                        DrawdownItemStatus.objects.create(value='Drawdown Partial', author=buyer, item=item)
+                        messages.success(request, 'Drawdown updated successfully')
+                    
+                    # If form.is_ready_to_close (qty_approved = qty_drawdown for all items), then automatically close
+                    if drawdown.is_ready_to_close():
+                        save_doc_status(drawdown, 'Closed', buyer)                        
+                        messages.success(request, 'Drawdown Closed')
+                        return redirect('call_drawdowns')
+            return redirect('call_drawdown', drawdown.pk)
+        else:
+            messages.error(request, 'Error updating items')            
+    data = {
+        'drawdown': drawdown,
+        'call_dd_formset': call_dd_formset,
+    }
+    return render(request, "drawdowns/call_drawdown.html", data)
 
 ####################################
 ###           SETTINGS           ### 

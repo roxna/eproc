@@ -1,6 +1,6 @@
 
   <!-- PO Header -->
-  {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_purchaseorder' %}
+  {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_po' %}
   
   <!-- PO Details -->
   {% include "_includes/pos/po_details.html" with purchase_order=purchase_order %}
@@ -25,7 +25,7 @@
         
         <form method="post">
         {% csrf_token %}             
-        
+        <!-- Note: PO doesn't have approve_deny process -->
           {% if latest_status.value == 'Open' %}
             {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' %}
                 <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>
@@ -43,7 +43,7 @@
         </form>
 
         <div class="label text-grey">
-          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_purchaseorder' href_id=purchase_order.id %}
+          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_po' href_id=purchase_order.id %}
           [By {{latest_status.author}} on {{latest_status.date|date}}]
           </em>
         </div>        

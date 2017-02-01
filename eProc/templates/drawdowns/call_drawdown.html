@@ -1,0 +1,91 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Call Drawdown{% endblock title %}
+
+{% block header %}
+  <p class="small"><a href="{% url 'call_drawdowns' %}"><i class="fa fa-angle-left"></i> Back</a></p>
+  <h1>Call A Drawdown</h1>
+{% endblock header %}
+
+
+{% block content %}
+
+  {% with drawdown.get_latest_status as latest_status %}
+  <section class="invoice">
+
+    <!-- Drawdown Header -->
+    {% include "_includes/docs/doc_header.html" with document=drawdown href='view_drawdown' %}
+    
+    <!-- Drawdown Details -->
+    {% include "_includes/drawdowns/drawdown_details.html" with drawdown=drawdown %}
+
+    <!-- Drawdown Item Form in Request -->
+    <form method="POST">
+    {% csrf_token %}
+      <div class="row">
+        <div class="col-xs-12">
+         <p class="lead">Drawdown Line Items</p>
+        </div>
+        
+        <div class="col-xs-12">
+            {{ call_dd_formset.management_form | crispy }}
+
+            {% for form in call_dd_formset.forms %}                   
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                <div class="item" id="{{form.prefix}}">
+                    {% crispy form form.helper %}                                
+                </div>                            
+            {% endfor %}
+        </div>
+      </div><br>
+
+      <!-- Footer -->
+      <div class="row">
+        <div class="row">
+          <div class="col-xs-12">
+            
+            <div class="label text-grey">
+                <form method="post">
+                {% csrf_token %}    
+                  <!-- If the Drawdown is closed, don't show the button -->
+                  {% if latest_status.value != 'Closed' %}
+                    <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                  {% endif %}
+                </form>
+            </div>
+
+           </div>           
+          </div>
+        </div>
+
+      </div>
+    </form>
+
+  </section>
+  <div class="clearfix"></div>
+   
+   {% endwith %}
+{% endblock content %}
+
+
+{% block js %}
+  <script>
+    $(document).ready(function(){
+      
+      // Save Button is disabled on page load
+      $('#save').attr('disabled', 'disabled');
+      $('#save').addClass('disabled');
+
+      // Save Button is enabled only if any input field is changed
+      $('.item :input').keyup(function() {
+        $('#save').removeAttr('disabled');
+        $('#save').removeClass('disabled');
+      });
+
+    })
+  </script>
+{% endblock js %}

@@ -19,7 +19,7 @@
       </td>                      
       <td>{{ invoice.vendor_co }} <br></td>      
       <td>
-        <a href="{% url 'view_purchaseorder' invoice.purchase_order.id %}">
+        <a href="{% url 'view_po' invoice.purchase_order.id %}">
           <span class="label label-large label-primary">
             {{ invoice.purchase_order }}
           </span>

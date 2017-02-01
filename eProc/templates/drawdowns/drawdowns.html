@@ -6,7 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Drawdowns<h1>{% endblock header %}
+{% block header %}<h1>Drawdowns</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -27,6 +27,7 @@
               <li class="active"><a href="#all" data-toggle="tab">All</a></li>
               <li><a href="#pending" data-toggle="tab">Pending</a></li>
               <li><a href="#approved" data-toggle="tab">Approved</a></li>
+              <li><a href="#closed" data-toggle="tab">Closed</a></li>
               <li><a href="#denied" data-toggle="tab">Denied</a></li>
               <li><a href="#cancelled" data-toggle="tab">Cancelled</a></li>
             </ul>          
@@ -35,27 +36,32 @@
             <div class="tab-content">
               <div class="tab-pane active" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=all_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=all_drawdowns headers=table_headers href='view_drawdown' %}
                   </table>
               </div>
               <div class="tab-pane" id="pending"> 
                  <table id="pendingTable" class="table table-striped">
-                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=pending_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=pending_drawdowns headers=table_headers href='view_drawdown' %}
                   </table>
               </div>
               <div class="tab-pane" id="approved">
                  <table id="approvedTable" class="table table-striped">
-                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=approved_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=approved_drawdowns headers=table_headers href='view_drawdown' %}
+                  </table>
+              </div>
+              <div class="tab-pane" id="closed">
+                 <table id="closedTable" class="table table-striped">
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=closed_drawdowns headers=table_headers href='view_drawdown' %}
                   </table>
               </div>
               <div class="tab-pane" id="denied">
                  <table id="deniedTable" class="table table-striped">
-                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=denied_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=denied_drawdowns headers=table_headers href='view_drawdown' %}
                   </table>
               </div> 
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=cancelled_drawdowns headers=table_headers %}
+                 {% include "_includes/drawdowns/drawdown_table.html" with drawdowns=cancelled_drawdowns headers=table_headers href='view_drawdown' %}
                   </table>
               </div>            
             </div>
@@ -75,8 +81,9 @@
   $(function () {
     $('#allTable').DataTable();
     $("#pendingTable").DataTable();
-    $("#deniedTable").DataTable();
     $("#approvedTable").DataTable();
+    $("#closedTable").DataTable();
+    $("#deniedTable").DataTable();    
     $("#cancelledTable").DataTable();
   });
 </script>

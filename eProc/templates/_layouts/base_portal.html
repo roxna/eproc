@@ -202,12 +202,19 @@
                   <i class="fa {{ICONS.drawdown}}"></i>
                   <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
                   {% if user.buyer_profile.role == 'SuperUser' or   user.buyer_profile.role == 'Approver' %}
-                    View/Approve Drawdowns
+                    View/Approve DDs
                   {% else %}
                     View Drawdowns
                   {% endif %}
                   </a>
                 </li>
+                <li>
+                  <a href="{%url 'call_drawdowns' %}">
+                  <i class="fa fa-hourglass-half"></i>
+                  <!-- After items are approved, keep track of quantity actually taken out of inventory -->
+                    Call A Drawdown
+                  </a>
+                </li>                
               </ul>
             </li>     
 

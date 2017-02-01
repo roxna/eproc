@@ -1,0 +1,39 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load eProc_filters %}
+
+{% block title %}Call A Drawdown{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Call A Drawdown</h1>{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+				<div class="pages">
+		        	<div class="box-header with-border">
+		          		<h3 class="box-title">Select an Approved Drawdown to Update Items Called</h3>
+		          	</div>        	
+		        	<div class="box-body">  
+		        		<table id="drawdownTable" class="table table-striped">      	
+			        		{% include "_includes/drawdowns/drawdown_table.html" with drawdowns=approved_drawdowns headers=table_headers href='call_drawdown' %}
+				  	  	</table>		  	
+
+		        </div>
+
+		 </div>
+	  </div>
+  </div>
+
+</section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="drawdownTable" %}	
+{% endblock js %}

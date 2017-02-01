@@ -103,7 +103,10 @@ def save_items(buyer, document, item_formset):
                 if buyer.role == 'SuperUser':
                     item.qty_ordered = item.qty_approved            
             elif isinstance(document, Drawdown):
+                item.number = document.number + "-" + str(index+1)
                 item.drawdown = document
+                if buyer.role == 'SuperUser':
+                    item.qty_approved = item.qty_requested                
             item.save()
     document.save()
 

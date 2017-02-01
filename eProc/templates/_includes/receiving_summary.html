@@ -8,7 +8,7 @@
       <tr>
         <td> {{item.number}}</td>        
         {% with item.purchase_order as po %}
-          <td> {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_purchaseorder' href_id=po.id %}</td>
+          <td> {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' href_id=po.id %}</td>
         {% endwith %}
         <td> {{item.product.vendor_co.name}}</td>
         <td> {{item.product.name}}</td>        

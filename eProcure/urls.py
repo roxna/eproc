@@ -56,39 +56,47 @@ urlpatterns=[
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
     url(r'^analysis/$', eProc_views.analysis, name='analysis'),
 
-    url(r'^requisition/new/$', eProc_views.new_requisition, name='new_requisition'),
-    url(r'^requisitions/$', eProc_views.requisitions, name='requisitions'),
-    url(r'^requisitions/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),
-    url(r'^requisitions/print/(?P<requisition_id>\w+)$', eProc_views.print_requisition, name='print_requisition'),
+        
+    url(r'^requisitions/', include([
+        url(r'^new/$', eProc_views.new_requisition, name='new_requisition'),
+        url(r'^$', eProc_views.requisitions, name='requisitions'),
+        url(r'^view/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),
+        url(r'^print/(?P<requisition_id>\w+)$', eProc_views.print_requisition, name='print_requisition'),
+    ])),
     
-    url(r'^purchase-order/', include([
+    url(r'^purchase-orders/', include([
         url(r'^new/select-items/$', eProc_views.new_po_items, name='new_po_items'),
         url(ur'^new/confirm/\w*/$', eProc_views.new_po_confirm, name='new_po_confirm'),
-        url(r'^(?P<po_id>\w+)/$', eProc_views.view_purchaseorder, name='view_purchaseorder'),
-        url(r'^print/(?P<po_id>\w+)$', eProc_views.print_purchaseorder, name='print_purchaseorder'),
-    ])),
-    url(r'^purchase-orders/', include([
         url(r'^$', eProc_views.purchaseorders, name='purchaseorders'),
+        url(r'^view/(?P<po_id>\w+)/$', eProc_views.view_po, name='view_po'),
+        url(r'^print/(?P<po_id>\w+)$', eProc_views.print_po, name='print_po'),            
         url(r'^receive/$', eProc_views.receive_pos, name='receive_pos'),
-        url(r'^receive/(?P<po_id>\w+)/$', eProc_views.receive_purchaseorder, name='receive_purchaseorder'),
+        url(r'^receive/(?P<po_id>\w+)/$', eProc_views.receive_po, name='receive_po'),
         url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
     ])),
 
+    url(r'^invoices/', include([
+        url(r'^$', eProc_views.invoices, name='invoices'),    
+        url(r'^new/$', eProc_views.new_invoice, name='new_invoice'),   
+        url(r'^view/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
+        url(r'^print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
+        url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
+    ])),
     url(r'^accounts-payable/', include([
-        url(r'^invoices/$', eProc_views.invoices, name='invoices'),    
-        url(r'^invoice/new/$', eProc_views.new_invoice, name='new_invoice'),   
-        url(r'^invoice/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
-        url(r'^invoices/print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
-        url(r'^invoices/(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
         url(r'^receiving-summary/$', eProc_views.receiving_summary, name='receiving_summary'),
     ])),
     
     url(r'^inventory/$', eProc_views.inventory, name='inventory'),
     url(r'^inventory/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),
-    url(r'^drawdowns/$', eProc_views.drawdowns, name='drawdowns'),
-    url(r'^drawdown/new/$', eProc_views.new_drawdown, name='new_drawdown'),
-    url(r'^drawdown/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
-    url(r'^drawdown/print/(?P<drawdown_id>\w+)$', eProc_views.print_drawdown, name='print_drawdown'),
+    
+    url(r'^drawdowns/', include([
+        url(r'^new/$', eProc_views.new_drawdown, name='new_drawdown'),
+        url(r'^$', eProc_views.drawdowns, name='drawdowns'),            
+        url(r'^view/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
+        url(r'^print/(?P<drawdown_id>\w+)$', eProc_views.print_drawdown, name='print_drawdown'),
+        url(r'^call/$', eProc_views.call_drawdowns, name='call_drawdowns'),
+        url(r'^call/(?P<drawdown_id>\w+)$', eProc_views.call_drawdown, name='call_drawdown'),
+    ])),
     
     url(r'^vendors/$', eProc_views.vendors, name='vendors'),
     url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
