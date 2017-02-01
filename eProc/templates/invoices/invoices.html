@@ -6,7 +6,15 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Invoices</h1>{% endblock header %}
+{% block header %}
+  <!-- Add Invoice Button -->
+   <a href="{%url 'new_invoice' %}">
+    <button type="button" class="btn basic-teal pull-right">
+    <i class="fa {{ICONS.new}}"></i> Create Invoice
+    </button>
+  </a>
+  <h1>Invoices</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">

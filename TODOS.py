@@ -1,17 +1,20 @@
 
 # (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
-# Save files uploaded/media elements (invoice, co logo, blogs etc)
 # activate - url shouldnt be 127:00...
 
+# PO/Invoice - overinvoiced, GL codes for each line item on invoice
 # Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
 
-# RECEIVING REPORT
 ##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
+# export csv for receiving report
 
 # form errors show as messages framework
 # Move form validation from view to form init
 
-# Attach files to PO
+# FILES:
+	# Save files uploaded/media elements (invoice, co logo, blogs etc)
+	# Attach files to PO
+	# Receving items - need slip/file upload (http://kb.procurify.com/?st_kb=new-procurify-receive-items)
 
 # Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 

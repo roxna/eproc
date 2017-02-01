@@ -1,5 +1,4 @@
 
-{% with invoice.get_latest_status as latest_status %} 
   <!-- *****************
     Header
   ***************** -->
@@ -26,8 +25,11 @@
   ***************** -->
   <div class="row no-print">
     <div class="col-xs-12">
+      {% with invoice.get_latest_status as latest_status and user.buyer_profile as buyer %} 
+
       <form method="post">
-      {% csrf_token %}
+      {% csrf_token %}      
+
         {% if latest_status.value == 'Pending' %}        
           {% if buyer.role == 'SuperUser' or buyer.role == 'Purchaser' or buyer == purchase_order.preparer %}                
                 {% include "_includes/approve_deny_cancel.html" with document=invoice user_role='Payer' %}                
@@ -45,10 +47,11 @@
         [By {{latest_status.author}} on {{latest_status.date|date}}]
         </em>
       </div>
+
+      {% endwith %}
       
     </div>
   </div>
-{% endwith %}
 
 
 

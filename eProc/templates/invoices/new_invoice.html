@@ -2,12 +2,15 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
-{% block title %}New Invoice{% endblock title %}
+{% block title %}New Invoice Record{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Create an Invoice Record</h1>{% endblock header %}
+{% block header %}
+    <p class="small">{% include '_includes/back_to.html' with destination='invoices' %}</p>
+    <h1>Create Invoice Record</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -15,7 +18,7 @@
     <div class="box box-default">	    
         
         <div class="box-header with-border">
-          <h3 class="box-title">Invoice Details</h3>
+          <h3 class="box-title">New Invoice Record</h3>
         </div> 
 
          <div class="box-body">
@@ -35,15 +38,17 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div><br>
+
+                <p class="lead" id="itemDetailsHeader">Item Details</p>
                 <table id="invoiceOrdersTable" class="table table-striped">
+                     <!-- Don't use includes _includes/table_headers.html - doesn't seem to work -->
                      <thead>
                         <tr>
                           <th>Product</th>
                           <th>Quantity</th>
                           <th>Cost Per Unit</th>
                           <th>Sub-total</th>
-                          <th>Comments</th>
                         </tr>
                     </thead>
                     <tbody> 
@@ -51,7 +56,7 @@
                 </table>
                 <div class="row">
                     <div class="col-xs-12">
-                        <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.invoice}}"></i> New Invoice</button>
+                        <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.invoice}}"></i> Create Invoice Record </button>
                     </div>
                 </div>
             </form>            

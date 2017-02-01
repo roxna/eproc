@@ -101,12 +101,12 @@
               </a>
               <ul class="treeview-menu">
                 <li>
-                  <a href="{%url 'new_requisition' %}">
+                  <a href="{% url 'new_requisition' %}">
                     <i class="fa {{ICONS.new}}"></i> New Order
                   </a>
                 </li>
                 <li>
-                  <a href="{%url 'requisitions' %}">
+                  <a href="{% url 'requisitions' %}">
                   <!-- only superuser & approver have access to approve (managed in view_req) -->
                   <i class="fa {{ICONS.requisition}}"></i> 
                   {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
@@ -162,18 +162,18 @@
                 </a>
                 <ul class="treeview-menu">
                   <li>
-                    <a href="{%url 'new_invoice' %}">
-                      <i class="fa {{ICONS.new}}"></i> New Invoice
-                    </a>
-                  </li>
-                  <li>
                     <a href="{%url 'invoices' %}">
-                      <i class="fa {{ICONS.payment}}"></i> View Invoices
+                      <i class="fa {{ICONS.payment}}"></i> Invoices
+                    </a>
+                  </li>                  
+                  <li>
+                    <a href="{%url 'unbilled_items' %}">
+                      <i class="fa fa-align-left"></i> Unbilled Items
                     </a>
                   </li>
                   <li>
-                    <a href="{%url 'receiving_summary' %}">
-                      <i class="fa {{ICONS.receive}}"></i> Receiving Summary
+                    <a href="{%url 'receiving_reports' %}">
+                      <i class="fa {{ICONS.receive}}"></i> Receiving Reports
                     </a>
                   </li>                  
                 </ul>

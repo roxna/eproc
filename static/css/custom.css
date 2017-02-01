@@ -83,7 +83,8 @@ used in status_formatting_w/wo_href.html
 	background-color: #999 !important;
 }
 .label-paid{
-	background-color: #00a65a !important;
+	border: #00a65a solid 2px !important;
+	color: #444;
 }
 .label-cancelled{
 	border: 1px solid #999;

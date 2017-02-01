@@ -451,7 +451,7 @@ class ReceivePOItemForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
     qty_ordered = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Ordered')
-    qty_delivered = forms.IntegerField(required=True, label='Delivered')
+    qty_delivered = forms.IntegerField(required=True, label='Received')
     qty_returned = forms.IntegerField(required=True, label='Returned')
     comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
 
@@ -607,7 +607,7 @@ class PurchaseOrderForm(ModelForm):
                   "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add", "sub_total", "grand_total")
 
 class InvoiceForm(ModelForm):
-    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label="Invoice Number")
+    number = forms.CharField(required=True, label="Invoice Number")
     date_issued = forms.DateTimeField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
     date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")    

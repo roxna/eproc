@@ -72,7 +72,7 @@ urlpatterns=[
         url(r'^print/(?P<po_id>\w+)$', eProc_views.print_po, name='print_po'),            
         url(r'^receive/$', eProc_views.receive_pos, name='receive_pos'),
         url(r'^receive/(?P<po_id>\w+)/$', eProc_views.receive_po, name='receive_po'),
-        url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request
+        url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request on new_invoice (see custom.js)
     ])),
 
     url(r'^invoices/', include([
@@ -80,10 +80,11 @@ urlpatterns=[
         url(r'^new/$', eProc_views.new_invoice, name='new_invoice'),   
         url(r'^view/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
         url(r'^print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
-        url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request
+        url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request (see custom.js)
     ])),
     url(r'^accounts-payable/', include([
-        url(r'^receiving-summary/$', eProc_views.receiving_summary, name='receiving_summary'),
+        url(r'^unbilled-items/$', eProc_views.unbilled_items, name='unbilled_items'),
+        url(r'^receiving-reports/$', eProc_views.receiving_reports, name='receiving_reports'),
     ])),
     
     url(r'^inventory/$', eProc_views.inventory, name='inventory'),

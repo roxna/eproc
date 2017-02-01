@@ -478,8 +478,7 @@ def po_orderitems(request, po_id):
 def new_invoice(request):
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
-    invoice_form = InvoiceForm(request.POST or None,
-                                initial= {'number': "INV"+str(Invoice.objects.filter(buyer_co=buyer.company).count()+1)})    
+    invoice_form = InvoiceForm(request.POST or None)
     initialize_invoice_form(buyer, invoice_form)
     file_form = FileForm(request.POST or None, request.FILES or None)
     if request.method == 'POST':
@@ -510,8 +509,7 @@ def new_invoice(request):
             messages.error(request, 'Error. Invoice not created')    
     data = {
         'invoice_form': invoice_form,
-        'file_form': file_form,
-        'currency': currency,
+        'file_form': file_form,        
     }
     return render(request, "invoices/new_invoice.html", data)
 
@@ -580,11 +578,25 @@ def vendor_invoices(request, vendor_id):
         pass
     return HttpResponse(data, content_type='application/json')
 
+@login_required
+def unbilled_items(request):
+    buyer = request.user.buyer_profile
+    # All items whose latest_status is Delivered Partial/Delivered Complete
+    # ...and don't have an associated Invoice
+    unbilled_items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    unbilled_items = unbilled_items.filter(invoice__isnull=True)    
 
-def receiving_summary(request):
+    data = {
+        'unbilled_items':unbilled_items,        
+        'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Ordered', 'Qty Delivered', 'Unit Price', 'Vendor']
+    }
+    return render(request, "acpayable/unbilled_items.html", data)
+
+@login_required
+def receiving_reports(request):
     buyer = request.user.buyer_profile
     
-    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__department=buyer.department)
+    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
     items_received_this_week = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
     items_received_this_month = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=30))
 
@@ -592,9 +604,9 @@ def receiving_summary(request):
         'items_received_all': items_received_all,
         'items_received_this_week': items_received_this_week,
         'items_received_this_month': items_received_this_month,
-        'table_headers': ['Item No.', 'PO', 'Vendor', 'Product', 'Most Recent Delivery', 'Qty Recd.', 'Amout Recd.', 'Total Order', 'Recd. %']
+        'table_headers': ['PO No.', 'Item No.', 'Vendor', 'Product', 'Most Recent Delivery', 'Recd. - Qty', 'Recd. - Amount', 'Ordered - Qty', 'Ordered - Amount', 'Recd. %']
     }
-    return render(request, "acpayable/receiving_summary.html", data)
+    return render(request, "acpayable/receiving_reports.html", data)
 
 ####################################
 ###          INVENTORY           ### 

@@ -24,7 +24,7 @@ class LatestStatusManager(models.Manager):
 
 	def _get_delivered_complete(self):
 		return self._get_by_status(['Delivered Complete'])	
-		
+
 	def _get_denied(self):
 		return self._get_by_status(['Denied'])
 	

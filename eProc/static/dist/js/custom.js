@@ -81,6 +81,7 @@ $(document).ready(function(){
 	// Dynamically updated the PO list based on Invoice selected on new_invoice
 
 	$('#invoiceOrdersTable').hide();
+    $('#itemDetailsHeader').hide();
     $("#id_purchase_order").attr("readonly", true);  // Note: jQuery 1.9+ --> .prop (not .attr)    
 
     $('#selectVendor').on('click', function(){             
@@ -106,18 +107,18 @@ $(document).ready(function(){
         var po_id = $('#id_purchase_order option:selected').val(); 
         $("#id_purchase_order").attr("readonly", true);
         $.ajax({
-            url: '/purchase-order/items/'+po_id,
+            url: '/purchase-orders/items/'+po_id,
             type: 'get',
             success: function(data){
+                $('#itemDetailsHeader').show();
                 $('#invoiceOrdersTable').show(); 
                 $.each(data, function(key, value){                
                     $('#invoiceOrdersTable tbody').append(
                         '<tr>'+
                             '<td>'+this['product']+'</td>'+
-                            '<td>'+this['quantity']+'</td>'+
+                            '<td>'+this['qty_requested']+'</td>'+
                             '<td>'+this['unit_price']+'</td>'+
-                            '<td>'+this['sub_total']+'</td>'+
-                            '<td>'+this['comments']+'</td>'+
+                            '<td>'+parseInt(this['unit_price'])*parseInt(this['qty_requested'])+'</td>'+
                         '<tr>'
                     );
                 }); 

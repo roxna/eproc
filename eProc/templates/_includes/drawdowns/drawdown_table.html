@@ -1,12 +1,6 @@
 {% load staticfiles %}
 
-  <thead class="basic-teal">
-    <tr>
-      {% for header in headers %}
-        <th>{{header}}</th>
-      {% endfor %}
-    </tr>
-  </thead>
+  {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
   
   <tbody>
     {% for drawdown in drawdowns %}           

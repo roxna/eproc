@@ -74,13 +74,15 @@ def set_next_approver_not_required(buyer, form):
         form.fields['next_approver'].required = False
 
 def save_new_document(buyer, form):
-    instance = form.save(commit=False)
-    instance.preparer = buyer
-    instance.currency = buyer.company.currency
-    instance.date_issued = timezone.now()
-    instance.buyer_co = buyer.company
-    instance.save()
-    return instance
+    document = form.save(commit=False)
+    document.preparer = buyer
+    document.currency = buyer.company.currency
+    document.date_issued = timezone.now()
+    document.buyer_co = buyer.company
+    # Don't save if Invoice - will violate the not-null constraint for invoice.po, bill_ad, shipping_ad
+    if not isinstance(document, Invoice):
+        document.save() 
+    return document
 
 # Save the data for each form in the order_items formset 
 # Used by NEW_REQ, NEW_DD
