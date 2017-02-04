@@ -27,7 +27,7 @@ class Company (models.Model):
 		return "{}".format(self.name)
 
 	def get_primary_location(self):
-	    return self.locations.last
+	    return self.locations.last  
 
 	def get_all_locations(self):
 		return [location for location in self.locations.all()]
@@ -64,9 +64,10 @@ class Location(models.Model):
 	company = models.ForeignKey(Company, related_name="locations", null=True, blank=True)
 
 	def __unicode__(self):
-		return "{}".format(self.name)
-		# return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
+		return "{}".format(self.name)		
 
+	def get_address(self):
+		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 ################################
 ###   ACCOUNTING DETAILS     ### 
@@ -183,8 +184,8 @@ class SalesOrder(Document):
 	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	grand_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)	
-	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed")
-	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped")
+	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed", null=True, blank=True)
+	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped", null=True, blank=True)
 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
 
  	class Meta:
@@ -212,7 +213,7 @@ class PurchaseOrder(SalesOrder):
 		return True
 
 class Invoice(SalesOrder):
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name="invoices")	
+	purchase_orders = models.ManyToManyField(PurchaseOrder, related_name="invoices")	
 
 class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')
@@ -337,6 +338,7 @@ class OrderItem(Item):
 	def get_refund_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_returned)
 
+	@property
 	def get_delivered_date(self):
 	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
 	

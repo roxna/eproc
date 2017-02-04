@@ -43,7 +43,7 @@
       </form>
 
       <div class="label text-grey">
-        Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' href_id=invoice.id %}
+        Status: <em>{% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=latest_status href='view_invoice' %}
         [By {{latest_status.author}} on {{latest_status.date|date}}]
         </em>
       </div>

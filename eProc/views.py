@@ -108,7 +108,7 @@ def get_started(request):
             ['purchaseorders','2. View open/pending POs', po_exists],
         ],
         'pay_list': [
-            ['new_invoice','1. Track invoices', invoice_exists],
+            ['new_invoice_items','1. Track invoices', invoice_exists],
             ['receive_pos','2. Receive items', dd_exists],
             ['new_drawdown','3. Create drawdowns', dd_exists],
             ['inventory','4. Track inventory', dd_exists],
@@ -271,11 +271,9 @@ def new_po_items(request):
         query_params = '?item_ids=' + str(item_ids)
         return HttpResponseRedirect (redirect_url + query_params)
 
-    currency = buyer.company.currency
     data = {
         'approved_order_items': approved_order_items,
-        'currency': currency,
-        'table_headers': ['', 'Order No.', 'Item', 'Qty Approved', 'Vendor', 'Date Required', 'Cost ('+currency+')'],        
+        'table_headers': ['', 'Order No.', 'Item', 'Qty Approved', 'Vendor', 'Date Required', 'Cost'], 
     }
     return render(request, "pos/new_po_items.html", data)
 
@@ -475,43 +473,103 @@ def po_orderitems(request, po_id):
 ####################################
 
 @login_required
-def new_invoice(request):
+def new_invoice_items(request):
     buyer = request.user.buyer_profile
-    currency = buyer.company.currency
-    invoice_form = InvoiceForm(request.POST or None)
-    initialize_invoice_form(buyer, invoice_form)
-    file_form = FileForm(request.POST or None, request.FILES or None)
+    
+    # Set up Vendor Selection form    
+    vendorForm = VendorForm(request.POST or None)
+    vendorForm.fields['name'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
+
     if request.method == 'POST':
+        if vendorForm.is_valid():
+            vendor = vendorForm.cleaned_data['name']
+
+            # Get items selected and convert to comma-separated string        
+            items = request.POST.getlist('order_items')
+            item_ids = ','.join(items)
+            
+            # Redirect to new_invoice_confirm with query parameters = ids of items
+            redirect_url = reverse('new_invoice_confirm')
+            query_params = '?item_ids=' + str(item_ids) + '&vendor=' + str(vendor.pk)
+            return HttpResponseRedirect (redirect_url + query_params)
+
+    data = {
+        'vendorForm': vendorForm,
+        'currency': buyer.company.currency,
+        'table_headers': ['', 'PO', 'Item', 'Qty Delivered', 'Date Delivered', 'Cost'],
+    }
+    return render(request, "invoices/new_invoice_items.html", data)
+
+
+# AJAX request used to update new_invoice_items list
+@login_required
+def unbilled_items_by_vendor(request, vendor_id):
+    buyer = request.user.buyer_profile        
+    vendor_co = get_object_or_404(VendorCo, pk=vendor_id)
+    try:
+        # Order Items with latest_status = 'Delivered Partial/Complete' and Invoice is null (see managers.py for unbilled)
+        # ... and whose PO is with the specific vendor_id
+        unbilled_items = OrderItem.latest_status_objects.unbilled.filter(requisition__buyer_co=buyer.company, purchase_order__vendor_co=vendor_co)
+        data = UnbilledItemSerializer(unbilled_items, many=True).data
+    except TypeError:
+        data = []
+    # Serialize the data into json for ajax request
+    return HttpResponse(JSONRenderer().render(data), content_type='application/json')
+
+@login_required
+def new_invoice_confirm(request):
+    buyer = request.user.buyer_profile
+
+    # Get the items selected in new_invoice_items from the query parameter
+    item_ids = request.GET.get('item_ids')
+    item_id_array = item_ids.split(",")
+    items = OrderItem.objects.filter(id__in=item_id_array)
+
+    # Get the vendor_co selected in new_invoice_items from the query parameter
+    vendor_id = request.GET.get('vendor')
+    vendor = VendorCo.objects.get(id=vendor_id)
+
+    # Prefix so the name field (common to both forms) isn't confused
+    invoice_form = InvoiceForm(request.POST or None, prefix='invoice')
+    initialize_invoice_form(buyer, invoice_form)
+    file_form = FileForm(request.POST or None, request.FILES or None, prefix='file')
+    
+    if request.method == 'POST':
+            
         file_form = FileForm(request.POST, request.FILES)
         if invoice_form.is_valid() and file_form.is_valid():
-            invoice = save_new_document(buyer, invoice_form)            
-            purchase_order = invoice_form.cleaned_data['purchase_order']
-            invoice.sub_total = purchase_order.sub_total
-            invoice.grand_total = purchase_order.grand_total
-            invoice.billing_add = purchase_order.billing_add
-            invoice.shipping_add = purchase_order.shipping_add
+            invoice = save_new_document(buyer, invoice_form)
+            invoice.vendor_co = vendor            
+            for item in items:                
+                invoice.purchase_order = item.purchase_order
+                invoice.save()
+                item.invoice = invoice
+                item.save()
+                invoice.sub_total += item.unit_price * item.qty_delivered
+                
+            invoice.grand_total = invoice.sub_total
             invoice.save()
-            for order_item in purchase_order.items.all():
-                order_item.invoice = invoice
-                order_item.save()
 
             upload_file = file_form.save(commit=False)
             upload_file.name = request.FILES['file'].name
             upload_file.document = invoice
             upload_file.save()
             
-            # TODO: Make Invoice "Open", Add Approval process to Invoices
             DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
-            DocumentStatus.objects.create(value='Paid', author=buyer, document=purchase_order)
+
             messages.success(request, 'Invoice created successfully')
-            return redirect('invoices')  
+            return redirect('invoices')
         else:
-            messages.error(request, 'Error. Invoice not created')    
+            messages.error(request, 'Error. Invoice not created')
+
     data = {
+        'items': items,
+        'vendor': vendor,
         'invoice_form': invoice_form,
-        'file_form': file_form,        
+        'file_form': file_form,  
     }
-    return render(request, "invoices/new_invoice.html", data)
+    return render(request, "invoices/new_invoice_confirm.html", data)
+
 
 @login_required
 def invoices(request):
@@ -526,7 +584,7 @@ def invoices(request):
         'approved_invoices': Invoice.latest_status_objects.approved.filter(pk__in=invoices),
         'denied_invoices': Invoice.latest_status_objects.denied.filter(pk__in=invoices)|Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
         'paid_invoices': Invoice.latest_status_objects.paid.filter(pk__in=invoices),
-        'table_headers': ['Invoice No.', 'Amount ('+buyer.company.currency+')', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
+        'table_headers': ['Invoice No.', 'Grand Total', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
     }
     return render(request, "invoices/invoices.html", data)
 
@@ -556,6 +614,11 @@ def view_invoice(request, invoice_id):
             messages.success(request, 'Invoice Cancelled')
         elif 'paid' in request.POST:
             save_status(document=invoice, doc_status='Paid', item_status='Paid', author=buyer)
+            
+            # If all items are 'Paid' for that PO, mark PO as 'Paid'
+            for item in item.purchase_order.items.all():
+                if item.get_latest_status() == 'Paid':
+                    save_doc_status(item.purchase_order, 'Paid', buyer)
             messages.success(request, 'Invoice marked as Paid')
         else:
             messages.error(request, 'Error. Invoice not updated')
@@ -583,11 +646,10 @@ def unbilled_items(request):
     buyer = request.user.buyer_profile
     # All items whose latest_status is Delivered Partial/Delivered Complete
     # ...and don't have an associated Invoice
-    unbilled_items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
-    unbilled_items = unbilled_items.filter(invoice__isnull=True)    
+    unbilled_items = OrderItem.latest_status_objects.unbilled.filter(requisition__buyer_co=buyer.company)
 
     data = {
-        'unbilled_items':unbilled_items,        
+        'unbilled_items':unbilled_items,
         'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Ordered', 'Qty Delivered', 'Unit Price', 'Vendor']
     }
     return render(request, "acpayable/unbilled_items.html", data)

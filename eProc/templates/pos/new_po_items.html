@@ -18,7 +18,6 @@
 
         	<form method="POST" action="">
         	{% csrf_token %}
-
 				<div class="pages">
 		        	<div class="box-header with-border">
 		          		<h3 class="box-title">Select Order Items to Add to PO</h3>
@@ -55,7 +54,7 @@
 		
 					<!-- Button to go to new_po_confirm page -->
 					<a href='{% url "new_po_confirm" %}'>
-						<button type="input" class="btn basic-teal pull-right">
+						<button type="input" id="next" class="btn basic-teal pull-right">
 							Add Items to PO <i class="fa fa-angle-right"> </i> 
 						</button>
 					</a>	
@@ -72,5 +71,22 @@
 {% endblock content %}
 
 {% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID="orderTable" %}	
+  {% include "_includes/dataTablesNotifications.html" with tableID="orderTable" %}
+
+   <script>
+    $(document).ready(function(){
+      
+      // Next Button is disabled on page load
+      $('#next').attr('disabled', 'disabled');
+      $('#next').addClass('disabled');
+
+      // Next Button is enabled only if any input field is changed
+      $("input[type='checkbox']").click(function() {
+	        $('#next').removeAttr('disabled');
+	        $('#next').removeClass('disabled');
+      });
+
+    })
+  </script> 
+
 {% endblock js %}

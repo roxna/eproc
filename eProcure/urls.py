@@ -66,7 +66,7 @@ urlpatterns=[
     
     url(r'^purchase-orders/', include([
         url(r'^new/select-items/$', eProc_views.new_po_items, name='new_po_items'),
-        url(ur'^new/confirm/\w*/$', eProc_views.new_po_confirm, name='new_po_confirm'),
+        url(ur'^new/confirm\w*/$', eProc_views.new_po_confirm, name='new_po_confirm'),
         url(r'^$', eProc_views.purchaseorders, name='purchaseorders'),
         url(r'^view/(?P<po_id>\w+)/$', eProc_views.view_po, name='view_po'),
         url(r'^print/(?P<po_id>\w+)$', eProc_views.print_po, name='print_po'),            
@@ -77,7 +77,8 @@ urlpatterns=[
 
     url(r'^invoices/', include([
         url(r'^$', eProc_views.invoices, name='invoices'),    
-        url(r'^new/$', eProc_views.new_invoice, name='new_invoice'),   
+        url(r'^new/select-items/$', eProc_views.new_invoice_items, name='new_invoice_items'),
+        url(r'^new/confirm\w*/$', eProc_views.new_invoice_confirm, name='new_invoice_confirm'),
         url(r'^view/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
         url(r'^print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
         url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request (see custom.js)
@@ -99,9 +100,13 @@ urlpatterns=[
         url(r'^call/(?P<drawdown_id>\w+)$', eProc_views.call_drawdown, name='call_drawdown'),
     ])),
     
-    url(r'^vendors/$', eProc_views.vendors, name='vendors'),
-    url(r'^vendor/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
-    url(r'^vendors/import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
+    url(r'^vendors/', include([
+        url(r'^$', eProc_views.vendors, name='vendors'),
+        url(r'^(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
+        url(r'^import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
+        url(r'^unbilled-items/(?P<vendor_id>\w+)/$', eProc_views.unbilled_items_by_vendor, name='unbilled_items_by_vendor'), #AJAX REQUEST in new_invoice_items to get unbilled_items for specific vendor
+    ])),
+
     url(r'^products/$', eProc_views.products, name='products'),
     url(r'^products/import-csv$', eProc_views.upload_product_csv, name='upload_product_csv'),
     url(r'^products/(?P<product_id>\w+)$', eProc_views.product_details, name='product_details'), #AJAX request

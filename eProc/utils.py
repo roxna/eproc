@@ -45,9 +45,6 @@ def initialize_po_form(buyer, po_form):
     po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company) 
 
 def initialize_invoice_form(buyer, invoice_form):
-    invoice_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)
-    # TODO: POs with UNBILLED ITEMS ONLY 
-    invoice_form.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
 
 def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
@@ -79,7 +76,7 @@ def save_new_document(buyer, form):
     document.currency = buyer.company.currency
     document.date_issued = timezone.now()
     document.buyer_co = buyer.company
-    # Don't save if Invoice - will violate the not-null constraint for invoice.po, bill_ad, shipping_ad
+    # Don't save if Invoice - will violate the not-null constraint for invoice.po etc
     if not isinstance(document, Invoice):
         document.save() 
     return document

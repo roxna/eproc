@@ -92,7 +92,7 @@
       {% include "_includes/approve_deny_cancel.html" with document=requisition is_requisition=True user_role='Approver' %}
     {% else %}
         <div class="label text-grey">
-          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' href_id=requisition.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
         </div>
     {% endif %}          
   </div>  

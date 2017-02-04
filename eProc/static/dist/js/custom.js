@@ -78,56 +78,58 @@ $(document).ready(function(){
 	/***************************************
 	****    INVOICE - UPDATE PO AJAX     ***
 	***************************************/
-	// Dynamically updated the PO list based on Invoice selected on new_invoice
 
-	$('#invoiceOrdersTable').hide();
-    $('#itemDetailsHeader').hide();
-    $("#id_purchase_order").attr("readonly", true);  // Note: jQuery 1.9+ --> .prop (not .attr)    
+//      OLD VERSION
+//      // Dynamically updated the PO list based on Invoice selected on new_invoice
 
-    $('#selectVendor').on('click', function(){             
-        $("#id_vendor_co").attr("readonly", true);
-        $("#id_purchase_order").attr("readonly", false);
-        var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
-        $.ajax({
-            url: '/invoices/'+vendor_id,
-            type: 'get',
-            success: function(data){              
-                $('select[id=id_purchase_order]').html('');
-                $.each(data, function(key, value){
-                    $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>'); 
-                });
-            },
-            error: function(data){
-                console.log(data);
-            }
-        })
-    })
+ //    $('#invoiceOrdersTable').hide();
+ //    $('#itemDetailsHeader').hide();
+ //    $("#id_purchase_order").attr("readonly", true);  // Note: jQuery 1.9+ --> .prop (not .attr)    
 
-    $('#selectPO').on('click', function(){ 
-        var po_id = $('#id_purchase_order option:selected').val(); 
-        $("#id_purchase_order").attr("readonly", true);
-        $.ajax({
-            url: '/purchase-orders/items/'+po_id,
-            type: 'get',
-            success: function(data){
-                $('#itemDetailsHeader').show();
-                $('#invoiceOrdersTable').show(); 
-                $.each(data, function(key, value){                
-                    $('#invoiceOrdersTable tbody').append(
-                        '<tr>'+
-                            '<td>'+this['product']+'</td>'+
-                            '<td>'+this['qty_requested']+'</td>'+
-                            '<td>'+this['unit_price']+'</td>'+
-                            '<td>'+parseInt(this['unit_price'])*parseInt(this['qty_requested'])+'</td>'+
-                        '<tr>'
-                    );
-                }); 
-            },
-            error: function(data){
-                console.log(data);
-            }
-        })            
-    })
+ //    $('#selectVendor').on('click', function(){             
+ //        $("#id_vendor_co").attr("readonly", true);
+ //        $("#id_purchase_order").attr("readonly", false);
+ //        var vendor_id = $('#div_id_vendor_co #id_vendor_co').val();
+ //        $.ajax({
+ //            url: '/invoices/'+vendor_id,
+ //            type: 'get',
+ //            success: function(data){              
+ //                $('select[id=id_purchase_order]').html('');
+ //                $.each(data, function(key, value){
+ //                    $('select[id=id_purchase_order]').append('<option value="' + this['pk'] + '">' + this['fields']['number'] +'</option>'); 
+ //                });
+ //            },
+ //            error: function(data){
+ //                console.log(data);
+ //            }
+ //        })
+ //    })
+
+ //    $('#selectPO').on('click', function(){ 
+ //        var po_id = $('#id_purchase_order option:selected').val(); 
+ //        $("#id_purchase_order").attr("readonly", true);
+ //        $.ajax({
+ //            url: '/purchase-orders/items/'+po_id,
+ //            type: 'get',
+ //            success: function(data){
+ //                $('#itemDetailsHeader').show();
+ //                $('#invoiceOrdersTable').show(); 
+ //                $.each(data, function(key, value){                
+ //                    $('#invoiceOrdersTable tbody').append(
+ //                        '<tr>'+
+ //                            '<td>'+this['product']+'</td>'+
+ //                            '<td>'+this['qty_requested']+'</td>'+
+ //                            '<td>'+this['unit_price']+'</td>'+
+ //                            '<td>'+parseInt(this['unit_price'])*parseInt(this['qty_requested'])+'</td>'+
+ //                        '<tr>'
+ //                    );
+ //                }); 
+ //            },
+ //            error: function(data){
+ //                console.log(data);
+ //            }
+ //        })            
+ //    })
 	
 
 })

@@ -1,4 +1,5 @@
   {% load staticfiles %}
+  {% load eProc_filters %}
   
   {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
   
@@ -6,9 +7,9 @@
     {% for invoice in invoices %}           
     <tr>
       <td> 
-        {% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' href_id=invoice.id %}
+        {% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' %}
       </td>
-      <td> {{ invoice.grand_total }}<br></td>
+      <td> {{invoice.currency|currency_icon}} {{ invoice.grand_total }}<br></td>
       <td> 
         <b>By: </b>{{ invoice.preparer }}<br>
         <b>On: </b>{{ invoice.date_issued | date }}<br>
@@ -19,18 +20,19 @@
       </td>                      
       <td>{{ invoice.vendor_co }} <br></td>      
       <td>
-        <a href="{% url 'view_po' invoice.purchase_order.id %}">
-          <span class="label label-large label-primary">
-            {{ invoice.purchase_order }}
-          </span>
-        </a><br>
+        {% for po in invoice.purchase_orders.all %}
+        <a href="{% url 'view_po' po.id %}">
+            {{ po }}
+        </a>,
+        {% endfor %}
+        <br>
       </td>
       <td>
         {% for file in invoice.files.all %}
           <!-- {#<a href="{% url file.base_url %}">#} -->
           {{ file.name }}
           </a> <br>
-        <!-- {% endfor %} -->
+        {% endfor %}
       </td>
       <td>{{ invoice.comments }} <br></td>
     </tr>

@@ -192,7 +192,7 @@ class BuyerCoForm(forms.ModelForm):
         model = BuyerCo
         fields = ('name', 'industry', 'currency')
 
-
+# Used to create a new Vendor 
 class VendorCoForm(ModelForm):
     name = forms.CharField(required=True, label="<i class='fa fa-building'></i> Vendor Name")
     vendorID = forms.CharField(required=False, label="<i class='fa fa-id-card'></i> Vendor ID")
@@ -224,6 +224,12 @@ class VendorCoForm(ModelForm):
     class Meta:
         model = VendorCo
         fields = ("name", "contact_rep", "website", "vendorID", "comments")
+
+
+# Used for the dropdown selection in new_invoice_items view
+class VendorForm(forms.Form):
+    name = forms.ModelChoiceField(required=True, queryset=VendorCo.objects.none(), label='')
+
 
 class LocationForm(ModelForm):
     name = forms.CharField(required=True, label="Location Name")
@@ -610,7 +616,6 @@ class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
     date_issued = forms.DateTimeField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
     date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
-    vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Vendor")    
 
     def __init__(self, *args, **kwargs):
         super(InvoiceForm, self).__init__(*args, **kwargs)
@@ -622,19 +627,6 @@ class InvoiceForm(ModelForm):
                 Div('date_issued', css_class='col-md-3'),
                 Div('date_due', css_class='col-md-3'),                                
                 css_class='row',
-            ),
-            Div(
-                Div('vendor_co', css_class='col-md-5', css_id='vendor_co'),
-                HTML('<div class="col-md-1" style="margin-top:28px;">'+
-                        '<button type="button" id="selectVendor" class="label label-warning">Select</button>' +
-                     '</div>'
-                ),
-                Div('purchase_order', css_class='col-md-5', css_id="po_list"),
-                HTML('<div class="col-md-1" style="margin-top:28px;">'+
-                        '<button type="button" id="selectPO" class="label label-warning">Select</button>' +
-                     '</div>'
-                ),
-                css_class='row'
             ),
             Div(
                 Div('next_approver', css_class='col-md-6'),
@@ -662,7 +654,7 @@ class InvoiceForm(ModelForm):
 
     class Meta:
         model = Invoice
-        fields = ("number", "date_issued", "date_due", "next_approver", "comments", "purchase_order", "vendor_co")
+        fields = ("number", "date_issued", "date_due", "next_approver", "comments")
  
 
 class DrawdownForm(ModelForm):       
@@ -700,7 +692,7 @@ class DrawdownForm(ModelForm):
 
 class FileForm(ModelForm):    
     file = forms.FileField(required=True, label="Upload Invoice from Vendor")
-    comments = forms.CharField(required=False, label='Invoice notes', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
+    comments = forms.CharField(required=False, label='Relevant notes re: the file', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)

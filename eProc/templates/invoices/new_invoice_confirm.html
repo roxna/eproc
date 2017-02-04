@@ -1,6 +1,7 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
+{% load eProc_filters %}
 
 {% block title %}New Invoice Record{% endblock title %}
 
@@ -8,8 +9,8 @@
 {% endblock css %}
 
 {% block header %}
-    <p class="small">{% include '_includes/back_to.html' with destination='invoices' %}</p>
-    <h1>Create Invoice Record</h1>
+    <i class="fa fa-angle-left"> </i><a href="{% url 'new_invoice_items' %}"> Back to Step 1 </a>
+    <h1>Create Invoice Record (Step 2 of 2)</h1>
 {% endblock header %}
 
 {% block content %}
@@ -23,11 +24,13 @@
 
          <div class="box-body">
             <form method="POST" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
+            {% csrf_token %}            
+
                 <p class="lead">Invoice Details</p>
                 <div class="row">
         	       <div class="col-xs-12 col-md-8 col-lg-8">
         			     <div class="box-body no-padding">
+                          Vendor: <b><span id="vendorName"></span></b><br><br>
                             {% crispy invoice_form invoice_form.helper %}
                         </div>
                     </div>
@@ -39,6 +42,7 @@
                         </div>
                     </div>
                 </div><br>
+
 
                 <p class="lead" id="itemDetailsHeader">Item Details</p>
                 <table id="invoiceOrdersTable" class="table table-striped">
@@ -69,6 +73,26 @@
 
 
 {% block js %}  
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $('#vendorName').html('{{vendor|upper}}');
+            $('#vendorAdd').html('{{vendorAdd}}');
+
+            {% for item in items %}                  
+                $('#invoiceOrdersTable tbody').append(
+                    '<tr>'+
+                        '<td>'+'{{item.product.name}}'+'</td>'+
+                        '<td>'+{{item.qty_requested}}+'</td>'+
+                        '<td>'+{{item.unit_price}}+'</td>'+
+                        '<td>'+parseInt({{item.qty_requested}})*parseInt({{item.unit_price}})+'</td>'+
+                    '<tr>'
+                );
+
+            {% endfor %}
+        });
+    </script>
+
 {% endblock js %}
 
 

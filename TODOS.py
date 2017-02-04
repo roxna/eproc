@@ -2,19 +2,22 @@
 # (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
 # activate - url shouldnt be 127:00...
 
-# PO/Invoice - overinvoiced, GL codes for each line item on invoice
-# Invoice- Partially received items will go into the Unbilled items tab --> attach to invoice
 
 ##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
-# export csv for receiving report
 
 # form errors show as messages framework
 # Move form validation from view to form init
+
+# new_invoice_confirm 
+	# update grand total (taxes etc) in view and form
+	# billing/shipping address for invoice
 
 # FILES:
 	# Save files uploaded/media elements (invoice, co logo, blogs etc)
 	# Attach files to PO
 	# Receving items - need slip/file upload (http://kb.procurify.com/?st_kb=new-procurify-receive-items)
+# PO/Invoice - overinvoiced, GL codes for each line item on invoice
+# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 
 # Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 
@@ -25,7 +28,6 @@
 # 1. WHO SHOULD SEE WHAT DOCS? Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
-# 4. Add approval process to invoices?? (new_invoice) #TODO --> Pending / Cancelled / Paid (view_invoice/1)
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
@@ -111,6 +113,8 @@
 	# For orders - Assign alt. approver
 	# For bills/payments
 # Profile no pw
+# new_po_items and new_invoice_items javascript --> if unselect all items, need to deactivate add_items to PO button
+# export csv for receiving report
 # Move company from buyer_profile to user
 # PW_change (urls.py) - # TODO: password_change isn't passing messages framework as extra_context to show pw changed success
 # Each location can have multiple addresses (bill/ship)
@@ -146,4 +150,20 @@
       # //     label: 'Spend by Location' // for legend
       # //   }],
       # // };   
-
+							  # {% for item in unbilled_items %} 
+								 #  {% with item.purchase_order as po %}
+								 #  <tr>
+								 #  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
+								 #    <td>
+								 #    	{% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}</a><br>						      
+								 #    </td>
+								 #    <td><span class="itemName">{{ item.product.name }}</span></td>
+								 #    <td><span class="itemQty">{{ item.qty_delivered }}</span></td>
+								 #    <td><span>{{ item.get_delivered_date|date }}</span></td>
+								 #    <td> {{ item.product.vendor_co }}</td>	
+								 #    <td> 
+								 #    	<span class="itemSubTotal">{{currency|currency_icon}}{{ item.get_requested_subtotal }}</span><br>
+								 #    </td>
+								 #  </tr>
+								 #  {% endwith %}
+							  # {% endfor %}	

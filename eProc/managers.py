@@ -25,6 +25,11 @@ class LatestStatusManager(models.Manager):
 	def _get_delivered_complete(self):
 		return self._get_by_status(['Delivered Complete'])	
 
+	# All items whose latest_status is Delivered Partial/Delivered Complete
+    # ...and don't have an associated Invoice
+	def _get_unbilled(self):
+		return self._get_by_status(['Delivered Partial', 'Delivered Complete']).filter(invoice__isnull=True)
+
 	def _get_denied(self):
 		return self._get_by_status(['Denied'])
 	
@@ -51,6 +56,7 @@ class LatestStatusManager(models.Manager):
 	delivered = property(_get_delivered)
 	delivered_partial = property(_get_delivered_partial)
 	delivered_complete = property(_get_delivered_complete)
+	unbilled = property(_get_unbilled)
 
 	denied = property(_get_denied)
 	ordered = property(_get_ordered)

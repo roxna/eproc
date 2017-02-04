@@ -13,8 +13,11 @@
         <p class="lead">Details</p>
         Number: <b>{{ invoice.number }}</b><br>
         Date Issued: <b>{{ invoice.date_issued | date}}</b><br>
-        Preparer: <b>{{ invoice.preparer }}</b><br>
-        PO: <b>{{ invoice.purchase_order }}</b><br>
+        Preparer: <b>{{ invoice.preparer }}</b><br>        
+        PO: 
+        {% for po in invoice.purchase_orders.all %}
+            <b>{{ po }}</b>,
+        {% endfor %}<br>
         Date Due: <b>{{ invoice.date_due }}</b><br>
       <br>
     </div>

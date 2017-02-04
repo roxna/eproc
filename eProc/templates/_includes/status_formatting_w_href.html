@@ -1,4 +1,4 @@
-<a href="{% url href href_id %}">
+<a href="{% url href item.id %}">
   {% with item.get_latest_status.value|lower as latest_status %}
     <span class="label label-large label-{{latest_status}}"> {{ value_to_display }}</span>
   {% endwith %}

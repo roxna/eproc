@@ -27,7 +27,7 @@
     {% endif %}
     
     <div class="label text-grey">
-      Status: <em>{% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' href_id=drawdown.id %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+      Status: <em>{% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
     </div>         
   </div>
 </div>

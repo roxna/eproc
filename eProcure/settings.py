@@ -6,6 +6,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 # NOTES:
+# cd Desktop/eProc/eProc
+# source ~/.bashrc
+# workon eProcure
 # Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
 # psql postgres then create database dbname; then \connect dbname
 # python manage.py migrate --run-syncdb
@@ -164,7 +167,7 @@ STATUSES = (
     ('Cancelled', 'Cancelled'), #view_req --> req cancelled
     ('Delivered Partial', 'Delivered Partial'), #receive_po
     ('Delivered Complete', 'Delivered Complete'), #receive_po (qty_ordered = delivered+returned)
-    ('Returned', 'Returned'), #TODOOOO??????
+    ('Returned', 'Returned'), #receive_po
     ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
@@ -186,8 +189,7 @@ STATUSES = (
     # ('Partial', 'Partial'),  NO - REMOVED 1/27
     ('Closed', 'Closed'),  #receive_po --> all items received OR explicit CLOSE 
     # ('Cancelled', 'Cancelled'), #view_po
-    # ('Paid', 'Paid'),  #view_po 
-    
+    # ('Paid', 'Paid'),  #view_invoice/1 --> TOCONFIRM WORKS - if all items paid then PO paid    
 
     #### Invoices ####
     # ('Pending', 'Pending'), #TODO Update: On invoice creation
