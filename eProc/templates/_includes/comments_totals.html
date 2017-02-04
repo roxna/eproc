@@ -3,7 +3,9 @@
       <div class="col-xs-12 col-md-6">
         <p class="lead">Other</p>
         <p>COMMENTS: <br>{{form.comments}}</p>
-        <p>TERMS: <br>{{form.terms}}</p>
+        {% if form.terms %}
+          <p>TERMS: <br>{{form.terms}}</p>
+        {% endif %}
       </div>
       <div class="col-xs-12 col-md-6 pull-right">
         <p class="lead">Totals</p>
@@ -37,7 +39,7 @@
                 </tr>    
                 <tr class="lead">
                   <td>Total Cost</td>
-                  <td id="total">{{form.grand_total}}</td>
+                  <td id="grandTotal">{{form.grand_total}}</td>
                   <td>{{currency}}</td>
                 </tr>	
               </tbody>

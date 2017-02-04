@@ -12,7 +12,8 @@
     <div class="col-sm-4 invoice-col">
         <p class="lead">Details</p>
         Number: <b>{{ invoice.number }}</b><br>
-        Date Issued: <b>{{ invoice.date_issued | date}}</b><br>
+        Date Issued by Vendor: <b>{{ invoice.date_issued | date}}</b><br>
+        Date Invoice Record Created: <b>{{ invoice.date_created | date}}</b><br>
         Preparer: <b>{{ invoice.preparer }}</b><br>        
         PO: 
         {% for po in invoice.purchase_orders.all %}

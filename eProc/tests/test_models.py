@@ -100,8 +100,8 @@
 
 
 # class RequisitionTest(TestCase):
-#     def create_instance(self, preparer, next_approver, buyer_co, department, number="RO1", date_issued=timezone.now):
-#         return Requisition.objects.create(preparer=BuyerProfileTest.create_instance, next_approver=BuyerProfileTest.create_instance, buyer_co=BuyerCoTest.create_instance, department=DepartmentTest.create_instance, number=number, date_issued=date_issued)
+#     def create_instance(self, preparer, next_approver, buyer_co, department, number="RO1", date_created=timezone.now):
+#         return Requisition.objects.create(preparer=BuyerProfileTest.create_instance, next_approver=BuyerProfileTest.create_instance, buyer_co=BuyerCoTest.create_instance, department=DepartmentTest.create_instance, number=number, date_created=date_created)
 
 #     def test_instance_creation(self):
 #         instance = self.create_instance()

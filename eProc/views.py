@@ -500,7 +500,6 @@ def new_invoice_items(request):
     }
     return render(request, "invoices/new_invoice_items.html", data)
 
-
 # AJAX request used to update new_invoice_items list
 @login_required
 def unbilled_items_by_vendor(request, vendor_id):
@@ -535,20 +534,17 @@ def new_invoice_confirm(request):
     file_form = FileForm(request.POST or None, request.FILES or None, prefix='file')
     
     if request.method == 'POST':
-            
+        # pdb.set_trace()
         file_form = FileForm(request.POST, request.FILES)
         if invoice_form.is_valid() and file_form.is_valid():
             invoice = save_new_document(buyer, invoice_form)
-            invoice.vendor_co = vendor            
+            invoice.vendor_co = vendor  
+            invoice.save() # Need to save for the M2M relationship          
             for item in items:                
-                invoice.purchase_order = item.purchase_order
+                invoice.purchase_orders.add(item.purchase_order) # Adding a M2M relationship with PO
                 invoice.save()
                 item.invoice = invoice
-                item.save()
-                invoice.sub_total += item.unit_price * item.qty_delivered
-                
-            invoice.grand_total = invoice.sub_total
-            invoice.save()
+                item.save()                            
 
             upload_file = file_form.save(commit=False)
             upload_file.name = request.FILES['file'].name

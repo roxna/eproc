@@ -8,10 +8,6 @@
 # form errors show as messages framework
 # Move form validation from view to form init
 
-# new_invoice_confirm 
-	# update grand total (taxes etc) in view and form
-	# billing/shipping address for invoice
-
 # FILES:
 	# Save files uploaded/media elements (invoice, co logo, blogs etc)
 	# Attach files to PO

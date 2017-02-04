@@ -29,9 +29,19 @@
                 <p class="lead">Invoice Details</p>
                 <div class="row">
         	       <div class="col-xs-12 col-md-8 col-lg-8">
-        			     <div class="box-body no-padding">
-                          Vendor: <b><span id="vendorName"></span></b><br><br>
-                            {% crispy invoice_form invoice_form.helper %}
+        			     <div class="box-body">
+                             <div class="form-group">
+                                Vendor: <b><span id="vendorName"></span></b><br>
+                            </div>
+                            <div class="form-group">
+                              Invoice Number <br> {{invoice_form.number}}
+                            </div>
+                            <div class="form-group">
+                              Invoice Date <br>{{invoice_form.date_issued}}
+                            </div>
+                            <div class="form-group">                        
+                              Date Due <br>{{invoice_form.date_due}}
+                            </div>
                         </div>
                     </div>
                     <div class="col-xs-12 col-md-4 col-lg-4">
@@ -45,7 +55,7 @@
 
 
                 <p class="lead" id="itemDetailsHeader">Item Details</p>
-                <table id="invoiceOrdersTable" class="table table-striped">
+                <table id="itemsTable" class="table table-striped">
                      <!-- Don't use includes _includes/table_headers.html - doesn't seem to work -->
                      <thead>
                         <tr>
@@ -56,13 +66,36 @@
                         </tr>
                     </thead>
                     <tbody> 
+                        <!-- <div class="item"> -->
+                            <!-- Updated in JQUERY -->
+                        <!-- </div> -->
                     </tbody>
                 </table>
+
+                <!-- ***********************************
+                Comments, Terms & Sub/Grand Total tables 
+                ***********************************  -->
+                {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice_form currency=currency %}
+
+                <div class="row">
+                    <div class="col-xs-12 col-lg-6 pull-right">
+                        <div class="col-xs-4 col-lg-4"> 
+                            <p class="lead">Next approver</p>
+                        </div>
+                        <div class="col-xs-8 col-lg-8"> 
+                            {{invoice_form.next_approver}}<br>
+                        </div>
+                    </div>
+                </div><br><br>
+                
+                <!-- Buttons to go SUBMIT or CANCEL -->
                 <div class="row">
                     <div class="col-xs-12">
-                        <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.invoice}}"></i> Create Invoice Record </button>
+                        <button type="submit" name="createInvoice" class="button btn basic-teal pull-right"><i class="fa {{ICONS.invoice}}"></i> Create Invoice</button>
+                        <a href="{% url 'new_invoice_items' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
                     </div>
                 </div>
+
             </form>            
         </div>             
 
@@ -73,20 +106,20 @@
 
 
 {% block js %}  
+    <script src="{% static 'dist/js/comments_totals.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function(){
 
             $('#vendorName').html('{{vendor|upper}}');
-            $('#vendorAdd').html('{{vendorAdd}}');
 
             {% for item in items %}                  
-                $('#invoiceOrdersTable tbody').append(
-                    '<tr>'+
+                $('#itemsTable tbody').append(                    
+                    '<tr class="item">'+
                         '<td>'+'{{item.product.name}}'+'</td>'+
-                        '<td>'+{{item.qty_requested}}+'</td>'+
-                        '<td>'+{{item.unit_price}}+'</td>'+
-                        '<td>'+parseInt({{item.qty_requested}})*parseInt({{item.unit_price}})+'</td>'+
-                    '<tr>'
+                        '<td class="quantity">'+{{item.qty_delivered}}+'</td>'+
+                        '<td class="unit_price">'+{{item.unit_price}}+'</td>'+
+                        '<td>'+'{{item.product.currency|currency_icon}}'+parseInt({{item.qty_delivered}})*parseInt({{item.unit_price}})+'</td>'+
+                    '<tr>' 
                 );
 
             {% endfor %}

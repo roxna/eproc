@@ -57,7 +57,7 @@
 				      </div>
 				      <div class="row">
 				      	<div class="col-xs-12"> 
-				      		<table id="POOrdersTable" class="table table-striped">
+				      		<table id="itemsTable" class="table table-striped">
 								<tbody>
 									{{ po_items_formset.management_form | crispy }}
 
@@ -73,7 +73,7 @@
 							</table>
 
 						</div>
-		        	  </div><br><br>
+		        	  </div><br><br><br>
 
 
 				        <!-- ***********************************
@@ -81,13 +81,6 @@
 				        ***********************************  -->
 				        {% include "_includes/comments_totals.html" with tableID="POTable" form=po_form currency=currency %}
 
-						<div class="row">
-					      	<div class="col-xs-12 col-lg-6"> </div>
-					      	<div class="col-xs-6 col-lg-3"> 
-					      		<p class="lead">Next approver</p>
-					      	</div>
-					        <div class="col-xs-6 col-lg-3"> {{po_form.next_approver}}<br></div>
-				        </div><br><br>
 						
 						<!-- Buttons to go SUBMIT or CANCEL -->
 						<div class="row">
@@ -109,62 +102,6 @@
 {% endblock content %}
 
 {% block js %}
-  <script>
-  	$(document).ready(function(){
-  		
-  		var POSubTotal = 0; 
-  		var POTotal = 0;  	
-
-  		/**************
-  		UPDATE TOTALS Function
-  		**************/
-  		// Function to update SUB TOTAL from qty & price
-  		var updateSubTotal = function(){
-  			POSubTotal = 0;
-  			// Multiply price and quantity for each item row
-  			$('.item').each(function(){  				
-  				var qty = $(this).find('.qty_ordered').find('input').val();
-  				var price = $(this).find('.item_price').find('input').val();
-  				POSubTotal += qty * price;
-  			});
-  			$('#subTotal :input').val(POSubTotal);
-
-  		};	  	
-	  	
-		// Function to update GRAND TOTAL from costs and sub_total
-		var updateGrandTotal = function(){
-			POTotal = POSubTotal;
-			$('#total :input').val(POTotal);
-
-		    $('td.amount').each(function() {
-		    	// If cost, add; if discount, subtract
-		    	$(this).hasClass('discount') ? POTotal -= parseInt($(this).children().val()) : POTotal += parseInt($(this).children().val());		        
-		    });
-		    $('#total :input').val(POTotal);
-		};
-
-  		/************** 
-  		 Update TOTALS functions called on keyup
-  		**************/
-  		// SubTotal - on change in price or quantity
-	  	$('.qty_ordered, .item_price').keyup(function(){
-	  		updateSubTotal();	  		
-	  	});
-
-	  	// Grand Total - on change in price/qty OR costs
-	  	$('td, .item').keyup(function(){  
-	  		
-	  		updateGrandTotal();
-	  	});
-
-	  	/************** 
-	  	 SETUP
-		 **************/		
-  		$('#subTotal :input').prop('readonly', true);
-  		$('#total :input').prop('readonly', true);
-  		updateSubTotal();
-		$('#total :input').val(POTotal);
-	})
-  </script>
+	<script src="{% static 'dist/js/comments_totals.js' %}"></script>
 {% endblock js %}
 

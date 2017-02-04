@@ -147,8 +147,7 @@ class BuyerProfile(models.Model):
 class Document(models.Model):
 	number = models.CharField(max_length=20)
 	title = models.CharField(max_length=32, null=True, blank=True)
-	date_created = models.DateTimeField(default=timezone.now)
-	date_issued = models.DateTimeField(default=timezone.now, null=True, blank=True)
+	date_created = models.DateTimeField(default=timezone.now)	
 	date_due = models.DateField(default=timezone.now)
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -213,6 +212,7 @@ class PurchaseOrder(SalesOrder):
 		return True
 
 class Invoice(SalesOrder):
+	date_issued = models.DateTimeField(default=timezone.now) #Date issued by the vendor
 	purchase_orders = models.ManyToManyField(PurchaseOrder, related_name="invoices")	
 
 class Drawdown(Document):

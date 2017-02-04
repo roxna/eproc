@@ -9,7 +9,7 @@
 <div class="col-sm-6 invoice-col">
     <p class="lead">Details</p>
     Number:<b> {{ drawdown.number }}</b><br>
-    Date Requested:<b> {{ drawdown.date_issued | date }}</b><br>
+    Date Requested:<b> {{ drawdown.date_created | date }}</b><br>
     <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
     Date Due:<b> {{ drawdown.date_due | get_date_as_string}}</b><br>        
   </div>  

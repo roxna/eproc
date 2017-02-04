@@ -424,8 +424,8 @@ class NewPOItemForm(ModelForm):
             Div(
                 Div('product', css_class='col-md-2'),
                 Div('qty_approved', css_class='col-md-2'),
-                Div('qty_ordered', css_class='qty_ordered col-md-2'),
-                Div('unit_price', css_class='item_price col-md-2'),
+                Div('qty_ordered', css_class='quantity col-md-2'),
+                Div('unit_price', css_class='unit_price col-md-2'),
                 Div('comments_order', css_class='col-md-4'),
                 css_class='row',
             ),
@@ -590,14 +590,14 @@ class RequisitionForm(ModelForm):
 class PurchaseOrderForm(ModelForm):    
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'} ))
-    comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':60}))
+    comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
     cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     cost_other = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     # discount_percent = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     discount_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
     # tax_percent = forms.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
-    terms = forms.CharField(max_length=5000, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':60}))
+    terms = forms.CharField(max_length=5000, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all())
     billing_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Billing Address")
     shipping_add = forms.ModelChoiceField(queryset=Location.objects.all(), required=True, label="Shipping Address")
@@ -609,31 +609,19 @@ class PurchaseOrderForm(ModelForm):
 
     class Meta:
         model = PurchaseOrder
-        fields = ("number", "date_due", "date_issued", "comments", "cost_shipping", "cost_other",
-                  "discount_amount", "tax_amount", "terms", "vendor_co", "billing_add", "shipping_add", "sub_total", "grand_total")
+        fields = ("number", "date_due", "vendor_co", "billing_add", "shipping_add", "comments", "terms", 
+                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other",  "grand_total")
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
-    date_issued = forms.DateTimeField(initial=timezone.now, label="Invoice Date", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_issued = forms.DateTimeField(initial=timezone.now, label="Date Issued", widget=forms.TextInput(attrs={'type': 'date'}))
     date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
+    comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
 
     def __init__(self, *args, **kwargs):
         super(InvoiceForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.helper.layout = Layout(            
-            Div(
-                Div('number', css_class='col-md-6'),
-                Div('date_issued', css_class='col-md-3'),
-                Div('date_due', css_class='col-md-3'),                                
-                css_class='row',
-            ),
-            Div(
-                Div('next_approver', css_class='col-md-6'),
-                Div('comments', css_class='col-md-6'),
-                css_class='row',
-            )
-        ) 
 
     # Add basic form validation to clean method
     def clean(self):
@@ -654,7 +642,8 @@ class InvoiceForm(ModelForm):
 
     class Meta:
         model = Invoice
-        fields = ("number", "date_issued", "date_due", "next_approver", "comments")
+        fields = ("number", "date_issued", "date_due", "next_approver", "comments",
+                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other", "grand_total")
  
 
 class DrawdownForm(ModelForm):       
@@ -691,8 +680,8 @@ class DrawdownForm(ModelForm):
 ####################################
 
 class FileForm(ModelForm):    
-    file = forms.FileField(required=True, label="Upload Invoice from Vendor")
-    comments = forms.CharField(required=False, label='Relevant notes re: the file', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
+    file = forms.FileField(required=True, label='Upload Invoice from Vendor')
+    comments = forms.CharField(required=False, label='Notes', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)

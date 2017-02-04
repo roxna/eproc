@@ -10,7 +10,7 @@
 <div class="col-sm-6 invoice-col">
     <p class="lead">Details</p>
     Next Approver:<b> {{ requisition.next_approver }}</b><br>
-    Date Requested:<b> {{ requisition.date_issued | date }}</b><br>
+    Date Created:<b> {{ requisition.date_created | date }}</b><br>
     <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
     Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br> 
   </div>  
