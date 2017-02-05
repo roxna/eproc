@@ -104,6 +104,7 @@ urlpatterns=[
         url(r'^$', eProc_views.vendors, name='vendors'),
         url(r'^(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
         url(r'^import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
+        url(r'^rating/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.rate_vendor, name='rate_vendor'), 
         url(r'^unbilled-items/(?P<vendor_id>\w+)/$', eProc_views.unbilled_items_by_vendor, name='unbilled_items_by_vendor'), #AJAX REQUEST in new_invoice_items to get unbilled_items for specific vendor
     ])),
 

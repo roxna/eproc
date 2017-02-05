@@ -6,7 +6,7 @@
     {% for drawdown in drawdowns %}           
     <tr>
       <td> 
-        {% include "_includes/status_formatting_w_href.html" with item=drawdown value_to_display=drawdown.number href=href %}
+        {% include "_includes/formatting/status_formatting_w_href.html" with item=drawdown value_to_display=drawdown.number href=href %}
       </td>
       <td> {{ drawdown.preparer }}<br></td>
       <td>{{ drawdown.date_created | date }}<br></td>  

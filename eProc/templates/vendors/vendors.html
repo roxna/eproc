@@ -29,17 +29,26 @@
               {% include "_includes/table_header.html" with header_class="basic-teal" header=table_headers %}
                 <tbody>              
                   {% for vendor in vendors %}    
-                  {% with vendor.get_primary_location as location %}                       
-                    <tr>
-                      <td data-id="{{vendor.id}}" data-name="{{vendor.name|slugify}}">
-                          <a href="{% url 'view_vendor' vendor.id vendor.name|slugify %}">{{ vendor.name }}</a>
-                      </td>
-                      <!--  -->
-                      <td>                        
-                        <a href="mailto:{{location.email}}">{{vendor.contact_rep}}</a>
-                      </td>                      
-                      <td>{{location.city}}, {{location.country}}</td>                      
-                    </tr>
+                    {% with vendor.get_primary_location as location %}                       
+                      <tr>
+                        <td data-id="{{vendor.id}}" data-name="{{vendor.name|slugify}}">
+                            <a href="{% url 'view_vendor' vendor.id vendor.name|slugify %}">{{ vendor.name }}</a>
+                        </td>
+                        <!--  -->
+                        <td>                        
+                          <a href="mailto:{{location.email}}">{{vendor.contact_rep}}</a>
+                        </td>                      
+                        <td>{{location.city}}, {{location.country}}</td> 
+                        <td>
+                          <a href="{% url 'rate_vendor' vendor.id vendor.name|slugify %}">
+                          {% if vendor.ratings.exists %}
+                            <span class="label label-large label-{{vendor.get_average_rating|lower}}">{{vendor.get_average_rating}}</span>
+                          {% else %}
+                            <span class="label label-large label-pending">Rate {{vendor.name }} now</span>
+                          {% endif %}
+                          </a>
+                        </td>
+                      </tr>
                     {% endwith %}
                   {% endfor %}
                 </tbody>

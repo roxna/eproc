@@ -8,6 +8,16 @@
 
 {% block header %}
 	<p class="small">{% include '_includes/back_to.html' with destination='vendors' %}</p>
+	<a href="{% url 'rate_vendor' vendor_co.pk vendor_co.name|slugify %}">
+		<button type="button" class="btn basic-teal pull-right">
+		<i class="fa {{ICONS.rating}}"></i>
+		{% if vendor_co.ratings.exists %}
+          	Rating: {{vendor_co.get_average_rating}}
+        {% else %}
+			Rate {{vendor_co.name}}
+		{% endif %}
+		</button>
+	</a>
 	<h1>Vendor Details</h1>
 {% endblock header %}
 
@@ -22,7 +32,7 @@
 		    {% csrf_token %}					
 		      
 		      <div class="widget-user-header bg-gray">
-		        <h3 class="widget-user-username">{{vendor.name}}</h3>
+		        <h3 class="widget-user-username">{{vendor_co.name}}</h3>
 		      </div>
 		      <div class="widget-user-image">
 		        <img class="img-circle" src="{% static 'dist/img/photo4.jpg' %}" alt="Vendor">
@@ -65,7 +75,7 @@
 			         			<td>{{doc.name}}</td>
 			         		</tr>			         	
 		         		{% empty %}
-		         			No invoices with {{vendor.name}}			    	
+		         			No invoices with {{vendor_co.name}}			    	
 			         	{% endfor %}
 			         	</tbody>
 			          </table>            

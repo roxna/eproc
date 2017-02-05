@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Avg, Sum
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
@@ -36,7 +36,7 @@ class BuyerCo(Company):
 	pass
 
 class VendorCo(Company):
-	contact_rep = models.CharField(max_length=150, null=True, blank=True)
+	contact_rep = models.CharField(max_length=150, default='-')
 	vendorID = models.CharField(max_length=50, null=True, blank=True)
 	bank_name = models.CharField(max_length=50, null=True, blank=True)
 	branch_details = models.CharField(max_length=50, null=True, blank=True)
@@ -47,6 +47,11 @@ class VendorCo(Company):
 
 	def get_model_fields(model):
 	    return model._meta.fields
+
+	# Returns the value of the average rating (eg. Good/Bad..)
+	def get_average_rating(self):
+		avg_score = int(self.ratings.all().aggregate(Avg('score'))['score__avg'])
+		return settings.SCORES[avg_score][1]
 
 class Location(models.Model):
 	name = models.CharField(max_length=50, default='')
@@ -387,25 +392,12 @@ class DrawdownItemStatus(Status):
 ########################################## 
 
 class Rating(models.Model):
-	SCORES = (
-		(1, 'Awful'),
-		(2, 'Bad'),
-		(3, 'Ok'),
-		(4, 'Good'),
-		(5, 'Great'),
-	)
-	score = models.IntegerField(choices=SCORES)
-	CATEGORIES = (
-		('Quality', 'Quality'),
-		('Delivery', 'Delivery'),
-		('Cost', 'Cost'),
-		('Responsiveness', 'Responsiveness'),
-		('Total', 'Total'),
-	)
-	category = models.CharField(choices=CATEGORIES, max_length=15, default='Total')
-	rater = models.ForeignKey(Company, related_name="ratings_given")
-	ratee = models.ForeignKey(Company, related_name="ratings_received")
+	score = models.IntegerField(choices=settings.SCORES)
+	category = models.CharField(choices=settings.CATEGORIES, max_length=15, default='Total')
+	rater = models.ForeignKey(User, related_name="ratings")
+	vendor_co = models.ForeignKey(VendorCo, related_name="ratings")
 	comments = models.CharField(max_length=100)
 
 	def __unicode__(self):
 		return "{} - {}".format(self.receiver, self.value)
+

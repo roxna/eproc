@@ -36,7 +36,7 @@
 				    	{% with item.purchase_order as po %}
 					    <tr>
 					      <td> 
-					        {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}
+					        {% include "_includes/formatting/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}
 					      </td>
 					      <td> {{ item.product.name }}<br></td>
 					      <td>{{ item.get_delivered_date | date }}</td>

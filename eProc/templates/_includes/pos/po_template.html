@@ -1,4 +1,5 @@
 
+
   <!-- PO Header -->
   {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_po' %}
   
@@ -43,7 +44,7 @@
         </form>
 
         <div class="label text-grey">
-          Status: <em>{% include "_includes/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_po' %}
+          Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_po' %}
           [By {{latest_status.author}} on {{latest_status.date|date}}]
           </em>
         </div>        

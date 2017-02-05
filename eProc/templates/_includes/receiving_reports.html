@@ -7,7 +7,7 @@
       {% for item in items %}           
       <tr>              
         {% with item.purchase_order as po and item.product.currency as currency %}
-          <td> {% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}</td>
+          <td> {% include "_includes/formatting/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}</td>
         {% endwith %}
         <td> {{item.number}}</td>  
         <td> {{item.product.vendor_co.name}}</td>

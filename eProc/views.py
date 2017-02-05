@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
-from django.conf import settings
+from django.conf import settings as conf_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
@@ -32,8 +32,6 @@ import pdb
 from random import randint
 import unicodedata
 
-SCALAR = 570
-
 
 ####################################
 ###         REGISTRATION         ### 
@@ -53,7 +51,7 @@ def register(request):
             user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
             user.is_active=False #User not active until activate account through email
             user.save()
-            send_verific_email(user, user.id*SCALAR)
+            send_verific_email(user, user.id*conf_settings.SCALAR)
             return redirect('thankyou')
         else:
             messages.error(request, 'Error. Registration unsuccessful') #TODO: Figure out how to show errors
@@ -64,7 +62,7 @@ def register(request):
     return render(request, "registration/register.html", data)
 
 def activate(request):
-    user_id = int(request.GET.get('id'))/SCALAR
+    user_id = int(request.GET.get('id'))/conf_settings.SCALAR
     try:
         user = User.objects.get(id=user_id)
         user.is_active=True
@@ -861,7 +859,7 @@ def users(request):
         #         buyer_profile.user = user                
         #         buyer_profile.company = buyer.company
         #         buyer_profile.save()
-        #         send_verific_email(user, user.id*SCALAR)
+        #         send_verific_email(user, user.id*conf_settings.SCALAR)
         #         messages.success(request, 'User successfully invited')
         #         return redirect('users')
         #     else:
@@ -938,7 +936,7 @@ def view_location(request, location_id, location_name):
             print 'addUser'
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)                
-                send_verific_email(user, user.id*SCALAR)
+                send_verific_email(user, user.id*conf_settings.SCALAR)
                 messages.success(request, 'User successfully invited')                
             else:
                 messages.error(request, 'Error. User not added. Please try again.')
@@ -1055,8 +1053,9 @@ def upload_product_csv(request):
 @login_required
 def vendors(request):
     vendors = VendorCo.objects.filter(buyer_co=request.user.buyer_profile.company)
-    vendor_form = VendorCoForm(request.POST or None)
-    location_form = LocationForm(request.POST or None)
+    # Prefix so the name field (common to both forms) isn't confused
+    vendor_form = VendorCoForm(request.POST or None, prefix="vendor")
+    location_form = LocationForm(request.POST or None, prefix="location")
     if request.method == "POST":
         if vendor_form.is_valid() and location_form.is_valid():
             vendor = vendor_form.save()
@@ -1074,33 +1073,33 @@ def vendors(request):
         'vendors': vendors,
         'vendor_form': vendor_form,
         'location_form': location_form,
-        'table_headers': ['Name', 'Contact', 'Location']
+        'table_headers': ['Name', 'Contact', 'Location', 'Avg. Rating']
     }
-    return render(request, "settings/vendors.html", data)    
+    return render(request, "vendors/vendors.html", data)    
 
 @login_required
 def view_vendor(request, vendor_id, vendor_name):
-    vendor = get_object_or_404(VendorCo, pk=vendor_id)
-    location = Location.objects.filter(company=vendor)[0]
+    vendor_co = get_object_or_404(VendorCo, pk=vendor_id)
+    location = Location.objects.filter(company=vendor_co)[0]
     # Prefix so the name field (common to both forms) isn't confused
-    vendor_form = VendorCoForm(request.POST or None, prefix="vendor", instance=vendor)
+    vendor_form = VendorCoForm(request.POST or None, prefix="vendor", instance=vendor_co)
     location_form = LocationForm(request.POST or None, prefix="location", instance=location)
-    doc_ids = [doc.id for doc in vendor.invoice.all()]
+    doc_ids = [doc.id for doc in vendor_co.invoice.all()]
     documents = File.objects.filter(document__in=doc_ids)
     if request.method == 'POST':        
         if vendor_form.is_valid() and location_form.is_valid():
-            vendor = vendor_form.save()
+            vendor_co = vendor_form.save()
             location = location_form.save()
             messages.success(request, "Vendor updated successfully")
         else:
             messages.error(request, 'Error. Vendor not updated.')
     data = {
-        'vendor': vendor,
+        'vendor_co': vendor_co,
         'vendor_form': vendor_form,
         'location_form': location_form,
         'documents': documents,
     }
-    return render(request, "settings/view_vendor.html", data)    
+    return render(request, "vendors/view_vendor.html", data)    
 
 @login_required
 def upload_vendor_csv(request):
@@ -1119,7 +1118,35 @@ def upload_vendor_csv(request):
     data = {
         'csv_form': csv_form,
     }
-    return render(request, "settings/vendor_import.html", data)
+    return render(request, "vendors/vendor_import.html", data)
+
+@login_required
+def rate_vendor(request, vendor_id, vendor_name):
+    buyer = request.user.buyer_profile
+    vendor_co = get_object_or_404(VendorCo, pk=vendor_id)    
+    
+    VendorRatingFormSet = inlineformset_factory(VendorCo, Rating, VendorRatingForm, extra=0, min_num=5)
+    # Convert tuple of categories to a list to set in initial data
+    CATEGORIES = [(category[0]) for category in conf_settings.CATEGORIES]
+    vendor_rating_formset = VendorRatingFormSet(request.POST or None, prefix='vendor', instance=vendor_co, 
+        initial=[{'category': category} for category in CATEGORIES])
+
+    if request.method == 'POST':                
+        if vendor_rating_formset.is_valid():            
+            for form in vendor_rating_formset:
+                vendor_rating = form.save(commit=False)
+                vendor_rating.rater = request.user
+                vendor_rating.vendor_co = vendor_co
+                vendor_rating.save()
+            messages.success(request, 'Vendor ratings saved.')
+            return redirect('view_vendor', vendor_co.pk, slugify(vendor_co.name))
+        else:            
+            messages.error(request, 'Sorry we were unable to save your rating')
+    data = {
+        'vendor_co': vendor_co,
+        'vendor_rating_formset': vendor_rating_formset,
+    }
+    return render(request, "vendors/vendor_rating.html", data)    
 
 @login_required
 def categories(request):

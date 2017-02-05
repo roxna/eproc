@@ -14,7 +14,7 @@
   {% for requisition in requisitions %}    
     <tr>
       <td>
-        {% include "_includes/status_formatting_w_href.html" with item=requisition value_to_display=requisition.number href='view_requisition' %}</b> <br>      
+        {% include "_includes/formatting/status_formatting_w_href.html" with item=requisition value_to_display=requisition.number href='view_requisition' %}</b> <br>      
         <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
       </td>
       <td>

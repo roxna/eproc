@@ -140,6 +140,12 @@ EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
+
+#######################################
+#       VARIABLES / OPTIONS           #
+#######################################
+
+SCALAR = 570
 ROLES = (
     ('SuperUser', 'SuperUser'),
     ('Requester', 'Requester'),
@@ -207,6 +213,18 @@ STATUSES = (
 
     #### ALL #### 
     ('Archived', 'Archived'),
+)
+SCORES = (
+    (1, 'Poor'),
+    (2, 'Average'),
+    (3, 'Great'),
+)
+CATEGORIES = (
+    ('Cost/Pricing', 'Cost/Pricing'),
+    ('Quality', 'Quality'),
+    ('Delivery', 'Delivery'),
+    ('Terms', 'Terms'),
+    ('Responsiveness', 'Responsiveness'),
 )
 
 # Inform settings.py about local_settings.py

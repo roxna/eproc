@@ -230,6 +230,34 @@ class VendorCoForm(ModelForm):
 class VendorForm(forms.Form):
     name = forms.ModelChoiceField(required=True, queryset=VendorCo.objects.none(), label='')
 
+# Used to rank a Vendor
+class VendorRatingForm(ModelForm):
+    category = forms.ChoiceField(settings.CATEGORIES, required=True)
+    # category = forms.ChoiceField(settings.CATEGORIES, required=True, widget=forms.Select(attrs={'readonly': 'true', 'disabled':'true'}))
+    comments = forms.CharField(required=False,)
+
+    def __init__(self, *args, **kwargs):
+        super(VendorRatingForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('category', css_class='col-md-4'),
+                Div('score', css_class='col-md-2'),
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
+    # Ensure readonly/disabled 'category' field is not edited by users on submit
+    # def clean_category(self):        
+    #     if self.instance:
+    #         return self.instance.category
+    #     else: 
+    #         return self.cleaned_data['category']
+
+    class Meta:
+        model = Rating
+        fields = ("score", "category", "comments")
 
 class LocationForm(ModelForm):
     name = forms.CharField(required=True, label="Location Name")
@@ -432,7 +460,7 @@ class NewPOItemForm(ModelForm):
         )
     
     # Ensure readonly/disabled 'product' field is not editable by users 
-        # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot
     def clean_product(self):        
         if self.instance:
             return self.instance.product

@@ -1,0 +1,55 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block title %}Vendor Rating{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='vendors' %}</p>
+  <h1>Vendor Rating</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+
+      <div class="col-lg-12 col-md-12 col-xs-12">
+        <div class="box">          
+
+           <form method="POST" id="post-form">
+            {% csrf_token %}          
+              
+              <div class="box-header with-border">
+                <h3 class="box-title">Rate {{vendor_co.name}} </h3>
+              </div>
+
+              <div class="box-body">
+                {{ vendor_rating_formset.management_form | crispy }}
+                {% for form in vendor_rating_formset.forms %}                   
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    <div id="{{form.prefix}}">
+                        {% crispy form form.helper %}                                
+                    </div>                            
+                {% endfor %}
+
+               <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.rating}}"></i> Save Ratings </button>
+              </div>              
+
+            </form>
+
+          </div>
+        </div>
+     </div>
+
+  </div>
+</section>
+{% endblock content %}
+
+
+{% block js %}
+  
+{% endblock js %}

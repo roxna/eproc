@@ -15,7 +15,6 @@
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
 # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 
-# Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 
 # *****************************
 
@@ -34,12 +33,14 @@
 
 # BIG
 # ****************************
+# DECK
 # Tests
+# Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 # Payment
 # Blogs/website
 # Refactor
 # Caching (eg. css files)
-# DECK
+
 
 
 # NEW FEATURES
@@ -56,9 +57,6 @@
 	# Costs - % breakdown in same industry
 	# 90% spend to 5% suppliers vs. your reality
 	# #suppliers for specific product (vs. other buyers in same industry)
-# VENDOR RANKINS / SCORE CARDS
-	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
-	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # Multiple plans --> manage payment and subscription options
 # BULK ORDER
 # NEGOTIATE (Purchaser): 
@@ -118,6 +116,9 @@
 # DELETE USER in Locations section
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 # Restricted access for AJAX requests only to me (not to anyone with an account)
+# VENDOR RANKINS / SCORE CARDS
+	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
+	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 
 # ARCHIVE
 # ****************************
@@ -146,20 +147,3 @@
       # //     label: 'Spend by Location' // for legend
       # //   }],
       # // };   
-							  # {% for item in unbilled_items %} 
-								 #  {% with item.purchase_order as po %}
-								 #  <tr>
-								 #  	<td><input type="checkbox" name="order_items" id="{{item.id}}" value="{{item.id}}"/>&nbsp;</td>
-								 #    <td>
-								 #    	{% include "_includes/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}</a><br>						      
-								 #    </td>
-								 #    <td><span class="itemName">{{ item.product.name }}</span></td>
-								 #    <td><span class="itemQty">{{ item.qty_delivered }}</span></td>
-								 #    <td><span>{{ item.get_delivered_date|date }}</span></td>
-								 #    <td> {{ item.product.vendor_co }}</td>	
-								 #    <td> 
-								 #    	<span class="itemSubTotal">{{currency|currency_icon}}{{ item.get_requested_subtotal }}</span><br>
-								 #    </td>
-								 #  </tr>
-								 #  {% endwith %}
-							  # {% endfor %}	

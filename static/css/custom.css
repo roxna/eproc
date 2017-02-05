@@ -60,10 +60,10 @@
 	color: #007777 !important;	
 }
 
-/********************************
-			LABELS
+/***************************************
+	LABELS FOR DOC STATUSES
 used in status_formatting_w/wo_href.html
-/*********************************/
+/***************************************/
 .label-pending{
 	background-color: #f39c12 !important;
 }
@@ -112,6 +112,22 @@ used in status_formatting_w/wo_href.html
 	font-size: 100% !important;
 }
 
+/***************************************
+	LABELS FOR RATINGS
+used in status_formatting_w/wo_href.html
+/***************************************/
+.label-poor{
+	border: #dd4b39 solid 1px !important;
+	color: #dd4b39;
+}
+.label-average{
+	border: #999 solid 1px !important;
+	color: #999;
+}
+.label-great{
+	border: #00a65a solid 1px !important;
+	color: #00a65a;
+}
 
 /**********************
 *** ANALYSIS CHARTS ***

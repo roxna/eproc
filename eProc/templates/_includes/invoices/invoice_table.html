@@ -7,7 +7,7 @@
     {% for invoice in invoices %}           
     <tr>
       <td> 
-        {% include "_includes/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' %}
+        {% include "_includes/formatting/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' %}
       </td>
       <td> {{invoice.currency|currency_icon}} {{ invoice.grand_total }}<br></td>
       <td> 
