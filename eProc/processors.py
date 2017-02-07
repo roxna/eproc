@@ -23,6 +23,7 @@ def icons(request):
 		"dashboard": "fa-dashboard",
 		"settings": "fa-gear",
 		"analysis": "fa-area-chart",
+		"industry": "fa-industry",
 		"rating": "fa-star-o",
 
 		# settings

@@ -12,8 +12,8 @@
 <section class="content"> 
 
   {% if not items %}
-    <!-- If no items have been received -->
-      {% include "_includes/docs/no_docs_add_now.html" with doc='Received Items' href='receive_pos' %}
+    <!-- If no items have been delivered/received i.e no 'spend' -->
+      {% include "_includes/docs/no_docs_add_now.html" with text="You haven't recorded any spend yet!" href='receive_pos' action='Receive items now' %}
       
   {% else %}
     <div class="row">

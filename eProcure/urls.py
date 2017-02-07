@@ -54,8 +54,6 @@ urlpatterns=[
     
     url(r'^get-started/$', eProc_views.get_started, name='get_started'),
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
-    url(r'^analysis/$', eProc_views.analysis, name='analysis'),
-
         
     url(r'^requisitions/', include([
         url(r'^new/$', eProc_views.new_requisition, name='new_requisition'),
@@ -86,11 +84,11 @@ urlpatterns=[
     url(r'^accounts-payable/', include([
         url(r'^unbilled-items/$', eProc_views.unbilled_items, name='unbilled_items'),
         url(r'^receiving-reports/$', eProc_views.receiving_reports, name='receiving_reports'),
+    ])),    
+    url(r'^inventory/', include([
+        url(r'^$', eProc_views.inventory, name='inventory'),
+        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),
     ])),
-    
-    url(r'^inventory/$', eProc_views.inventory, name='inventory'),
-    url(r'^inventory/(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),
-    
     url(r'^drawdowns/', include([
         url(r'^new/$', eProc_views.new_drawdown, name='new_drawdown'),
         url(r'^$', eProc_views.drawdowns, name='drawdowns'),            
@@ -98,6 +96,11 @@ urlpatterns=[
         url(r'^print/(?P<drawdown_id>\w+)/$', eProc_views.print_drawdown, name='print_drawdown'),
         url(r'^call/$', eProc_views.call_drawdowns, name='call_drawdowns'),
         url(r'^call/(?P<drawdown_id>\w+)/$', eProc_views.call_drawdown, name='call_drawdown'),
+    ])),
+
+    url(r'^reports/', include([
+        url(r'^analysis/$', eProc_views.analysis, name='analysis'),
+        url(r'^industry-benchmarks/$', eProc_views.industry_benchmarks, name='industry_benchmarks'),
     ])),
     
     url(r'^vendors/', include([

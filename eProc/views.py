@@ -160,6 +160,25 @@ def analysis(request):
     }    
     return render(request, "main/analysis.html", data)
 
+@login_required()
+def industry_benchmarks(request):
+    buyer = request.user.buyer_profile
+
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    
+    items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    top_supplier_spend = items_by_vendor.order_by('-total_spend')[:10].aggregate(Sum('total_spend'))['total_spend__sum']
+    total_supplier_spend = items_by_vendor.aggregate(Sum('total_spend'))['total_spend__sum']
+    top_supplier_spend_percent = top_supplier_spend/total_supplier_spend*100
+
+    data = {
+        'top_supplier_spend_percent': top_supplier_spend_percent,
+        # 'top_supplier_spend_competitors': top_supplier_spend_competitors,
+    }
+    return render(request, "main/industry_benchmarks.html", data)
+
+
 ####################################
 ###        REQUISITIONS          ### 
 ####################################
@@ -842,7 +861,11 @@ def call_drawdown(request, drawdown_id):
 
 @login_required
 def settings(request):
-    return render(request, "settings/settings.html")
+    all_bulk_products = CatalogItem.objects.filter(item_type='Bulk Discount')
+    data = {
+        'all_bulk_products': all_bulk_products,
+    }
+    return render(request, "settings/settings.html", data)
 
 @login_required
 def users(request):    

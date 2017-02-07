@@ -52,8 +52,11 @@
             <h4><a href="{%url 'products' %}"><i class="fa {{ICONS.products}}"></i> Products</a></h4>
             <p class="text-muted">Manage own product list incl. CSV upload</p>
 
-            <h4><a href="{%url 'products_bulk' %}"><i class="fa {{ICONS.products_bulk}}"></i> Products - Bulk Discounts</a></h4>
-            <p class="text-muted">Select products at lower, pre-negotiated prices</p>
+            <!-- Only show if there are discounted products available -->
+            {% if all_bulk_products %} 
+              <h4><a href="{%url 'products_bulk' %}"><i class="fa {{ICONS.products_bulk}}"></i> Products - Bulk Discounts</a></h4>            
+              <p class="text-muted">Select products at lower, pre-negotiated prices</p>
+            {% endif %}
         
         {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
             <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>

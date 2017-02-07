@@ -1,0 +1,71 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Industry Benchmarks{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Industry Benchmarks</h1>{% endblock header %}
+
+{% block content %}
+<section class="content"> 
+
+    <div class="row">
+      
+      {% include "_includes/analysis_chart.html" with chartID='supplierChart' legendID='supplierLegend' title='Top 10 Suppliers Percent of Spend' %}   
+    
+    </div> 
+        
+
+{% endblock content %}
+
+
+{% block js %}
+  <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+
+  <script type="text/javascript">
+
+    var pastelColors = function(){
+        var r = (Math.round(Math.random()* 127) + 127).toString(16);
+        var g = (Math.round(Math.random()* 127) + 127).toString(16);
+        var b = (Math.round(Math.random()* 127) + 127).toString(16);
+        return '#' + r + g + b;
+    }
+
+    var options = {
+        tooltipTemplate: "<%= label %> (<%= value %>%)",
+        scales: {
+            xAxes: [{
+                stacked: true,
+                barPercentage: 0.7,
+                categoryPercentage: 0.9,
+            }],
+            yAxes: [{
+                stacked: true,
+            }]
+        },
+    };
+
+
+    /****************** 
+    Spend by Supplier      
+    ********************/
+    var supplierData = {
+      labels: ["You", "Best Practice"],
+      datasets: [
+        {
+            label: 'Top 10 Suppliers',
+            data: [{{top_supplier_spend_percent}}, 95],
+            backgroundColor: pastelColors(),
+        },       
+      ]
+    };
+    
+
+    // Pass in data/options and generate chart
+    var supplierCtx = $("#supplierChart").get(0).getContext("2d");
+    var supplierChart = new Chart(supplierCtx).Bar(supplierData, options);
+
+  </script>
+{% endblock js %}
