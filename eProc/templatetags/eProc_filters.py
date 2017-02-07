@@ -29,6 +29,12 @@ def currency_icon(currency_string):
 	else:
 		return currency_string
 
+@register.filter(name='unit_price_formatting')
+def unit_price_formatting(unit_type):
+	if unit_type == 'each':
+		return 'each'
+	else:
+		return ' / ' + unit_type
 
 @register.filter(name='as_percentage_of')
 def as_percentage_of(part, whole):

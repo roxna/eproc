@@ -12,7 +12,7 @@
   <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addMultiModal"><i class='fa fa-plus'> </i> Add Vendor</button>
   {% include "_includes/modal_multiform.html" with target="Vendor" form1=vendor_form form2=location_form %}
   <!-- UPLOAD VENDOR CSV -->
-  <a href="{% url 'upload_vendor_csv' %}"><button type="button" class="btn basic-grey pull-right">Upload Vendors CSV</button></a>
+  <a href="{% url 'upload_vendor_csv' %}"><button type="button" class="btn basic-grey pull-right"><i class="fa fa-upload" aria-hidden="true"></i> Upload CSV</button></a>
 
   <h1>Vendors</h1>
 {% endblock header %}
@@ -26,7 +26,7 @@
           <div class="box-body">
 
             <table id="vendorTable" class="table table-striped">
-              {% include "_includes/table_header.html" with header_class="basic-teal" header=table_headers %}
+              {% include "_includes/table_header.html" with header_class="basic-grey" header=table_headers %}
                 <tbody>              
                   {% for vendor in vendors %}    
                     {% with vendor.get_primary_location as location %}                       

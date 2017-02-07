@@ -43,7 +43,8 @@ class VendorCo(Company):
 	ac_number = models.BigIntegerField(null=True, blank=True)
 	company_number = models.CharField(max_length=20, null=True, blank=True)
 	comments = models.CharField(max_length=150, null=True, blank=True)
-	buyer_co = models.ForeignKey(BuyerCo, related_name="vendor_cos", null=True, blank=True)
+	# M2M field if bulk_discount item; else FK
+	buyer_co = models.ManyToManyField(BuyerCo, related_name="vendor_cos", null=True, blank=True)
 
 	def get_model_fields(model):
 	    return model._meta.fields
@@ -252,7 +253,7 @@ class File(models.Model):
 class Category(models.Model):
 	code = models.IntegerField(null=True, blank=True)
 	name = models.CharField(max_length=50)
-	buyer_co = models.ForeignKey(BuyerCo, related_name="categories")
+	buyer_co = models.ForeignKey(BuyerCo, related_name="categories", null=True, blank=True) # No buyer_co if it's a bulk_discount category
 
 	def __unicode__(self):
 		return "{}".format(self.name)
@@ -261,13 +262,16 @@ class CatalogItem(models.Model):
 	name = models.CharField(max_length=50)
 	desc = models.CharField(max_length=150, null=True, blank=True)
 	sku = models.CharField(max_length=20, null=True, blank=True)
+	image = models.ImageField(upload_to='images/catalog/bulk', null=True, blank=True)
+	item_type = models.CharField(max_length=20, choices=(('Vendor Uploaded', 'Vendor Uploaded'), ('Bulk Discount', 'Bulk Discount')), default='Vendor Uploaded')
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
 	threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
 	category = models.ForeignKey(Category, related_name="catalog_items")
 	vendor_co = models.ForeignKey(VendorCo, related_name="catalog_items")
-	buyer_co = models.ForeignKey(BuyerCo, related_name="catalog_items")
+	# M2M for bulk items, FK if not; No buyer_co if it's a bulk_discount category
+	buyer_cos = models.ManyToManyField(BuyerCo, related_name="catalog_items", null=True, blank=True) 
 
 	def __unicode__(self):
 		return "{}".format(self.name)

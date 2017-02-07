@@ -91,7 +91,7 @@ def get_started(request):
             ['locations','1. Add locations & departments', Location.objects.filter(company=buyer.company).exclude(loc_type='HQ').exists()],
             ['vendors','2. Add vendors', VendorCo.objects.filter(buyer_co=buyer.company).exists()],
             ['categories','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
-            ['products','4. Upload product catalog', CatalogItem.objects.filter(buyer_co=buyer.company).exists()],
+            ['products','4. Upload product catalog', CatalogItem.objects.filter(buyer_cos=buyer.company).exists()],
             ['account_codes','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
             ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gt=100).exists()],
             ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
@@ -924,16 +924,13 @@ def view_location(request, location_id, location_name):
     department_form = DepartmentForm(request.POST or None)
     
     if request.method == "POST":
-        # pdb.set_trace()
         if 'add_Location' in request.POST:
-            print 'addLocation'
             if location_form.is_valid():
                 save_location(location_form, buyer)
                 messages.success(request, 'Location updated successfully')
             else:
                 messages.error(request, 'Error. Location not updated. Please try again.')
         elif 'add_User' in request.POST:
-            print 'addUser'
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)                
                 send_verific_email(user, user.id*conf_settings.SCALAR)
@@ -941,7 +938,6 @@ def view_location(request, location_id, location_name):
             else:
                 messages.error(request, 'Error. User not added. Please try again.')
         elif 'add_Department' in request.POST:
-            print 'addDept'
             if department_form.is_valid():
                 save_department(department_form, buyer, location)                
                 messages.success(request, 'Department added successfully')                
@@ -1010,7 +1006,7 @@ def approval_routing(request):
 @login_required
 def products(request):
     buyer = request.user.buyer_profile
-    products = CatalogItem.objects.filter(buyer_co=request.user.buyer_profile.company)
+    products = CatalogItem.objects.filter(buyer_cos=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
     product_form.fields['category'].queryset = Category.objects.filter(buyer_co=buyer.company)
     product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company)    
@@ -1018,7 +1014,7 @@ def products(request):
         if product_form.is_valid():
             product = product_form.save(commit=False)
             product.currency = product.vendor_co.currency
-            product.buyer_co = buyer.company
+            product.buyer_cos.add(buyer.company)
             product.save()
             messages.success(request, "Product added successfully")
             return redirect('products')
@@ -1028,9 +1024,9 @@ def products(request):
     data = {
         'products': products,
         'product_form': product_form,
-        'table_headers': ['Name', 'SKU', 'Description', 'Price ('+currency+')', 'Unit', 'Threshold', 'Category', 'Vendor'],
+        'table_headers': ['Product', 'Name', 'SKU', 'Description', 'Price', 'Threshold', 'Category', 'Vendor'],
     }
-    return render(request, "settings/catalog.html", data)
+    return render(request, "products/products.html", data)
 
 @login_required
 def upload_product_csv(request):
@@ -1048,7 +1044,39 @@ def upload_product_csv(request):
     data = {
         'csv_form': csv_form,
     }
-    return render(request, "settings/catalog_import.html", data)
+    return render(request, "products/catalog_import.html", data)
+
+@login_required
+def products_bulk(request):
+    buyer = request.user.buyer_profile
+    all_bulk_products = CatalogItem.objects.filter(item_type='Bulk Discount')
+    recent_bulk_products = all_bulk_products.order_by('-pk')[:5]
+
+    if request.method == "POST":
+        print 'yo'      
+        if 'add' in request.POST:
+            product_id = int(request.POST.get('add')[4:])
+            product = CatalogItem.objects.get(id=product_id)
+            product.buyer_cos.add(buyer.company)
+            product.save()
+            messages.success(request, 'Product added to company catalog.')
+            return redirect('products_bulk')
+        elif 'remove' in request.POST:
+            product_id = int(request.POST.get('remove')[7:])
+            product = CatalogItem.objects.get(id=product_id)
+            product.buyer_cos.remove(buyer.company)
+            product.save()
+            messages.success(request, 'Product removed from company catalog.')
+            return redirect('products_bulk')
+        else:
+            messages.error(request, 'Error. Product not added to your company catalog.')
+    data = {
+        'all_bulk_products': all_bulk_products,
+        'recent_bulk_products': recent_bulk_products,
+        'table_headers': ['Category', 'Product', 'Name','Description', 'Price', 'Company Catalog'],
+
+    }
+    return render(request, "products/products_bulk.html", data)
 
 @login_required
 def vendors(request):

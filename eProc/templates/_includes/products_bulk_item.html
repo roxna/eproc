@@ -1,0 +1,15 @@
+    {% load eProc_filters %}
+    <div class="col-xs-4 col-md-4 col-lg-3 border-right">
+      <li class="item">
+        <div class="product-img">
+          <img src="{{product.image.url}}" alt="{{product.name}}"/>
+        </div>
+        <div class="product-info">
+          <a href="javascript:void(0)" class="product-title">{{product.name}}
+            <span class="label label-primary pull-right">{{product.currency|currency_icon}}{{product.unit_price}}</span></a>
+            <span class="product-description">
+              {{product.desc}}
+            </span>
+        </div>
+      </li>
+    </div>

@@ -1,0 +1,65 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load eProc_filters %}
+
+{% block title %}Catalog{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Product</button>
+  {% include "_includes/modal_singleform.html" with target="Product" form=product_form %}
+  <a href="{% url 'upload_product_csv' %}"><button type="button" class="btn basic-grey pull-right"><i class="fa fa-upload" aria-hidden="true"></i> Upload CSV</button></a>
+  
+  <h1>Product Catalog</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+            <div class="box-body">
+              <table id="catalogTable" class="table table-striped">
+                {% include "_includes/table_header.html" with header_class="basic-grey" header=table_headers %}
+
+                <tbody class="products-list">  
+                    {% for product in products %}                           
+                    <tr>
+                      <td class="product-img"><img src="{{product.image.url}}" alt="{{product.name}}"/></td>
+                      <td>{{ product.name }}</td>
+                      <td>{{ product.sku|default_if_none:"-" }}</td>
+                      <td>{{ product.desc|truncatechars:15 }}</td>
+                      <td>
+                        {{product.currency|currency_icon}}{{product.unit_price}} 
+                        <span class="text-muted">{{product.unit_type|unit_price_formatting}}</span>
+                        <span class="label label-warning">Discounted</span>
+                      </td>
+                      <td>{{ product.threshold|default_if_none:"-" }}</td>
+                      <td>{{ product.category }}</td>
+                      <td>
+                      {% if product.item_type == 'Bulk Discount' %}                        
+                        eProc
+                      {% else %}
+                        {{ product.vendor_co }}
+                      {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table><br>
+          </div>
+
+        </div>
+       </div>
+    </div>
+  </section>
+{% endblock content %}
+
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="catalogTable" %}
+{% endblock js %}

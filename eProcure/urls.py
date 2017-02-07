@@ -95,9 +95,9 @@ urlpatterns=[
         url(r'^new/$', eProc_views.new_drawdown, name='new_drawdown'),
         url(r'^$', eProc_views.drawdowns, name='drawdowns'),            
         url(r'^view/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
-        url(r'^print/(?P<drawdown_id>\w+)$', eProc_views.print_drawdown, name='print_drawdown'),
+        url(r'^print/(?P<drawdown_id>\w+)/$', eProc_views.print_drawdown, name='print_drawdown'),
         url(r'^call/$', eProc_views.call_drawdowns, name='call_drawdowns'),
-        url(r'^call/(?P<drawdown_id>\w+)$', eProc_views.call_drawdown, name='call_drawdown'),
+        url(r'^call/(?P<drawdown_id>\w+)/$', eProc_views.call_drawdown, name='call_drawdown'),
     ])),
     
     url(r'^vendors/', include([
@@ -108,10 +108,13 @@ urlpatterns=[
         url(r'^unbilled-items/(?P<vendor_id>\w+)/$', eProc_views.unbilled_items_by_vendor, name='unbilled_items_by_vendor'), #AJAX REQUEST in new_invoice_items to get unbilled_items for specific vendor
     ])),
 
-    url(r'^products/$', eProc_views.products, name='products'),
-    url(r'^products/import-csv$', eProc_views.upload_product_csv, name='upload_product_csv'),
-    url(r'^products/(?P<product_id>\w+)$', eProc_views.product_details, name='product_details'), #AJAX request
-    url(r'^categories/$', eProc_views.categories, name='categories'),
+    url(r'^products/', include([
+        url(r'^$', eProc_views.products, name='products'),
+        url(r'^import-csv/$', eProc_views.upload_product_csv, name='upload_product_csv'),
+        url(r'^bulk/$', eProc_views.products_bulk, name='products_bulk'),        
+        url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request
+        url(r'^categories/$', eProc_views.categories, name='categories'),
+    ])),
 
     url(r'^settings/', include([
             url(r'^$', eProc_views.settings, name='settings'),

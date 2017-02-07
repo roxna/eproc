@@ -31,6 +31,7 @@ def icons(request):
 		"profile": "fa-user",
 		"users": "fa-users",
 		"products": "fa-file-pdf-o",
+		"products_bulk": "fa-money",
 		"vendors": "fa-credit-card",
 		"accounts": "fa-book",
 		"approval": "fa-book",

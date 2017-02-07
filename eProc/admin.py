@@ -60,11 +60,11 @@ class DocumentStatusAdmin(admin.ModelAdmin):
 
 class OrderItemStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'item',]    
-    list_filter = ['value', 'item__product', 'item__product__buyer_co', ]   
+    list_filter = ['value', 'item__product', 'item__product__buyer_cos', ]   
 
 class DrawdownItemStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'item',]    
-    list_filter = ['value', 'item__product', 'item__product__buyer_co', ]  
+    list_filter = ['value', 'item__product', 'item__product__buyer_cos', ]  
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'loc_type', 'company']  

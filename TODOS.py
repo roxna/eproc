@@ -5,8 +5,11 @@
 
 ##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
 
-# form errors show as messages framework
+# forms 
+	# errors show as messages framework
+	# checks - Total of docs can't be negative, qty approved can't be 0 etc
 # Move form validation from view to form init
+# customize dashboard based on auth permissions
 
 # FILES:
 	# Save files uploaded/media elements (invoice, co logo, blogs etc)
@@ -35,7 +38,6 @@
 # ****************************
 # DECK
 # Tests
-# Form checks - Total of docs can't be negative, qty approved can't be 0 etc
 # Payment
 # Blogs/website
 # Refactor
@@ -52,13 +54,12 @@
 	# PRICING
 	# API - live commodities prices with alerts
 	# Wholesale prices for select products
+	# Multiple plans --> manage payment and subscription options
 # COST BENCHMARKS
 	# Supplier Markups
 	# Costs - % breakdown in same industry
 	# 90% spend to 5% suppliers vs. your reality
 	# #suppliers for specific product (vs. other buyers in same industry)
-# Multiple plans --> manage payment and subscription options
-# BULK ORDER
 # NEGOTIATE (Purchaser): 
 	# Bids (Proposals, quotes, specs)
 	# Reverse Auction
