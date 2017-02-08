@@ -4,22 +4,33 @@
 	<li id="messageNotification">
 
 		  	{% for message in messages %}
+
+		  		<!-- MESSAGES framework --> 
 				{% if 'success' in message.tags %}
 					<div class="alert alert-success alert-dismissible">
 					    <div>
 						    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 						    <i class="icon fa fa-check"></i>{{ message }}
 						</div> 
-				  	</div>
-				{% endif %}
-				
-				{% if 'error' in message.tags %}
+				  	</div>				
+								
+				{% elif 'error' in message.tags %}
 				  <div class="alert alert-warning alert-dismissible">
 				    <div>
 					    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-					    <i class="icon fa fa-warning"></i> {{ message }}
+					    <i class="icon fa fa-warning"></i> {{ message. }}
 				    </div>
 				  </div>
+
+				<!-- FORM framework error messages  --> 
+				{% else %}
+				  <div class="alert alert-warning alert-dismissible">
+				    <div>
+					    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+					    <i class="icon fa fa-warning"></i> {{ message|striptags }}
+				    </div>
+				  </div>
+
 				{% endif %}
 			{% endfor %}
 

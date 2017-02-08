@@ -33,16 +33,14 @@
 
       <tbody>        
         {% for item in requisition.items.all %}
-          <!-- currency_icon is a custom filter (see templatetags/eProc_filters.py) -->
-          {% with item.product.currency|currency_icon as currency %}
+          <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
           <tr id="orderItemList">
             <td id="">{{ item.product.name }}</td>
             <td>{{ item.qty_requested }}</td>              
-            <td>{{ currency }} {{ item.unit_price }}</td>
-            <td>{{ currency }} {{ item.get_requested_subtotal }}</td>
+            <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
+            <td> {{ item.get_requested_subtotal|currency_formatting:item.product.currency }}</td>              
             <td>{{ item.comments_request }}</td>
           </tr>
-          {% endwith %}
         {% endfor %}          
       </tbody>
     </table>
@@ -59,7 +57,8 @@
   </div>        
 
   <div class="col-xs-12 col-md-4">
-    <p class="lead">Total Cost: {{ requisition.currency|currency_icon }} {{ requisition.sub_total }}</p>
+    <p class="lead">Total Cost: {{requisition.sub_total|currency_formatting:requisition.currency }}</p>
+
   </div>
 </div><br>
 
@@ -76,7 +75,7 @@
         <span class="info-box-text">DEPT BUDGET SPENT YTD</span>
         {% with requisition.department as dept %}
         <span class="info-box-number">{{dept.get_spend_percent_of_budget}}</span>
-        ({{requisition.currency|currency_icon}}{{dept.get_spend_approved_ytd}} of {{requisition.currency|currency_icon}}{{dept.budget}})
+        ({{dept.get_spend_approved_ytd|currency_formatting:requisition.currency }} of {{dept.budget|currency_formatting:requisition.currency }})
         {% endwith %}
       </div>
     </div>

@@ -45,7 +45,8 @@
 									{% endif %}
 							    </td>
 							    <td> 
-							    	<span class="itemSubTotal">{{item.requisition.currency|currency_icon}}{{ item.get_requested_subtotal }}</span><br>
+							    	<span class="itemSubTotal">{{ item.get_requested_subtotal|currency_formatting:item.requisition.currency }}
+							    	</span><br>
 							    </td>
 							  </tr>
 							  {% endfor %}					

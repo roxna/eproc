@@ -66,7 +66,7 @@
 {% block js %}
   {% include "_includes/dataTablesNotifications.html" with tableID="orderTable" %}	
 
-     <script>
+     <script type="text/javascript">
     $(document).ready(function(){
       
       // itemBox is hidden on page load
@@ -81,45 +81,45 @@
       $('select').on('change', function(){
 	    
       	// Get the selected vendor and it's ID from the dropdown
-	    var vendor_id = $('#vendorBox option:selected').val();
-	    var vendor = $('#vendorBox option:selected').text();
-	    	    
-	    $("#itemsBox").show();
+  	    var vendor_id = $('#vendorBox option:selected').val();
+  	    var vendor = $('#vendorBox option:selected').text();
+  	    	    
+  	    $("#itemsBox").show();
 
-	    //Clear out all items in $('#orderTable tbody')
-		$('#orderTable tbody').html('');
+  	    //Clear out all items in $('#orderTable tbody')
+  		  $('#orderTable tbody').html('');
 
-	    // Update the unbilled items based on vendor selected
-	    $.ajax({
-            url: '/vendors/unbilled-items/'+vendor_id,
-            type: 'get',
-            success: function(data){            	
-            	// Set the selected vendor's name in the title
-            	$('#itemsBox .box-title').html('Select Unbilled Items from <b>'+vendor+'</b> to Add to Invoice ');
+  	    // Update the unbilled items based on vendor selected
+  	    $.ajax({
+              url: '/vendors/unbilled-items/'+vendor_id,
+              type: 'get',
+              success: function(data){            	
+              	// Set the selected vendor's name in the title
+              	$('#itemsBox .box-title').html('Select Unbilled Items from <b>'+vendor+'</b> to Add to Invoice ');
 
-            	// Append the data
-				$.each(data, function(key, value){            
-                    $('#orderTable tbody').append(
-                        '<tr>'+
-                            '<td><input type="checkbox" name="order_items" id="'+this['id']+'" value="'+this['id']+'"/>&nbsp;</td>'+
-                            '<td><span>'+this['purchase_order']+'</span></td>'+
-                            '<td><span class="itemName">'+this['product']+'</span></td>'+
-                            '<td><span class="itemQty">'+this['qty_delivered']+'</span></td>'+
-                            '<td><span>'+this['get_delivered_date']+'</span></td>'+
-                            // '<td><span>'+this['vendor_co']+'</span></td>'+
-                            '<td><span class="itemSubTotal">'+this['currency']+' '+this['get_requested_subtotal']+'</span></td>'+
-                        '<tr>'
-                    );
-                }); 
-            },
-            error: function(data){
-                // If there's a bad selection (eg. -------)
-                $('#itemsBox .box-title').text('Sorry - no items available. Try again');
-                $('#orderTable tbody').text('No items');
-            }
-        })
+              	// Append the data
+  				$.each(data, function(key, value){            
+                      $('#orderTable tbody').append(
+                          '<tr>'+
+                              '<td><input type="checkbox" name="order_items" id="'+this['id']+'" value="'+this['id']+'"/>&nbsp;</td>'+
+                              '<td><span>'+this['purchase_order']+'</span></td>'+
+                              '<td><span class="itemName">'+this['product']+'</span></td>'+
+                              '<td><span class="itemQty">'+this['qty_delivered']+'</span></td>'+
+                              '<td><span>'+this['get_delivered_date']+'</span></td>'+
+                              // '<td><span>'+this['vendor_co']+'</span></td>'+
+                              '<td><span class="itemSubTotal">'+this['currency']+' '+this['get_requested_subtotal']+'</span></td>'+
+                          '<tr>'
+                      );
+                  }); 
+              },
+              error: function(data){
+                  // If there's a bad selection (eg. -------)
+                  $('#itemsBox .box-title').text('Sorry - no items available. Try again');
+                  $('#orderTable tbody').text('No items');
+              }
+          })
 
-	  });
+	    });
 
       // Next Button is enabled only if any input field is changed
       // Delegating the event handler to #orderTable, instead of binding handlers directly on the dynamic elements ("input[type='checkbox']")

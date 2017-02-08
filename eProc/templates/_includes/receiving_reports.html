@@ -14,9 +14,9 @@
         <td> {{item.product.name}}</td>        
         <td> {{item.get_delivered_date|date}}</td>
         <td> {{item.qty_delivered}}</td>
-        <td> {{currency|currency_icon}}{{item.get_delivered_subtotal}}</td>
+        <td> {{item.get_delivered_subtotal|currency_formatting:currency }}</td>
         <td> {{item.qty_ordered}}</td>
-        <td> {{currency|currency_icon}}{{item.get_ordered_subtotal}}</td>
+        <td> {{item.get_ordered_subtotal|currency_formatting:currency }}</td>
         <td> {{item.get_delivered_subtotal|as_percentage_of:item.get_ordered_subtotal}}</td>
       </tr>
     {% endfor %}

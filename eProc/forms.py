@@ -467,19 +467,35 @@ class NewPOItemForm(ModelForm):
         else: 
             return self.cleaned_data['product']
 
-    # Add basic form validations to clean method
-    def clean(self):
-        cleaned_data = super(NewPOItemForm, self).clean()
-        qty_ordered = cleaned_data.get('qty_ordered')
-        qty_approved = cleaned_data.get('qty_approved')
-
-        if qty_ordered > qty_approved:
-            raise forms.ValidationError('You can not order more items than have been approved.')
-        
-
     class Meta:
         model = OrderItem
         fields = ("product", "qty_approved", "qty_ordered", "unit_price", "comments_order")
+
+# NOT A MODEL FORM
+class UnbilledItemAllocationForm(forms.Form):
+    location = forms.ModelChoiceField(queryset=Location.objects.all())
+    department = forms.ModelChoiceField(queryset=Department.objects.all())
+    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all())
+    cost = forms.DecimalField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(UnbilledItemAllocationForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('location', css_class='col-sm-2 col-lg-3'),
+                Div('department', css_class='col-sm-2 col-lg-3'),
+                Div('account_code', css_class='col-sm-2 col-lg-2'),
+                Div('cost', css_class='col-sm-2 col-lg-2'),
+                HTML('<div class="col-sm-1 col-lg-1 delete" style="margin-top: 2em;">' +
+                        '<a href="#"><i class="fa fa-trash"></i></a>' +
+                    '</div>'),
+                css_class='row',
+            ),
+        )
+
 
 class ReceivePOItemForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
@@ -650,14 +666,6 @@ class InvoiceForm(ModelForm):
         super(InvoiceForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-
-    # Add basic form validation to clean method
-    def clean(self):
-        cleaned_data = super(InvoiceForm, self).clean()
-        date_due = self.cleaned_data['date_due']
-        date_issued = self.cleaned_data['date_issued']
-        if date_issued > date_due:
-            raise forms.ValidationError('Date due must be after issue date')
     
     # Override save to make datetime objects timezone aware    
     def save(self, commit=True):

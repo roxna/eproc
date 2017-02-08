@@ -313,6 +313,7 @@ class OrderItem(Item):
 	qty_returned = models.IntegerField(null=True, blank=True, default=0)	
 	comments_order = models.CharField(max_length=500, blank=True, null=True)	
 	comments_delivery = models.CharField(max_length=500, blank=True, null=True)		
+	department = models.ForeignKey(Department, related_name="items")
 	tax = models.ForeignKey(Tax, related_name='items', null=True, blank=True)
 	account_code = models.ForeignKey(AccountCode, related_name="items", null=True, blank=True)	
 	requisition = models.ForeignKey(Requisition, related_name='items', null=True, blank=True)
@@ -320,11 +321,8 @@ class OrderItem(Item):
 	invoice = models.ForeignKey(Invoice, related_name='items', null=True, blank=True)
 	
 	def __unicode__(self):
-		return "{} at {} {} [{} req, {} approved]".format(self.product.name, self.product.currency, self.unit_price, self.qty_requested, self.qty_approved)
-
-	def get_unit_price(self):
-		return self.unit_price
-
+		return "[{}] {}".format(self.number, self.product.name)
+	
 	# Helper function for all get_x_subtotal functions
 	def get_subtotal(self, price, quantity):
 		try:

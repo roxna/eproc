@@ -23,14 +23,18 @@
 	color: black;
 	margin: 5px;
 }
-.width-100{
-	width:100% !important;
-}
 .basic-red{
 	background: #dd4b39;
 	border-color: #dd4b39;
 	color: white;
 	margin: 5px;
+}
+.basic-transparent{
+	background: transparent;
+	/*margin: 5px;*/
+}
+.width-100{
+	width:100% !important;
 }
 .alert{
 	padding: 4px 6px 4px 10px !important;

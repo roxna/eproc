@@ -42,7 +42,7 @@
 	      <h3 class="box-title">Operations</h3>
 	    </div>       
 	    <div class="box-body">          
-            <!-- No restrictions on who can add vendors/products/categories if not in the list -->
+            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
             <h4><a href="{%url 'vendors' %}"><i class="fa {{ICONS.vendors}}"></i> Vendors</a></h4>
             <p class="text-muted">Manage vendors incl. ratings and bulk CSV upload</p>
                         
@@ -57,8 +57,7 @@
               <h4><a href="{%url 'products_bulk' %}"><i class="fa {{ICONS.products_bulk}}"></i> Products - Bulk Discounts</a></h4>            
               <p class="text-muted">Select products at lower, pre-negotiated prices</p>
             {% endif %}
-        
-        {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+                
             <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
 

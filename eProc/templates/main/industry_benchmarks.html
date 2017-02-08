@@ -26,13 +26,6 @@
 
   <script type="text/javascript">
 
-    var pastelColors = function(){
-        var r = (Math.round(Math.random()* 127) + 127).toString(16);
-        var g = (Math.round(Math.random()* 127) + 127).toString(16);
-        var b = (Math.round(Math.random()* 127) + 127).toString(16);
-        return '#' + r + g + b;
-    }
-
     var options = {
         tooltipTemplate: "<%= label %> (<%= value %>%)",
         scales: {
@@ -56,9 +49,10 @@
       datasets: [
         {
             label: 'Top 10 Suppliers',
-            data: [{{top_supplier_spend_percent}}, 95],
-            backgroundColor: pastelColors(),
-        },       
+            // Best practices - 90% of spend should go to 5% of suppliers
+            data: [{{top_supplier_spend_percent}}, 90],
+            backgroundColor: '{{background_color}}',
+        }, 
       ]
     };
     

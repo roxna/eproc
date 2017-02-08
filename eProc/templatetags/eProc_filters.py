@@ -29,8 +29,15 @@ def currency_icon(currency_string):
 	else:
 		return currency_string
 
-@register.filter(name='unit_price_formatting')
-def unit_price_formatting(unit_type):
+@register.filter(name='currency_formatting')
+def currency_formatting(amount, currency):
+	if currency == 'USD':
+		return '$' + str(amount)
+	else:
+		return curreny + str(amount)
+
+@register.filter(name='unit_type_formatting')
+def unit_type_formatting(unit_type):
 	if unit_type == 'each':
 		return 'each'
 	else:

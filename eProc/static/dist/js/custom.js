@@ -22,6 +22,7 @@ $(document).ready(function(){
         // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
         var row = $(".item:first").clone(false).get(0);	
         row = $(row).attr('id', $(row).attr('id').replace(id_regex, prefix+'-'+formCount));
+        
         $(row).hide().insertAfter(".item:last").slideDown(300);
 
         // Update the total form count
@@ -40,7 +41,6 @@ $(document).ready(function(){
         $(row).children().children().each(function () {
             updateElementIndex(this, prefix, formCount);
             $(this).attr('value', '');
-            // $(this).val('');
             console.log(this);
         });
 	}	

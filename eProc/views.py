@@ -8,7 +8,7 @@ from django.core.serializers import serialize
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Sum, Max, Avg, F, Q
 from django.http import HttpResponseRedirect, HttpResponse
-from django.forms import inlineformset_factory,BaseModelFormSet, modelformset_factory
+from django.forms import inlineformset_factory,BaseModelFormSet, formset_factory, modelformset_factory
 from django.shortcuts import render, redirect, resolve_url, get_object_or_404
 from django.template.response import TemplateResponse
 from django.views import generic
@@ -160,21 +160,29 @@ def analysis(request):
     }    
     return render(request, "main/analysis.html", data)
 
+import math 
 @login_required()
 def industry_benchmarks(request):
     buyer = request.user.buyer_profile
 
+    ##### SUPPLIER SPEND TOP 5% #####
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
     
     items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    top_supplier_spend = items_by_vendor.order_by('-total_spend')[:10].aggregate(Sum('total_spend'))['total_spend__sum']
+    
+    # Calculating # suppliers that is 5%, rounded down, and at least 1 (else error in top_supplier_spend)
+    # Best practices - 90% of spend should go to 5% of suppliers
+    num_suppliers =  max(1, math.floor(0.05 * VendorCo.objects.filter(buyer_co=buyer.company).count()))
+    top_supplier_spend = items_by_vendor.order_by('-total_spend')[:num_suppliers].aggregate(Sum('total_spend'))['total_spend__sum']
     total_supplier_spend = items_by_vendor.aggregate(Sum('total_spend'))['total_spend__sum']
     top_supplier_spend_percent = top_supplier_spend/total_supplier_spend*100
 
+
     data = {
-        'top_supplier_spend_percent': top_supplier_spend_percent,
+        'top_supplier_spend_percent': round(top_supplier_spend_percent,2),
         # 'top_supplier_spend_competitors': top_supplier_spend_competitors,
+        'background_color': background_color,
     }
     return render(request, "main/industry_benchmarks.html", data)
 
@@ -317,22 +325,29 @@ def new_po_confirm(request):
             purchase_order = save_new_document(buyer, po_form)
             save_doc_status(document=purchase_order, doc_status='Open', author=buyer)
 
-            for orderitem_form in po_items_formset.forms:
-                if orderitem_form.is_valid():
-                    item = orderitem_form.save(commit=False)
-                    item.purchase_order = purchase_order
-                    item.save()
-                    
-                    OrderItemStatus.objects.create(value='Ordered', author=buyer, item=item)
+            for form in po_items_formset.forms:
+                if form.is_valid():
+                    # Basic form validations to clean method
+                    qty_ordered = form.cleaned_data['qty_ordered']
+                    qty_approved = form.cleaned_data['qty_approved']
 
-                    # Create a new Order Item with the same details (Item#, Req# etc) as current
-                    # However, qty_requested = items that were approved but weren't ordered
-                    approved_not_ordered = item.qty_approved - item.qty_ordered
-                    if approved_not_ordered > 0:
-                        approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
-                        OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
+                    if qty_ordered > qty_approved:
+                        messages.error(error, 'You can not order more items than have been approved.')
+                        break
+                    else:
+                        item = form.save(commit=False)
+                        item.purchase_order = purchase_order
+                        item.save()
+                        
+                        OrderItemStatus.objects.create(value='Ordered', author=buyer, item=item)
 
-                    
+                        # Create a new Order Item with the same details (Item#, Req# etc) as current
+                        # However, qty_requested = items that were approved but weren't ordered
+                        approved_not_ordered = item.qty_approved - item.qty_ordered
+                        if approved_not_ordered > 0:
+                            approved_not_ordered_item = OrderItem.objects.create(number=item.number, department=item.department, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
+                            OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
+                
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()
             messages.success(request, 'PO created successfully')
@@ -479,7 +494,7 @@ def po_orderitems(request, po_id):
     try:
         # Get relevant PO orderItems and serialize the data into json for ajax request
         order_items = OrderItem.objects.filter(purchase_order=purchase_order)
-        data = OrderItemSerializer(order_items, many=True).data
+        data = POItemSerializer(order_items, many=True).data
     except TypeError:
         data = []
     return HttpResponse(JSONRenderer().render(data), content_type='application/json')
@@ -554,24 +569,32 @@ def new_invoice_confirm(request):
         # pdb.set_trace()
         file_form = FileForm(request.POST, request.FILES)
         if invoice_form.is_valid() and file_form.is_valid():
-            invoice = save_new_document(buyer, invoice_form)
-            invoice.vendor_co = vendor  
-            invoice.save() # Need to save for the M2M relationship          
-            for item in items:                
-                invoice.purchase_orders.add(item.purchase_order) # Adding a M2M relationship with PO
-                invoice.save()
-                item.invoice = invoice
-                item.save()                            
+            # Basic form validations 
+            date_due = invoice_form.cleaned_data['date_due']
+            date_issued = invoice_form.cleaned_data['date_issued']
 
-            upload_file = file_form.save(commit=False)
-            upload_file.name = request.FILES['file'].name
-            upload_file.document = invoice
-            upload_file.save()
-            
-            DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
+            if date_issued > date_due:
+                messages.error(request, 'Error. Date due must be after issue date')
+                return
+            else:
+                invoice = save_new_document(buyer, invoice_form)
+                invoice.vendor_co = vendor  
+                invoice.save() # Need to save for the M2M relationship          
+                for item in items:                
+                    invoice.purchase_orders.add(item.purchase_order) # Adding a M2M relationship with PO
+                    invoice.save()
+                    item.invoice = invoice
+                    item.save()                            
 
-            messages.success(request, 'Invoice created successfully')
-            return redirect('invoices')
+                upload_file = file_form.save(commit=False)
+                upload_file.name = request.FILES['file'].name
+                upload_file.document = invoice
+                upload_file.save()
+                
+                DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
+
+                messages.success(request, 'Invoice created successfully')
+                return redirect('invoices')
         else:
             messages.error(request, 'Error. Invoice not created')
 
@@ -661,9 +684,31 @@ def unbilled_items(request):
     # ...and don't have an associated Invoice
     unbilled_items = OrderItem.latest_status_objects.unbilled.filter(requisition__buyer_co=buyer.company)
 
+    # Unbilled Items Formset with editable Location/Department/AccountCode/Cost Allocation
+    UnbilledFormset = formset_factory(UnbilledItemAllocationForm, extra=1)
+    unbilled_formset = UnbilledFormset(request.POST or None)
+
+    if request.method == 'POST':
+        item_id = int(request.POST.get('edit')[5:])
+        item = get_object_or_404(OrderItem, pk=item_id)
+        if unbilled_formset.is_valid():
+            for form in unbilled_formset.forms:
+                department = form.cleaned_data['department']
+                account_code = form.cleaned_data['account_code']
+                cost = form.cleaned_data['cost']
+                # item.department
+                # CREATE NEW ITEMS (but then doubling the total?)
+                # OR MANY-MANY with DEPTS (but how get the total per dept?)
+            pass
+            messages.success(request, 'Item updated successfully')            
+        else:
+            messages.error(request, 'Error. Item not updated')
+        return redirect('unbilled_items')
+
     data = {
         'unbilled_items':unbilled_items,
-        'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Ordered', 'Qty Delivered', 'Unit Price', 'Vendor']
+        'unbilled_formset': unbilled_formset,
+        'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Unbilled', 'Unit Price', 'Vendor']
     }
     return render(request, "acpayable/unbilled_items.html", data)
 
@@ -831,7 +876,7 @@ def call_drawdown(request, drawdown_id):
                     qty_drawndown = form.cleaned_data['qty_drawndown']
                     if qty_drawndown > qty_approved:
                         messages.error(request, 'Error. Quantity drawdown must be less than quantity approved.')
-                        break
+                        return
                     elif qty_drawndown == qty_approved:
                         item = form.save()
                         DrawdownItemStatus.objects.create(value='Drawdown Complete', author=buyer, item=item)

@@ -34,8 +34,8 @@
                       <td>{{ product.sku|default_if_none:"-" }}</td>
                       <td>{{ product.desc|truncatechars:15 }}</td>
                       <td>
-                        {{product.currency|currency_icon}}{{product.unit_price}} 
-                        <span class="text-muted">{{product.unit_type|unit_price_formatting}}</span>
+                        {{product.unit_price|currency_formatting:product.currency}}
+                        <span class="text-muted">{{product.unit_type|unit_type_formatting}}</span>
                         <span class="label label-warning">Discounted</span>
                       </td>
                       <td>{{ product.threshold|default_if_none:"-" }}</td>

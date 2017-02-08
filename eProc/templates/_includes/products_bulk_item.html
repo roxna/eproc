@@ -6,7 +6,9 @@
         </div>
         <div class="product-info">
           <a href="javascript:void(0)" class="product-title">{{product.name}}
-            <span class="label label-primary pull-right">{{product.currency|currency_icon}}{{product.unit_price}}</span></a>
+            <span class="label label-primary pull-right">
+             {{ product.unit_price|currency_formatting:product.currency }}
+            </span></a>
             <span class="product-description">
               {{product.desc}}
             </span>

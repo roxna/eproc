@@ -24,7 +24,7 @@
       <em><small><b>Created:</b> {{ po.date_created|date }}</small></em>      
     </td>                      
     <td>{{ po.vendor_co }} <br></td>
-    <td> {{po.currency|currency_icon}} {{ po.grand_total }}<br></td>
+    <td> {{ po.grand_total|currency_formatting:po.currency }}<br></td>
     <td> {{ po.comments }}<br></td>
     <td>
       <small>Prepared by: <b>{{ po.preparer.user.username }}</b></small><br>

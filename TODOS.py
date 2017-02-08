@@ -1,22 +1,17 @@
 
-# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
-# activate - url shouldnt be 127:00...
+# DONE: new template_tag 'currency_formatting'
 
-
+# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 ##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
 
-# forms 
-	# errors show as messages framework
-	# checks - Total of docs can't be negative, qty approved can't be 0 etc
-# Move form validation from view to form init
-# customize dashboard based on auth permissions
-
+# Score card - trends
+# rogue spend - through non-approved vendors
+# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
 # FILES:
 	# Save files uploaded/media elements (invoice, co logo, blogs etc)
 	# Attach files to PO
 	# Receving items - need slip/file upload (http://kb.procurify.com/?st_kb=new-procurify-receive-items)
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
-# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 
 
 # *****************************
@@ -26,6 +21,7 @@
 # 1. WHO SHOULD SEE WHAT DOCS? Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
+# 4. Off Catalog/Vendor spending allowed? Who can add to catalog/vendor?
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
@@ -33,6 +29,10 @@
 # 9. When Invoice approved/denied, what happens to order_items statuses?
 # 10. DDs, Reqs (and PO/Invoices) - link to Dept? Location? or none?
 # 11. Restrictions on who can add vendors/products/categories? If product not in the list and user wants to request it?
+# 12. customize dashboard based on auth permissions?
+# New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
+# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
+
 
 # BIG
 # ****************************
@@ -57,9 +57,8 @@
 	# Multiple plans --> manage payment and subscription options
 # COST BENCHMARKS
 	# Supplier Markups
-	# Costs - % breakdown in same industry
-	# 90% spend to 5% suppliers vs. your reality
-	# #suppliers for specific product (vs. other buyers in same industry)
+	# Costs - % spend breakdown in same industry
+	# # suppliers for specific product (vs. other buyers in same industry)
 # NEGOTIATE (Purchaser): 
 	# Bids (Proposals, quotes, specs)
 	# Reverse Auction
@@ -75,18 +74,18 @@
 	# user = models.OneToOneField(User, related_name="vendor_profile")
 	# company = models.ForeignKey(VendorCo, related_name="users")
 	# VENDOR able to create own profile based on fields buyer decides
-# AUDIT LOGGGG for each item/doc
+
 
 
 
 # REFINEMENTS:
 # ****************************
+# activate - url shouldnt be 127:00...
 # Fasclick menu select
 # In request - choose NON CATALOG item
 #  Remove qty_ordered etc into own model??
 # DOc - sub and grand totals --> make into formuale, not indep fields
-# INVENTORY: 
-	# view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
+# INVENTORY: 	
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
@@ -95,13 +94,13 @@
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
 # Sub-GL codes?
+# AUDIT LOGGGG for each item/doc
 
 
 # LOW PRIO REFINEMENTS
 # ****************************
 # SPEND by BU/Dept (in Locations)
 # CUSTOM DJANGO FILTERS: # Template filters (https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/#writing-custom-template-filters)
-# New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # ADD_USER functionality in USERS when able to filter dept based on location 
 # Approval routing:
@@ -120,6 +119,11 @@
 # VENDOR RANKINS / SCORE CARDS
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
+# forms 
+	# move errors to messages framework (view_location)
+	# Add checks in views - Total of docs can't be negative, qty approved can't be 0 etc
+	# Form errors not showing (view_location)
+# keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
 
 # ARCHIVE
 # ****************************
@@ -128,23 +132,3 @@
     # for index, form in enumerate(po_items_formset.forms):
     #     form.fields['qty_ordered'].value = items[index].qty_approved
 
-
-# ANALYSIS
-	# loc_costs, loc_labels, loc_colors = [], [], []
- #    for i in list(location_spend):
- #        loc_costs.append(float(i['total_cost']))
- #        try:
- #            normalized = unicodedata.normalize('NFKD', i['invoice__shipping_add__name']).encode('ascii','ignore')
- #            loc_labels.append(normalized)
- #        except TypeError: #In case "None"
- #            loc_labels.append('Unknown')
- #        loc_colors.append(str(pastel_colors()))
-
-      # // var locationData = {
-      # //   labels: {{loc_labels|safe}},
-      # //   datasets:[{
-      # //     data: {{loc_costs|safe}},
-      # //     backgroundColor: {{loc_colors|safe}},
-      # //     label: 'Spend by Location' // for legend
-      # //   }],
-      # // };   

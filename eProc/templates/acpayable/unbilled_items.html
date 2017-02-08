@@ -34,17 +34,26 @@
 				  <tbody>
 				    {% for item in unbilled_items %}           
 				    	{% with item.purchase_order as po %}
-					    <tr>
+					    <tr class={{product.id}}>
 					      <td> 
 					        {% include "_includes/formatting/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}
 					      </td>
-					      <td> {{ item.product.name }}<br></td>
-					      <td>{{ item.get_delivered_date | date }}</td>
-					      <td> {{ item.requisition.department }}<br></td>
-					      <td> {{ item.qty_ordered }}<br></td>
-					      <td> {{ item.qty_delivered }}<br></td>
-					      <td> {{item.product.currency|currency_icon}}{{ item.unit_price }}<br></td>				      
-					      <td>{{ item.product.vendor_co.name }} <br></td>
+					      <td> {{item.product.name}}<br></td>
+					      <td> {{item.get_delivered_date|date}}</td>
+					      <td> {{item.requisition.department}}<br></td>
+					      
+					      <!-- Delivered = Unbilled because the queryset in view selects for items with no associated invoice -->
+					      <td> {{item.qty_delivered }}<br></td>  
+					      
+					      <td> {{item.unit_price|currency_formatting:item.product.currency }}<br></td>
+					      <td> {{item.product.vendor_co.name}} <br></td>
+					      
+					      <!-- Edit the item to allocate to different Depts / Account Codes -->		    
+					      <!-- <td>
+					      	<button type="button" class="btn basic-transparent pull-right" data-toggle="modal" data-target="#addModal"><i class='fa {{ICONS.new}} edit' id="edit_{{item.id}}"></i></button>					      
+  							{#{% include "_includes/modal_unbilled.html" with formset=unbilled_formset item=item %}#}
+  						  </td> -->
+
 					    </tr>
 					    {% endwith %}
 				    {% endfor %}
@@ -62,5 +71,5 @@
 {% endblock content %}
 
 {% block js %}
-  {% include "_includes/dataTablesNotifications.html" with tableID="unbilledTable" %}	
+  {% include "_includes/dataTablesNotifications.html" with tableID="unbilledTable" %}
 {% endblock js %}

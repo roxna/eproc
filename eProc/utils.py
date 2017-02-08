@@ -74,7 +74,7 @@ def save_new_document(buyer, form):
     document = form.save(commit=False)
     document.preparer = buyer
     document.currency = buyer.company.currency
-    document.date_issued = timezone.now()
+    document.date_created = timezone.now()
     document.buyer_co = buyer.company
     # Don't save if Invoice - will violate the not-null constraint for invoice.po etc
     if not isinstance(document, Invoice):
@@ -82,7 +82,7 @@ def save_new_document(buyer, form):
     return document
 
 # Save the data for each form in the order_items formset 
-# Used by NEW_REQ, NEW_DD
+# Used by NEW_REQ, NEW_PO, NEW_DD
 def save_items(buyer, document, item_formset):    
     for index, form in enumerate(item_formset.forms):
         if form.is_valid():
@@ -92,6 +92,7 @@ def save_items(buyer, document, item_formset):
             if isinstance(document, Requisition):
                 item.number = document.number + "-" + str(index+1)
                 item.requisition = document
+                item.department = requisition.department
                 item.save() #Need to save to get item.get_requested_subtotal
                 document.sub_total += item.get_requested_subtotal()
                 if buyer.role == 'SuperUser':

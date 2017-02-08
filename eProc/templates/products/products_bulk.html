@@ -58,8 +58,8 @@
                   <td>{{product.name}}</td>
                   <td>{{ product.desc|truncatechars:15 }}</td>
                   <td>
-                    {{product.currency|currency_icon}}{{product.unit_price}} 
-                    <span class="text-muted">{{product.unit_type|unit_price_formatting}}</span>
+                    {{product.unit_price|currency_formatting:product.currency}}
+                    <span class="text-muted">{{product.unit_type|unit_type_formatting}}</span>
                   </td>
                   <td>
                     <form method="POST">
