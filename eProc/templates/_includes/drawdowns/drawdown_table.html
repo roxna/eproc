@@ -8,11 +8,11 @@
       <td> 
         {% include "_includes/formatting/status_formatting_w_href.html" with item=drawdown value_to_display=drawdown.number href=href %}
       </td>
-      <td> {{ drawdown.preparer }}<br></td>
+      <td>{{ drawdown.preparer }}<br></td>
       <td>{{ drawdown.date_created | date }}<br></td>  
       <td>
-        {{ drawdown.date_due | date }} 
-        {% include '_includes/is_past_due.html' with doc=drawdown %}<br>
+        {{ drawdown.date_due|date:"D, M d Y" }}
+        {% include '_includes/formatting/is_past_due.html' with obj=drawdown %}<br>
       </td>  
       <td>{{ drawdown.comments }} <br></td>
     </tr>

@@ -281,7 +281,7 @@ class CatalogItem(models.Model):
 
 class Item(models.Model):
 	number = models.CharField(max_length=20)
-	product = models.ForeignKey(CatalogItem, related_name='items')
+	product = models.ForeignKey(CatalogItem, related_name='%(class)ss')
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	qty_requested = models.IntegerField(default=1) 	
 	qty_approved = models.IntegerField(null=True, blank=True, default=0)	

@@ -20,8 +20,8 @@
     </td>
     <td>
       <b> {{ po.date_due }} </b>
-      {% include '_includes/is_past_due.html' with doc=po %}<br>
-      <em><small><b>Created:</b> {{ po.date_created|date }}</small></em>      
+      {% include '_includes/formatting/is_past_due.html' with obj=po %}<br>
+      <em><small><b>Created:</b> {{ po.date_created|date:"D, M d Y" }}</small></em>      
     </td>                      
     <td>{{ po.vendor_co }} <br></td>
     <td> {{ po.grand_total|currency_formatting:po.currency }}<br></td>

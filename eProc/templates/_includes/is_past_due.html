@@ -1,4 +1,0 @@
-<!-- Show "OVERDUE" label for documents Pending Approval where due date has passed -->
-{% if doc.get_latest_status.value == 'Pending' and doc.is_past_due %}
-  <span class="label label-danger">Overdue</span>
-{% endif %}

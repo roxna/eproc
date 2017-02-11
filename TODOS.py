@@ -5,8 +5,6 @@
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
 # Issue receipts for goods??
 
-# is_past_due_formatting (kill is_past_due.html)
-
 # *****************************
 
 # QUES:

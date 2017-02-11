@@ -12,7 +12,7 @@
         <td> {{item.number}}</td>  
         <td> {{item.product.vendor_co.name}}</td>
         <td> {{item.product.name}}</td>        
-        <td> {{item.get_delivered_date|date}}</td>
+        <td> {{item.get_delivered_date|date:"D, M d Y"}}</td>
         <td> {{item.qty_delivered}}</td>
         <td> {{item.get_delivered_subtotal|currency_formatting:currency }}</td>
         <td> {{item.qty_ordered}}</td>

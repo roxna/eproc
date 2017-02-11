@@ -1,0 +1,17 @@
+{% load eProc_filters %}
+
+	<!-- Show "OVERDUE" label for:
+	a) orderItems approved where due date has passed OR
+	b) documents Pending Approval where due date has passed -->
+	
+	{% if obj|get_class == 'OrderItem' %}
+		{% if obj.is_past_due %}
+		  <span class="label label-danger">Overdue</span>
+		{% endif %}
+
+	<!-- Else is a Document i.e. class = Req/PO/Invoice/DD -->
+	{% else %}
+		{% if doc.get_latest_status.value == 'Pending' and obj.is_past_due %}
+		  <span class="label label-danger">Overdue</span>
+		{% endif %}
+	{% endif %}

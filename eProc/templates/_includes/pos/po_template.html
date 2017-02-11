@@ -45,7 +45,7 @@
 
         <div class="label text-grey">
           Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=purchase_order value_to_display=latest_status href='view_po' %}
-          [By {{latest_status.author}} on {{latest_status.date|date}}]
+          [By {{latest_status.author}} on {{latest_status.date|date:"D, M d Y"}}]
           </em>
         </div>        
     {% endwith %}

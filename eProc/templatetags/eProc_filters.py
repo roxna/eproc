@@ -22,6 +22,10 @@ def get_date_as_string(date):
 	else:
 		return date
 
+@register.filter(name='get_class')
+def get_class(value):
+  return value.__class__.__name__
+  
 @register.filter(name='currency_icon')
 def currency_icon(currency_string):
 	if currency_string == 'USD':
@@ -42,14 +46,6 @@ def unit_type_formatting(unit_type):
 		return 'each'
 	else:
 		return ' / ' + unit_type
-
-@register.filter(name='is_past_due_formatting')
-def is_past_due_formatting(obj):
-	if obj.is_past_due():
-		return 'yo'
-		# return obj.date_due + '<span class="label label-danger">Overdue</span>'
-	else:
-		return ' / ' 
 
 @register.filter(name='as_percentage_of')
 def as_percentage_of(part, whole):

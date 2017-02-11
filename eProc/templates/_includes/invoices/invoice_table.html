@@ -16,7 +16,7 @@
       </td>
       <td>
         {{ invoice.date_due }}
-        {% include '_includes/is_past_due.html' with doc=invoice %}<br>      
+        {% include '_includes/formatting/is_past_due.html' with obj=invoice %}<br>      
       </td>                      
       <td>{{ invoice.vendor_co }} <br></td>      
       <td>

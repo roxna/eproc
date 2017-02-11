@@ -9,7 +9,7 @@
                 </tr>
                 <tr>
                     <td>Date Due </td>
-                    <td><b>{{ invoice.date_due|date }}</b></td>
+                    <td><b>{{ invoice.date_due|date:"D, M d Y" }}</b></td>
                 </tr>   
                 <tr>
                     <td>Vendor Invoice </td>
@@ -37,11 +37,11 @@
             </tr>
             <tr>
               <td>Date Issued </td>
-              <td><b>{{ invoice.date_issued|date }}</b></td>
+              <td><b>{{ invoice.date_issued|date:"D, M d Y" }}</b></td>
             </tr>
             <tr>
               <td>Date Bill Created </td>
-              <td><b>{{ invoice.date_created|date }}</b></td>
+              <td><b>{{ invoice.date_created|date:"D, M d Y" }}</b></td>
             </tr>
               <td>Preparer </td>
               <td><b>{{ invoice.preparer }}</b></td>

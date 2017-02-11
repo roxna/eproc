@@ -38,11 +38,8 @@
 							    <td><span class="itemQty">{{ item.qty_approved }}</span></td>
 							    <td> {{ item.product.vendor_co }}</td>
 							    <td>
-							    	{{ item.date_due|date }}
-							    	<!-- Same as is_past_due.html for docs; However doesn't work for items because status must be 'Approved' -->							    	
-							    	{% if item.is_past_due %}
-									  <span class="label label-danger">Overdue</span>
-									{% endif %}
+							    	{{ item.date_due|date:"D, M d Y" }}	
+							    	{% include '_includes/formatting/is_past_due.html' with obj=item %}
 							    </td>
 							    <td> 
 							    	<span class="itemSubTotal">{{ item.get_requested_subtotal|currency_formatting:item.requisition.currency }}
