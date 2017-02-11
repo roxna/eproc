@@ -9,7 +9,7 @@
   <!-- *****************
     Order Items Table
   ***************** -->
-  {% include '_includes/order_item_table.html' with order_items=purchase_order.items.all %}
+  {% include '_includes/pos/po_item_table.html' with order_items=purchase_order.items.all %}
 
   <!-- ***************************************
   Comments, Terms & Sub/Grand Total tables

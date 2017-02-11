@@ -14,55 +14,89 @@
 
   {% with purchase_order.get_latest_status as latest_status %}
   <section class="invoice">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
 
-    <!-- PO Header -->
-    {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_po' %}
-    
-    <!-- PO Details -->
-    {% include "_includes/pos/po_details.html" with purchase_order=purchase_order %}
-
-    <!-- Order Item Form in Request -->
-    <form method="POST">
-    {% csrf_token %}
-      <div class="row">
-        <div class="col-xs-12">
-         <p class="lead">PO Line Items</p>
+      <!-- PO Header -->
+      {% include "_includes/docs/doc_header.html" with document=purchase_order href='view_po' %}
+      
+      <!-- PO Details -->
+      <div class="row invoice-info">
+        <div class="col-xs-2 col-md-4 col-lg-4 invoice-col">
+            <p class="lead">Details</p>
+            <table class="table no-border">
+              <tbody>
+                <tr>
+                  <td>Vendor </td>
+                  <td><b>{{ purchase_order.vendor_co }}</b></td>
+                </tr>
+                <tr>
+                  <td>Preparer </td>
+                  <td><b>{{ purchase_order.preparer }}</b></td>
+                </tr>
+                <tr>
+                  <td>Files </td>
+                  <td>
+                    {% if purchase_order.files %}
+                      {% for file in purchase_order.files.all %}
+                        <a href="{{MEDIA_URL}}{{file.file}}">{{ file.name }}</a><br>
+                      {% endfor %}
+                    {% else %}
+                      No files uploaded yet
+                    {% endif %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
         </div>
-        
-        <div class="col-xs-12">
-            {{ receive_po_formset.management_form | crispy }}
-
-            {% for form in receive_po_formset.forms %}                   
-                {% for hidden in form.hidden_fields %}
-                    {{ hidden }}
-                {% endfor %}
-                <div class="item" id="{{form.prefix}}">
-                    {% crispy form form.helper %}                                
-                </div>                            
-            {% endfor %}
+        <div class="col-xs-1 col-md-2 col-lg-2 invoice-col">
         </div>
-      </div><br>
+        <div class="col-xs-9 col-md-6 col-lg-6 invoice-col">
+           {% include '_includes/file_upload_form.html' with title='Upload Packing Slip(s) / Receipt(s) (one at a time)' form=receipt_file_form %}
+        </div>  
+      </div>
 
-      <!-- Footer -->
-      <div class="row">
+      <!-- Order Item Form in Request -->    
         <div class="row">
           <div class="col-xs-12">
-            
-            <div class="label text-grey">
-                <form method="post">
-                {% csrf_token %}    
-                  <!-- If the PO is closed, don't show the button -->
-                  {% if latest_status.value != 'Closed' %}
-                    <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
-                  {% endif %}
-                </form>
-            </div>
+           <p class="lead">PO Line Items</p>
+          </div>
+          
+          <div class="col-xs-12">
+              {{ receive_po_formset.management_form | crispy }}
 
-           </div>           
+              {% for form in receive_po_formset.forms %}                   
+                  {% for hidden in form.hidden_fields %}
+                      {{ hidden }}
+                  {% endfor %}
+                  <div class="item" id="{{form.prefix}}">
+                      {% crispy form form.helper %}                                
+                  </div>                            
+              {% endfor %}
+          </div>
+        </div><br>
+
+        <!-- Footer -->
+        <div class="row">
+          <div class="row">
+            <div class="col-xs-12">
+              
+              <div class="label text-grey">
+                  <form method="post">
+                  {% csrf_token %}    
+                    <!-- If the PO is closed, don't show the button -->
+                    {% if latest_status.value != 'Closed' %}
+                      <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                    {% endif %}
+                  </form>
+              </div>
+
+             </div>           
           </div>
         </div>
 
       </div>
+
     </form>
 
   </section>
@@ -80,8 +114,12 @@
       $('#save').attr('disabled', 'disabled');
       $('#save').addClass('disabled');
 
-      // Save Button is enabled only if any input field is changed
+      // Save Button is enabled only if any input field is changed or file_upload button is clicked on
       $('.item :input').keyup(function() {
+        $('#save').removeAttr('disabled');
+        $('#save').removeClass('disabled');
+      });
+      $('#id_file').click(function() {
         $('#save').removeAttr('disabled');
         $('#save').removeClass('disabled');
       });

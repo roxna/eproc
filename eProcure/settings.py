@@ -126,7 +126,7 @@ STATICFILES_DIRS = (
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'images', *MEDIA_URL.strip("/").split("/"))
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
 
 AUTH_USER_MODEL = 'eProc.User'
 
@@ -139,6 +139,14 @@ EMAIL_HOST_USER = 'xx@gmail.com'
 EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
+
+
+#######################################
+#       FILE UPLOAD OPTIONS           #
+#######################################
+
+CONTENT_TYPES = ['image', 'text', 'application']
+MAX_UPLOAD_SIZE = "2621440" # 2.5MB - 2621440 / 5MB - 5242880 / 10MB - 10485760
 
 
 #######################################

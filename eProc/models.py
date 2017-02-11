@@ -4,17 +4,19 @@ from django.db.models import Avg, Sum
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
+from django.template.defaultfilters import slugify
 from django.utils import timezone
-from eProc.managers import *
+from .managers import *
+from .validators import validate_file_extension
 
 
 ################################
 ###     COMPANY DETAILS     ### 
 ################################ 
 
-# File will be uploaded to MEDIA_ROOT/<buyer_co_name>/<filename>
+# COMPANY - logos will be uploaded to <media_root>/<buyer_co_name>/logo/<filename>
 def co_logo_directory_path(instance, filename):
-	return '{0}/logo/{1}'.format(instance.user.buyer_profile.company.name, filename)
+	return '{0}/logo/{1}'.format(slugify(instance.name), filename)
 
 class Company (models.Model):
 	name = models.CharField(max_length=30)	
@@ -27,7 +29,7 @@ class Company (models.Model):
 		return "{}".format(self.name)
 
 	def get_primary_location(self):
-	    return self.locations.last  
+	    return self.locations.order_by('-id')[0]
 
 	def get_all_locations(self):
 		return [location for location in self.locations.all()]
@@ -58,7 +60,7 @@ class Location(models.Model):
 	name = models.CharField(max_length=50, default='')
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='HQ')	
 	address1 = models.CharField(max_length=40, null=True, blank=True)
-	address2 = models.CharField(max_length=40, default='-')
+	address2 = models.CharField(max_length=40, null=True, blank=True)
 	city = models.CharField(max_length=20, null=True, blank=True)
 	state = models.CharField(max_length=20, null=True, blank=True)
 	country = models.CharField(choices=settings.COUNTRIES, max_length=20, null=True, blank=True)
@@ -231,16 +233,16 @@ class Drawdown(Document):
 				return False
 		return True
 
-# File will be uploaded to MEDIA_ROOT/<buyer_co_name>/docs/<filename>
+# FILE - docs will be uploaded to <media_root>/<buyer_co_name>/<doc_model_name>/<doc_number>/<filename>
+# 							   Eg:       media/hattas-company/invoice/INV4/hatta.jpg  
 def file_directory_path(instance, filename):	    
-	    return '{0}/docs/{1}'.format(instance.document.buyer_co.name, filename)
+	return '{0}/{1}/{2}/{3}'.format(slugify(instance.document.buyer_co.name), instance.document.__class__.__name__, instance.document.number, filename)
 
 class File(models.Model):
 	name = models.CharField(max_length=50, blank=True, null=True)
-	file = models.FileField(upload_to=file_directory_path)
+	file = models.FileField(upload_to=file_directory_path, validators=[validate_file_extension]) #see validators.py
 	comments = models.CharField(max_length=100, blank=True, null=True)
 	document = models.ForeignKey(Document, related_name='files', blank=True, null=True)
-	# company = models.ForeignKey(BuyerCo, related_name="attachments")
 
 	def __unicode__(self):
 		return "{}".format(self.name)

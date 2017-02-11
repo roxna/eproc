@@ -12,7 +12,7 @@
   <!-- *****************
     Order Items Table
   ***************** -->
-  {% include '_includes/order_item_table.html' with order_items=invoice.items.all %}
+  {% include '_includes/invoices/invoice_item_table.html' with order_items=invoice.items.all %}
 
   <!-- ***************************************
   Comments, Terms & Sub/Grand Total tables

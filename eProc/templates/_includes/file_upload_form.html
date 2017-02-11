@@ -1,0 +1,7 @@
+{% load crispy_forms_tags %}
+ <div class="box-body no-padding">
+    <h4>{{title}}</h4>
+    <div class="callout callout-info">                            
+    {% crispy form form.helper %}
+    </div>
+</div>

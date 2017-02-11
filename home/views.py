@@ -74,8 +74,8 @@ def view_blog(request, blog_id, blog_slug):
     	nextBlog = Blog.objects.get(pk=blog_id+1)
     except:
     	# TODO: Make this a random blog?
-    	prevBlog = Blog.objects.get(pk=1)
-    	nextBlog = Blog.objects.get(pk=2)
+    	prevBlog = Blog.objects.get(pk=blog_id)
+    	nextBlog = Blog.objects.get(pk=blog_id)
     data = {
     	'blog': blog,
     	'prevBlog': prevBlog,

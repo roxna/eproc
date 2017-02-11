@@ -1,25 +1,59 @@
 <div class="row invoice-info">
-    <div class="col-sm-4 invoice-col">
-        <p class="lead">Vendor</p>
-        {{ invoice.vendor_co }}<br>
-        {{ invoice.vendor_co.locations.get_primary_location }}<br>
-    </div>
-     <div class="col-sm-4 invoice-col">
-        <p class="lead">Address</p>
-        <b>Billing Address</b> <br>{{ invoice.billing_add }}<br><br>
-        <b>Shipping Address</b> <br> {{ invoice.shipping_add }}<br><br>
+    <div class="col-sm-5 invoice-col">
+        <p class="lead">Overview</p>
+        <table class="table no-border">
+            <tbody>
+                <tr>
+                    <td>Vendor </td>
+                    <td><b><a href="{% url 'view_vendor' invoice.vendor_co.pk invoice.vendor_co.name|slugify %}">{{ invoice.vendor_co }}</a></b></td>
+                </tr>
+                <tr>
+                    <td>Date Due </td>
+                    <td><b>{{ invoice.date_due|date }}</b></td>
+                </tr>   
+                <tr>
+                    <td>Vendor Invoice </td>
+                    <td>
+                        {% if invoice.files %}
+                        {% for file in invoice.files.all %}
+                          <a href="{{MEDIA_URL}}{{file.file}}">{{ file.name }}</a><br>
+                        {% endfor %}
+                      {% else %}
+                        No files
+                      {% endif %}
+                    </td>
+                </tr>                                
+            </tbody>
+        </table>
     </div>       
-    <div class="col-sm-4 invoice-col">
+    <div class="col-sm-2 invoice-col"></div>
+    <div class="col-sm-5 invoice-col">
         <p class="lead">Details</p>
-        Number: <b>{{ invoice.number }}</b><br>
-        Date Issued by Vendor: <b>{{ invoice.date_issued | date}}</b><br>
-        Date Invoice Record Created: <b>{{ invoice.date_created | date}}</b><br>
-        Preparer: <b>{{ invoice.preparer }}</b><br>        
-        PO: 
-        {% for po in invoice.purchase_orders.all %}
-            <b>{{ po }}</b>,
-        {% endfor %}<br>
-        Date Due: <b>{{ invoice.date_due }}</b><br>
-      <br>
+        <table class="table no-border">
+          <tbody>
+            <tr>
+              <td>Number </td>
+              <td><b>{{ invoice.number }}</b></td>
+            </tr>
+            <tr>
+              <td>Date Issued </td>
+              <td><b>{{ invoice.date_issued|date }}</b></td>
+            </tr>
+            <tr>
+              <td>Date Bill Created </td>
+              <td><b>{{ invoice.date_created|date }}</b></td>
+            </tr>
+              <td>Preparer </td>
+              <td><b>{{ invoice.preparer }}</b></td>
+            <tr>
+              <td>POs </td>
+              <td><b>
+              {% for po in invoice.purchase_orders.all %}
+                <b><a href="{% url 'view_po' po.id %}">{{ po }}</a></b><br>
+            {% endfor %}</b></td>
+            </tr>
+          </tbody>
+        </table>              
     </div>
+    <!-- <div class="col-sm-1 invoice-col"></div> -->
 </div><br><br>

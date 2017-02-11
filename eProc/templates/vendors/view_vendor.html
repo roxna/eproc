@@ -68,16 +68,22 @@
 		        </div>     
 
 		        <div class="box-body">
-			         <table class="table table-striped">
-			         	<tbody>			         
-				         {% for doc in documents %}
-			         		<tr>
-			         			<td>{{doc.name}}</td>
-			         		</tr>			         	
-		         		{% empty %}
-		         			No invoices with {{vendor_co.name}}			    	
-			         	{% endfor %}
-			         	</tbody>
+			         <table id="invoicesTable" class="table table-striped">
+			         {% if files.length == 0 %}
+			         	No invoices with {{vendor_co.name}}    	
+			         {% else %}
+			         	{% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
+
+			         	<tbody>			         				         
+				         	{% for file in files %}
+				         		<tr>
+				         			<td><a href="{{MEDIA_URL}}{{file.file}}">{{file.name}}</a></td>
+				         			<td><a href="{% url 'view_invoice' file.document.id %}">{{file.document.number}}</a></td>				         			
+				         		</tr>			         			         			
+				         	{% endfor %}
+				         </tbody>
+			          {% endif %}
+			         	
 			          </table>            
 			    </div>
 
@@ -89,3 +95,7 @@
 	</div>
 </section>
 {% endblock content %}
+
+{% block js %}
+  {% include "_includes/dataTablesNotifications.html" with tableID="invoicesTable" %}
+{% endblock js %}

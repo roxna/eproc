@@ -156,6 +156,10 @@ used in status_formatting_w/wo_href.html
 /******************* 
 *****   HOME   ****
 *******************/
+.blogpost-img{
+	width: 1200px;
+	height: 200px;
+}
 .bucket{
 	width: 100% !important;	
 	padding: 15px;

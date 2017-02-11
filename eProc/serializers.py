@@ -23,10 +23,3 @@ class UnbilledItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ('id', 'product', 'currency', 'qty_delivered', 'comments_request', 'unit_price', 'purchase_order', 'get_delivered_date', 'get_requested_subtotal' )
-
-class ItemSerializer(serializers.ModelSerializer):
-    product = serializers.CharField(source="product.name")
-
-    class Meta:
-        model = OrderItem
-        fields = ('product','qty_requested', 'comments_request', 'unit_price', )  

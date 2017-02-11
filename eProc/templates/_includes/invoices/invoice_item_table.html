@@ -1,6 +1,6 @@
   {% load eProc_filters %}
 
-  <!-- Order Item Details in PO/Invoice -->
+  <!-- Order Item Details in Invoice -->
   <div class="row">
     <div class="col-xs-12">
      <p class="lead">Line Items</p>
@@ -10,9 +10,9 @@
         <thead>
           <tr>
             <th>Product</th>
-            <th>Ordered</th>
-            <th>Delivered</th>
-            <th>Returned</th>
+            <th>Quantity</th>
+            <th>Date Received</th>
+            <th>Dept</th>
             <th>Unit Price</th>
             <th>Sub Total</th>
           </tr>
@@ -23,9 +23,9 @@
             <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
             <tr id="orderItemList">
               <td id="">{{ item.product.name }}</td>
-              <td>{{ item.qty_ordered }}</td>
               <td>{{ item.qty_delivered }}</td>
-              <td>{{ item.qty_returned }}</td>
+              <td>{{ item.get_delivered_date|date }}</td>
+              <td>{{ item.requisition.department }}</td>
               <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
               <td> {{ item.get_ordered_subtotal|currency_formatting:item.product.currency }}</td>
             </tr>

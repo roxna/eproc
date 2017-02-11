@@ -1,8 +1,8 @@
   <div class="row invoice-info">
-    <div class="col-sm-4 invoice-col">
+    <div class="col-sm-3 invoice-col">
       	<p class="lead">Vendor</p>
         {{ purchase_order.vendor_co }}<br>
-        {{ purchase_order.vendor_co.locations.get_primary_location }}<br>
+        {{ purchase_order.vendor_co.get_primary_location.get_address }}<br>
     </div>
      <div class="col-sm-4 invoice-col">
         <p class="lead">Address</p>
@@ -10,11 +10,25 @@
         <b>Shipping Address</b> <br> {{ purchase_order.shipping_add }}<br><br>
     </div>       
     <div class="col-sm-4 invoice-col">
-        <p class="lead">Details</p>
-        Number: <b>{{ purchase_order.number }}</b><br>
-        Date Created: <b>{{ purchase_order.date_created | date}}</b><br>
-        Preparer: <b>{{ purchase_order.preparer }}</b><br>
-        Date Due: <b>{{ purchase_order.date_due }}</b><br>
-      <br>
+      <p class="lead">Details</p>
+      <table class="table no-border">
+        <tbody>
+          <tr>
+            <td>Number </td>
+            <td><b>{{ purchase_order.number }}</b></td>
+          </tr>
+          <tr>
+            <td>Date Created </td>
+            <td><b>{{ purchase_order.date_created|date }}</b></td>
+          </tr>
+            <td>Preparer </td>
+            <td><b>{{ purchase_order.preparer }}</b></td>
+          <tr>
+            <td>Date Due </td>
+            <td><b>{{ purchase_order.date_due|date }}</b></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <div class="col-sm-1 invoice-col"></div>
   </div><br><br>

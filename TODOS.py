@@ -1,18 +1,9 @@
-
-# DONE: new template_tag 'currency_formatting'
-
 # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 ##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
 
-# Score card - trends
-# rogue spend - through non-approved vendors
 # (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
-# FILES:
-	# Save files uploaded/media elements (invoice, co logo, blogs etc)
-	# Attach files to PO
-	# Receving items - need slip/file upload (http://kb.procurify.com/?st_kb=new-procurify-receive-items)
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
-
+# Issue receipts for goods??
 
 # *****************************
 
@@ -21,7 +12,7 @@
 # 1. WHO SHOULD SEE WHAT DOCS? Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
 # 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
-# 4. Off Catalog/Vendor spending allowed? Who can add to catalog/vendor?
+# 4. Off Catalog/Vendor (rogue) spending allowed? Who can add to catalog/vendor?
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
@@ -82,6 +73,7 @@
 # ****************************
 # activate - url shouldnt be 127:00...
 # Fasclick menu select
+# Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item
 #  Remove qty_ordered etc into own model??
 # DOc - sub and grand totals --> make into formuale, not indep fields

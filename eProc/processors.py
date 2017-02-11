@@ -18,6 +18,8 @@ def icons(request):
 		"new": "fa-pencil-square-o",
 		"incoming": "fa-arrow-down",
 		"outgoing": "fa-arrow-up",
+		"upload": "fa-upload",
+		"download": "fa-download",
 
 		# Other
 		"dashboard": "fa-dashboard",

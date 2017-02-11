@@ -443,11 +443,16 @@ def receive_po(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     ReceivePOItemFormSet = inlineformset_factory(PurchaseOrder, OrderItem, ReceivePOItemForm, extra=0)
     receive_po_formset = ReceivePOItemFormSet(request.POST or None, instance=purchase_order)
+    receipt_file_form = FileForm(request.POST or None, request.FILES or None)
 
     if request.method == 'POST':
-        if 'save' in request.POST:
+        if receipt_file_form.is_valid() and receive_po_formset.is_valid():
+            # If a file was uploaded, save it to PO
+            if len(request.FILES) != 0:  
+                save_file_to_doc(receipt_file_form, 'Receipt slip', request.FILES['file'], purchase_order)            
+            
             for index, form in enumerate(receive_po_formset.forms):
-                if form.is_valid() and form.has_changed():
+                if form.has_changed():
                     qty_ordered = form.cleaned_data['qty_ordered']
                     qty_delivered = form.cleaned_data['qty_delivered']
                     qty_returned = form.cleaned_data['qty_returned']
@@ -483,6 +488,7 @@ def receive_po(request, po_id):
             messages.error(request, 'Error updating items')            
     data = {
         'purchase_order': purchase_order,
+        'receipt_file_form': receipt_file_form,
         'receive_po_formset': receive_po_formset,
     }
     return render(request, "pos/receive_po.html", data)
@@ -563,19 +569,20 @@ def new_invoice_confirm(request):
     # Prefix so the name field (common to both forms) isn't confused
     invoice_form = InvoiceForm(request.POST or None, prefix='invoice')
     initialize_invoice_form(buyer, invoice_form)
-    file_form = FileForm(request.POST or None, request.FILES or None, prefix='file')
-    
+
+    invoice_file_form = FileForm(request.POST or None, request.FILES or None)
+        
     if request.method == 'POST':
-        # pdb.set_trace()
-        file_form = FileForm(request.POST, request.FILES)
-        if invoice_form.is_valid() and file_form.is_valid():
-            # Basic form validations 
+        
+        if invoice_form.is_valid() and invoice_file_form.is_valid():            
             date_due = invoice_form.cleaned_data['date_due']
             date_issued = invoice_form.cleaned_data['date_issued']
 
-            if date_issued > date_due:
-                messages.error(request, 'Error. Date due must be after issue date')
-                return
+            # Basic form validations 
+            if len(request.FILES) == 0:
+                messages.info(request, 'Error. Invoice file is required.')
+            elif date_issued > date_due:
+                messages.info(request, 'Error. Date due must be after issue date.')
             else:
                 invoice = save_new_document(buyer, invoice_form)
                 invoice.vendor_co = vendor  
@@ -586,23 +593,21 @@ def new_invoice_confirm(request):
                     item.invoice = invoice
                     item.save()                            
 
-                upload_file = file_form.save(commit=False)
-                upload_file.name = request.FILES['file'].name
-                upload_file.document = invoice
-                upload_file.save()
+                # See utils.py
+                save_file_to_doc(invoice_file_form, 'Vendor Invoice', request.FILES['file'], invoice)
                 
                 DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
 
                 messages.success(request, 'Invoice created successfully')
                 return redirect('invoices')
         else:
-            messages.error(request, 'Error. Invoice not created')
+            messages.info(request, 'Error creating invoice. Please ensure all fields are filled in correctly.')
 
     data = {
         'items': items,
         'vendor': vendor,
         'invoice_form': invoice_form,
-        'file_form': file_form,  
+        'invoice_file_form': invoice_file_form,         
     }
     return render(request, "invoices/new_invoice_confirm.html", data)
 
@@ -620,7 +625,7 @@ def invoices(request):
         'approved_invoices': Invoice.latest_status_objects.approved.filter(pk__in=invoices),
         'denied_invoices': Invoice.latest_status_objects.denied.filter(pk__in=invoices)|Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
         'paid_invoices': Invoice.latest_status_objects.paid.filter(pk__in=invoices),
-        'table_headers': ['Invoice No.', 'Grand Total', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'File', 'Comments']
+        'table_headers': ['Invoice No.', 'Grand Total', 'Invoice Created', 'Date Due', 'Vendor', 'PO No.', 'Files', 'Comments']
     }
     return render(request, "invoices/invoices.html", data)
 
@@ -782,9 +787,7 @@ def new_drawdown(request):
     drawdownitem_formset = DrawdownItemFormSet(request.POST or None)
     initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset)    
     
-    if request.method == "POST":
-        # Sets next_approver as not required field if user is SuperUser before is_valid() is called (see utils.py)
-        set_next_approver_not_required(buyer, drawdown_form)
+    if request.method == "POST":        
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
             save_items(buyer, drawdown, drawdownitem_formset)
@@ -1181,7 +1184,7 @@ def view_vendor(request, vendor_id, vendor_name):
     vendor_form = VendorCoForm(request.POST or None, prefix="vendor", instance=vendor_co)
     location_form = LocationForm(request.POST or None, prefix="location", instance=location)
     doc_ids = [doc.id for doc in vendor_co.invoice.all()]
-    documents = File.objects.filter(document__in=doc_ids)
+    files = File.objects.filter(document__in=doc_ids)
     if request.method == 'POST':        
         if vendor_form.is_valid() and location_form.is_valid():
             vendor_co = vendor_form.save()
@@ -1193,7 +1196,9 @@ def view_vendor(request, vendor_id, vendor_name):
         'vendor_co': vendor_co,
         'vendor_form': vendor_form,
         'location_form': location_form,
-        'documents': documents,
+        'files': files,
+        'table_headers': ['File', 'Invoice Record']
+
     }
     return render(request, "vendors/view_vendor.html", data)    
 

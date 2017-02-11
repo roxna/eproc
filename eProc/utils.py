@@ -26,6 +26,7 @@ def get_documents_by_auth(buyer, document_type):
 ################################ 
 
 def initialize_req_form(buyer, requisition_form, orderitem_formset):
+    set_next_approver_not_required(buyer, requisition_form)
     if buyer.role == 'SuperUser':
         # If SuperUser, can select any department and approver, incl. self
         requisition_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
@@ -46,12 +47,14 @@ def initialize_po_form(buyer, po_form):
 
 def initialize_invoice_form(buyer, invoice_form):
     invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
+    set_next_approver_not_required(buyer, invoice_form)
 
 def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
     drawdown_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
+    set_next_approver_not_required(buyer, drawdown_form)
     if buyer.role == 'SuperUser':
         drawdown_form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
-        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)
+        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)        
     else:
         drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
         drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser']).exclude(user=buyer.user)
@@ -66,6 +69,7 @@ def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
 
 # Used by NEW_REQ, NEW_PO, NEW_INVOICE, NEW_DD
 
+# Sets next_approver as not required field if user is SuperUser before is_valid() is called
 def set_next_approver_not_required(buyer, form):
     if buyer.role == 'SuperUser':
         form.fields['next_approver'].required = False
@@ -140,13 +144,19 @@ def save_status(document, doc_status, item_status, author):
 def save_doc_status(document, doc_status, author):
     DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
-def save_item_status(document, item_status, author):
+def save_item_status(document, item_status, file, author):
     for item in document.items.all():
         if isinstance(document, Drawdown):
             DrawdownItemStatus.objects.create(value=item_status, author=author, item=item)
         else:
             OrderItemStatus.objects.create(value=item_status, author=author, item=item)
-    
+
+def save_file_to_doc(file_form, file_type, file, document):
+    file_instance = file_form.save(commit=False)
+    file_instance.name = '['+ document.number + ']' + file_type + ' (' + timezone.now().strftime('%Y-%m-%d') + ')'#eg. [INV4] Vendor Invoice (2017-04-04)
+    file_instance.document = document
+    file_instance.save()
+
 
 ################################
 ###        GET METHODS       ### 

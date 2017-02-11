@@ -19,7 +19,7 @@ class Blog(models.Model):
 	summary = models.TextField()
 	content = models.TextField()	
 	date = models.DateField(default=timezone.now)
-	image = models.ImageField(upload_to='blogs', blank=True, null=True)
+	image = models.ImageField(blank=True, null=True)  # No upload_to here because it would go into MEDIA_ROOT instead of being served from static_files
 	author = models.ForeignKey(Author, related_name="blogs")
 
 	def __unicode__(self):

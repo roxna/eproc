@@ -1,5 +1,5 @@
 from django import forms
-from django.conf import settings
+from django.conf import settings as conf_settings
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm, ReadOnlyPasswordHashField
 from django.db.models import Count
 from django.forms import ModelForm
@@ -144,7 +144,7 @@ class AddUserForm(forms.Form):
 ####################################
 
 class BuyerProfileForm(ModelForm):  
-    role = forms.ChoiceField(settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
+    role = forms.ChoiceField(conf_settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
     department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
     # location = forms.ModelChoiceField(queryset=Location.objects.all(), label="<i class='fa fa-building'></i> Location")
 
@@ -168,8 +168,8 @@ class BuyerProfileForm(ModelForm):
 
 class BuyerCoForm(forms.ModelForm):
     name = forms.CharField(required=True)
-    industry = forms.ChoiceField(settings.INDUSTRY_CHOICES, required=True, )
-    currency = forms.ChoiceField(settings.CURRENCIES, required=True, )
+    industry = forms.ChoiceField(conf_settings.INDUSTRY_CHOICES, required=True, )
+    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, )
     logo = forms.ImageField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -232,8 +232,8 @@ class VendorForm(forms.Form):
 
 # Used to rank a Vendor
 class VendorRatingForm(ModelForm):
-    category = forms.ChoiceField(settings.CATEGORIES, required=True)
-    # category = forms.ChoiceField(settings.CATEGORIES, required=True, widget=forms.Select(attrs={'readonly': 'true', 'disabled':'true'}))
+    category = forms.ChoiceField(conf_settings.CATEGORIES, required=True)
+    # category = forms.ChoiceField(conf_settings.CATEGORIES, required=True, widget=forms.Select(attrs={'readonly': 'true', 'disabled':'true'}))
     comments = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
@@ -261,13 +261,13 @@ class VendorRatingForm(ModelForm):
 
 class LocationForm(ModelForm):
     name = forms.CharField(required=True, label="Location Name")
-    loc_type = forms.ChoiceField(settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Location Type")
+    loc_type = forms.ChoiceField(conf_settings.LOCATION_TYPES, label="<i class='fa fa-map-marker'></i> Location Type")
     address1 = forms.CharField(required=True, label="<i class='fa fa-home'></i> Address Line 1")
     address2 = forms.CharField(required=False, label="<i class='fa fa-home'></i> Address Line 2")
     city = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> City")
     state = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> State")
     zipcode = forms.CharField(required=True, label="<i class='fa fa-location-arrow'></i> Zip Code")
-    country = forms.ChoiceField(settings.COUNTRIES, required=True, initial='USA', label="<i class='fa fa-globe'></i> Country")
+    country = forms.ChoiceField(conf_settings.COUNTRIES, required=True, initial='USA', label="<i class='fa fa-globe'></i> Country")
     phone = forms.CharField(required=False, label="<i class='fa fa-phone'></i> Phone Number")
     email = forms.EmailField(required=False, label="<i class='fa fa-envelope'></i> Email")
     
@@ -332,7 +332,7 @@ class DepartmentForm(ModelForm):
         fields = ("name", "budget")
 
 class AccountCodeForm(ModelForm):
-    expense_type = forms.ChoiceField(settings.EXPENSE_TYPES, required=True, )
+    expense_type = forms.ChoiceField(conf_settings.EXPENSE_TYPES, required=True, )
     departments = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=True, widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
@@ -369,7 +369,7 @@ class CatalogItemForm(ModelForm):
     threshold = forms.IntegerField(label="Threshold quantity", help_text='Min. inventory level before alert is triggered.', required=False)
     unit_price = forms.DecimalField(required=True, min_value=0)
     unit_type = forms.CharField(required=True)
-    # currency = forms.ChoiceField(settings.CURRENCIES, required=True, initial='USD')
+    # currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
     category = forms.ModelChoiceField(queryset=Category.objects.all())
     vendor_co = forms.ModelChoiceField(queryset=VendorCo.objects.all(), label="Preferred Vendor")
 
@@ -495,7 +495,6 @@ class UnbilledItemAllocationForm(forms.Form):
                 css_class='row',
             ),
         )
-
 
 class ReceivePOItemForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
@@ -660,6 +659,7 @@ class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
     date_issued = forms.DateTimeField(initial=timezone.now, label="Date Issued", widget=forms.TextInput(attrs={'type': 'date'}))
     date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
+    next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
     comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
 
     def __init__(self, *args, **kwargs):
@@ -716,13 +716,32 @@ class DrawdownForm(ModelForm):
 ####################################
 
 class FileForm(ModelForm):    
-    file = forms.FileField(required=True, label='Upload Invoice from Vendor')
+    file = forms.FileField(required=False)
     comments = forms.CharField(required=False, label='Notes', widget=forms.Textarea(attrs={'rows':3, 'cols':20}))
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_tag = False        
+        self.helper.form_tag = False   
+        self.helper.layout = Layout(            
+            Div(
+                Div('file', css_class='col-md-6'),
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )     
+    
+    # To manage file upload size (http://stackoverflow.com/questions/2472422/django-file-upload-size-limit)
+    def clean_content(self):
+        content = self.cleaned_data['content']
+        # Confirming file type - (image or text or application/pdf). Specific file extensions verified in validators.py
+        content_type = content.content_type.split('/')[0] 
+        if content_type in conf_settings.CONTENT_TYPES:
+            if content._size > conf_settings.MAX_UPLOAD_SIZE:
+                raise forms.ValidationError(_('Please keep filesize under %s. Current filesize %s') % (filesizeformat(settings.MAX_UPLOAD_SIZE), filesizeformat(content._size)))
+        else:
+            raise forms.ValidationError(_('File type is not supported'))
+        return content
 
     class Meta:
         model = File

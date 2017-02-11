@@ -1,0 +1,36 @@
+  {% load eProc_filters %}
+
+  <!-- Order Item Details in PO/Invoice -->
+  <div class="row">
+    <div class="col-xs-12">
+     <p class="lead">Line Items</p>
+    </div>
+    <div class="col-xs-12 table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Req. #</th>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Ordered</th>
+            <th>Unit Price</th>
+            <th>Sub Total</th>
+          </tr>
+        </thead>
+
+        <tbody>        
+          {% for item in order_items %}
+            <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
+            <tr id="orderItemList">
+              <td>{{ item.requisition.number }}</td>
+              <td id="">{{ item.product.name }}</td>
+              <td>{{ item.product.sku }}</td>
+              <td>{{ item.qty_ordered }}</td>
+              <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
+              <td> {{ item.get_ordered_subtotal|currency_formatting:item.product.currency }}</td>
+            </tr>
+          {% endfor %}          
+        </tbody>
+      </table>
+    </div>
+  </div><br>

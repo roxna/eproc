@@ -18,7 +18,6 @@ $(document).ready(function(){
         SubTotal = 0;
         // Multiply price and quantity for each item row
         $('.item').each(function(){ 
-            console.log('1');
             
             // If qty/price are defined - it is on the new_PO_confirm page because the values are inputs
             var qty = $(this).find('.quantity').find('input').val();
@@ -28,11 +27,8 @@ $(document).ready(function(){
             if (qty == undefined || price == undefined){
                 var qty = $(this).find('.quantity').text();
                 var price = $(this).find('.unit_price').text();
-                console.log(qty);
-                console.log(price);
             }
 
-            console.log(qty);
             SubTotal += qty * price;
         });
         $('#subTotal :input').val(SubTotal);
