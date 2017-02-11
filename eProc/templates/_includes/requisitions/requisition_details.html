@@ -1,17 +1,49 @@
 {% load eProc_filters %}
 
 <div class="row invoice-info">
-	<div class="col-sm-6 invoice-col">
-    <p class="lead">Requester Info</p>
-    Requested by:<b> {{ requisition.preparer }}</b><br>
-    Location:<b> {{ requisition.location }}</b><br>
-    Department: <b>{{ requisition.department }}</b><br>             
-  </div>
-<div class="col-sm-6 invoice-col">
-    <p class="lead">Details</p>
-    Next Approver:<b> {{ requisition.next_approver }}</b><br>
-    Date Created:<b> {{ requisition.date_created | date }}</b><br>
-    <!-- get_date_as_string is a custom filter (see templatetags/eProc_filters.py) -->
-    Date Due:<b> {{ requisition.date_due | get_date_as_string }}</b><br> 
-  </div>  
+    <div class="col-sm-5 invoice-col">
+        <p class="lead">Requester Info</p>
+        <table class="table no-border">
+            <tbody>
+              <tr>
+                <td>Requested by </td>
+                <td><b>{{ requisition.preparer }}</b></td>
+              </tr>
+              <tr>
+                <td>Location </td>
+                <td><b>{{ requisition.department.location }}</b></td>
+              </tr>
+              <tr>
+                <td>Department by </td>
+                <td><b>{{ requisition.department }}</b></td>
+              </tr>
+              </tbody>  
+        </table>       
+    </div>
+
+    <div class="col-sm-2 invoice-col"></div>
+    
+    <div class="col-sm-5 invoice-col">
+        <p class="lead">Details</p>
+
+        <table class="table no-border">
+            <tbody>
+              <tr>
+                <td>Next Approver </td>
+                <td><b>{{ requisition.next_approver }}</b></td>
+              </tr>
+              <tr>
+                <td>Date Due </td>
+                <td><b>{{ requisition.date_created|date }}</b></td>
+              </tr>
+              <tr>
+                <td>Date Due </td>
+                <td><b>{{ requisition.date_due|date }}</b></td>
+              </tr>
+              <tr>          
+                <td>Comments </td>
+                <td><b>{{ requisition.comments }}</b></td>
+            </tbody>
+          </table>
+      </div>  
 </div><br><br>

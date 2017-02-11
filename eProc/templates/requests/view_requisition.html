@@ -1,7 +1,7 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 
-{% block title %}Requests{% endblock title %}
+{% block title %}Request Details{% endblock title %}
 
 {% block header %}
   <h1>Requisition Details</h1> 
@@ -19,7 +19,7 @@
 
       </div>
     </div>
-      
+    
     {% include "_includes/requisitions/requisition_template.html" with requisition=requisition %}    
     
     </section>       

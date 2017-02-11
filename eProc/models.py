@@ -75,7 +75,8 @@ class Location(models.Model):
 		return "{}".format(self.name)		
 
 	def get_address(self):
-		return "{} \n {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
+		# return self.address1 + self.address2 + '\n' + self.city, self.state, self.zipcode, self.country
+		return "{} {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
 
 ################################
 ###   ACCOUNTING DETAILS     ### 
@@ -332,6 +333,7 @@ class OrderItem(Item):
 		except TypeError: #If qty is not defined
 			return '-'
 
+	@property
 	def get_requested_subtotal(self):
 		return self.get_subtotal(self.unit_price, self.qty_requested)
 	

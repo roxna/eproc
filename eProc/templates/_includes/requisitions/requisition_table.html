@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load eProc_filters %}
 
   <thead class="basic-teal">
     <tr>
@@ -18,7 +19,7 @@
         <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
       </td>
       <td>
-        DATE DUE: <b> {{ requisition.date_due | date }} </b>
+        DATE DUE: <b> {{ requisition.date_due|date }} </b>
            {% include '_includes/is_past_due.html' with doc=requisition %}
            <br>
         <p class="text-muted">Requested:{{ requisition.date_created | date }}</p>
@@ -34,6 +35,3 @@
     </tr>
   {% endfor %}
   </tbody>
-
-
-<!--  requisition.status_updates.all | dictsort: '-date' | first  -->

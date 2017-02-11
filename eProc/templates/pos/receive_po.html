@@ -22,7 +22,7 @@
       
       <!-- PO Details -->
       <div class="row invoice-info">
-        <div class="col-xs-2 col-md-4 col-lg-4 invoice-col">
+        <div class="col-xs-11 col-md-6 col-lg-6 invoice-col">
             <p class="lead">Details</p>
             <table class="table no-border">
               <tbody>
@@ -35,7 +35,7 @@
                   <td><b>{{ purchase_order.preparer }}</b></td>
                 </tr>
                 <tr>
-                  <td>Files </td>
+                  <td>Receipt slips </td>
                   <td>
                     {% if purchase_order.files %}
                       {% for file in purchase_order.files.all %}
@@ -49,9 +49,8 @@
               </tbody>
             </table>
         </div>
-        <div class="col-xs-1 col-md-2 col-lg-2 invoice-col">
-        </div>
-        <div class="col-xs-9 col-md-6 col-lg-6 invoice-col">
+
+        <div class="col-xs-12 col-md-6 col-lg-6 invoice-col">
            {% include '_includes/file_upload_form.html' with title='Upload Packing Slip(s) / Receipt(s) (one at a time)' form=receipt_file_form %}
         </div>  
       </div>

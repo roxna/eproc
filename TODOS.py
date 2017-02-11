@@ -5,6 +5,8 @@
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
 # Issue receipts for goods??
 
+# is_past_due_formatting (kill is_past_due.html)
+
 # *****************************
 
 # QUES:
@@ -38,6 +40,7 @@
 
 # NEW FEATURES
 # ****************************
+# NOTIFICATIONS on approvals, order receipt etc
 # PAYMENTSS:
 	# https://www.procurify.com/product/pay
 	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
@@ -108,7 +111,7 @@
 # DELETE USER in Locations section
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 # Restricted access for AJAX requests only to me (not to anyone with an account)
-# VENDOR RANKINS / SCORE CARDS
+# VENDOR RANKINGS / SCORE CARDS
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # forms 
@@ -117,10 +120,4 @@
 	# Form errors not showing (view_location)
 # keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
 
-# ARCHIVE
-# ****************************
-# new_po_confirm:
-    # Initialize the formsets' qty_ordered fields with qty_approved that the PO preparer can then change
-    # for index, form in enumerate(po_items_formset.forms):
-    #     form.fields['qty_ordered'].value = items[index].qty_approved
 

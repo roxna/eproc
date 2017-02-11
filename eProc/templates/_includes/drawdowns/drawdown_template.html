@@ -16,22 +16,27 @@
 </div><br>
 
 <!-- Footer -->
-<div class="row no-print">
-  <div class="col-xs-12">
-  {% with drawdown.get_latest_status as latest_status %} 
-    {% if latest_status.value == 'Pending' %}
-      <!-- Show APPROVE_DENY_CANCEL only if Approver Role -->
-      {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-            {% include "_includes/approve_deny_cancel.html" with document=drawdown user_role='Approver' %}
-      {% endif %}
-    {% endif %}
-    
-    <div class="label text-grey">
-      Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
-    </div>         
+<form method="post">
+  {% csrf_token %}
+  
+  <div class="row no-print">
+    <div class="col-xs-12">
+      {% with drawdown.get_latest_status as latest_status %} 
+        {% if latest_status.value == 'Pending' %}
+          <!-- Show APPROVE_DENY_CANCEL only if Approver Role -->
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
+                {% include "_includes/approve_deny_cancel.html" with document=drawdown user_role='Approver' %}
+          {% endif %}
+        {% endif %}
+        
+        <div class="label text-grey">
+          Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=drawdown value_to_display=latest_status href='view_drawdown' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+        </div>         
+      {% endwith %}
+    </div>
   </div>
-</div>
-{% endwith %}
+
+</form>
 
 
 

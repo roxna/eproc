@@ -1,104 +1,98 @@
 {% load eProc_filters %}
+{% load crispy_forms_tags %}
 
-<!-- *****************
-  Request Header
-***************** -->
-<!-- Used in view_ and print_ -->
-{% include "_includes/docs/doc_header.html" with document=requisition href='view_requisition' %}
+  <form method="POST">
+  {% csrf_token %}
 
-<!-- *****************
-  Request Details
-***************** -->
-{% include "_includes/requisitions/requisition_details.html" with requisition=requisition %}
+  <!-- *****************
+    Request Header
+  ***************** -->
+  <!-- Used in view_ and print_ -->
+  {% include "_includes/docs/doc_header.html" with document=requisition href='view_requisition' %}
+
+  <!-- *****************
+    Request Details
+  ***************** -->
+  {% include "_includes/requisitions/requisition_details.html" with requisition=requisition %}
+
+  <!-- *****************
+    Order Items Table
+  ***************** -->
+  <!-- If Req hasn't been Approved/Cancelled/Denied, formset for Req Order Items to update qty_approved -->
+      {% if requisition.get_latest_status.value == 'Pending' %}
+        <!-- Order Item Form in Request -->    
+          <div class="row">
+            <div class="col-xs-12">
+             <p class="lead">Request Line Items</p>
+            </div>
+            
+            <div class="col-xs-12">
+                  {{ approve_req_formset.management_form | crispy }}
+
+                  {% for form in approve_req_formset.forms %}                   
+                      {% for hidden in form.hidden_fields %}
+                          {{ hidden }}
+                      {% endfor %}
+                      <div class="item" id="{{form.prefix}}">
+                          {% crispy form form.helper %}                                
+                      </div>                            
+                  {% endfor %}
+            </div>
+          </div><br>
+      {% else %}
+        {% include "_includes/requisitions/requisition_item_table.html" with requisition=requisition %}
+      {% endif %}
 
 
-<!-- *****************
-  Order Items Table
-***************** -->
-<div class="row">
-  <div class="col-xs-12">
-   <p class="lead">Line Items</p>
-  </div>
-  <div class="col-xs-12 table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>Quantity Requested</th>
-          <th>Unit Price</th>
-          <th>Sub Total</th>
-          <th>Comments</th>
-        </tr>
-      </thead>
+  <!-- *****************
+    Comments & Totals
+  ***************** -->
+  <div class="row">      
+    <div class="col-xs-12 col-md-4 pull-right">
+      <p class="lead">Total Cost: {{requisition.sub_total|currency_formatting:requisition.currency }}</p>
 
-      <tbody>        
-        {% for item in requisition.items.all %}
-          <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
-          <tr id="orderItemList">
-            <td id="">{{ item.product.name }}</td>
-            <td>{{ item.qty_requested }}</td>              
-            <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
-            <td> {{ item.get_requested_subtotal|currency_formatting:item.product.currency }}</td>              
-            <td>{{ item.comments_request }}</td>
-          </tr>
-        {% endfor %}          
-      </tbody>
-    </table>
-  </div>
-</div><br>
+    </div>
+  </div><br>
 
-<!-- *****************
-  Comments & Totals
-***************** -->
-<div class="row">              
-  <div class="col-xs-12 col-md-8">
-    <p class="lead">Other</p>
-    <p>COMMENTS: <br>{{requisition.comments}}</p>
-  </div>        
-
-  <div class="col-xs-12 col-md-4">
-    <p class="lead">Total Cost: {{requisition.sub_total|currency_formatting:requisition.currency }}</p>
-
-  </div>
-</div><br>
-
-<!-- *****************
-  Footer
-***************** -->
-<div class="row no-print">
-  
-  <!-- BUDGET -->
-  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-    <div class="info-box">
-      <span class="info-box-icon bg-yellow"><i class="fa fa-files-o"></i></span>
-      <div class="info-box-content">
-        <span class="info-box-text">DEPT BUDGET SPENT YTD</span>
-        {% with requisition.department as dept %}
-        <span class="info-box-number">{{dept.get_spend_percent_of_budget}}</span>
-        ({{dept.get_spend_approved_ytd|currency_formatting:requisition.currency }} of {{dept.budget|currency_formatting:requisition.currency }})
-        {% endwith %}
+  <!-- *****************
+    Footer
+  ***************** -->
+  <div class="row no-print">
+    
+    <!-- BUDGET -->
+    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+      <div class="info-box">
+        <span class="info-box-icon bg-yellow"><i class="fa fa-files-o"></i></span>
+        <div class="info-box-content">
+          <span class="info-box-text">DEPT BUDGET SPENT YTD</span>
+          {% with requisition.department as dept %}
+          <span class="info-box-number">{{dept.get_spend_percent_of_budget}}</span>
+          ({{dept.get_spend_approved_ytd|currency_formatting:requisition.currency }} of {{dept.budget|currency_formatting:requisition.currency }})
+          {% endwith %}
+        </div>
       </div>
     </div>
+
+    <!-- CANCEL/DENY/APPROVE -->
+    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+    {% with requisition.get_latest_status as latest_status %} 
+      <!-- If req is PENDING -->
+      {% if latest_status.value == 'Pending' %}
+        <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.sub_total -->
+        <!-- Cancel if user is PREPARER/SUPERUSER  -->
+        {% include "_includes/approve_deny_cancel.html" with document=requisition is_requisition=True user_role='Approver' %}
+      {% else %}
+          <div class="label text-grey">
+            Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
+          </div>
+      {% endif %}          
+    </div>  
   </div>
 
-  <!-- CANCEL/DENY/APPROVE -->
-  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-  {% with requisition.get_latest_status as latest_status %} 
-    <!-- If req is PENDING -->
-    {% if latest_status.value == 'Pending' %}
-      <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.sub_total -->
-      <!-- Cancel if user is PREPARER/SUPERUSER  -->
-      {% include "_includes/approve_deny_cancel.html" with document=requisition is_requisition=True user_role='Approver' %}
-    {% else %}
-        <div class="label text-grey">
-          Status: <em>{% include "_includes/formatting/status_formatting_w_href.html" with item=requisition value_to_display=latest_status href='view_requisition' %}</b> [By {{latest_status.author}} on {{latest_status.date|date}}]</em>
-        </div>
-    {% endif %}          
-  </div>  
-</div>
+  {% endwith %}
 
-{% endwith %}
 
+  </form>
 
 
 

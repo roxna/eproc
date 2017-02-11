@@ -1,8 +1,8 @@
   <div class="row invoice-info">
-    <div class="col-sm-3 invoice-col">
+    <div class="col-sm-4 invoice-col">
       	<p class="lead">Vendor</p>
-        {{ purchase_order.vendor_co }}<br>
-        {{ purchase_order.vendor_co.get_primary_location.get_address }}<br>
+        <b>{{ purchase_order.vendor_co|upper }}</b><br>
+        <em>{{ purchase_order.vendor_co.get_primary_location.get_address }}</em><br>
     </div>
      <div class="col-sm-4 invoice-col">
         <p class="lead">Address</p>
@@ -30,5 +30,4 @@
         </tbody>
       </table>
     </div>
-    <div class="col-sm-1 invoice-col"></div>
   </div><br><br>

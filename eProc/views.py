@@ -247,11 +247,19 @@ def requisitions(request):
 def view_requisition(request, requisition_id):
     buyer = request.user.buyer_profile
     requisition = get_object_or_404(Requisition, pk=requisition_id)    
+
+    ApproveReqItemFormset = inlineformset_factory(Requisition, OrderItem, ApproveReqItemForm, extra=0)
+    approve_req_formset = ApproveReqItemFormset(request.POST or None, instance=requisition)
+
     # Manage approving/denying requisitions (see utils.py)
     if request.method == 'POST':
         if 'approve' in request.POST:
-            save_status(document=requisition, doc_status='Approved', item_status='Approved', author=buyer)
-            messages.success(request, 'Requisition approved')
+            # pdb.set_trace()
+            if approve_req_formset.is_valid():
+                for form in approve_req_formset.forms:
+                    save_doc_status(document=requisition, doc_status='Approved', author=buyer)
+                    form.save()
+                messages.success(request, 'Requisition approved')
         elif 'deny' in request.POST:
             save_status(document=requisition, doc_status='Denied', item_status='Denied', author=buyer)
             messages.success(request, 'Requisition denied')
@@ -263,6 +271,7 @@ def view_requisition(request, requisition_id):
         return redirect('requisitions')
     data = {
         'requisition': requisition,
+        'approve_req_formset': approve_req_formset,
         'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
     }
     return render(request, "requests/view_requisition.html", data)

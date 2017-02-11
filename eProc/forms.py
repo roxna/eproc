@@ -436,6 +436,44 @@ class NewReqItemForm(ModelForm):
         model = OrderItem
         fields = ("product", "qty_requested", "account_code", "comments_request")
 
+class ApproveReqItemForm(ModelForm):
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    unit_price = forms.DecimalField(widget=forms.TextInput(attrs={'readonly':'true'}), label="Price")
+    qty_requested = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Requested')
+    qty_approved = forms.IntegerField(required=True, label='Approved')
+    comments_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Request Comments')
+    comments_approved = forms.CharField(required=False, label='Approval Comments')
+
+
+    def __init__(self, *args, **kwargs):
+        super(ApproveReqItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div( 
+                Div('product', css_class='col-md-2'),
+                Div('unit_price', css_class='col-md-1'),
+                Div('qty_requested', css_class='col-md-1'),                
+                Div('comments_request', css_class='col-md-3'),
+                Div('qty_approved', css_class='col-md-1'),
+                Div('comments_approved', css_class='col-md-4'),
+                css_class='row',
+            ),
+        )  
+
+    # Ensure readonly 'product' field (Select/ChoiceField) is not editable by users 
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
+    def clean_product(self):
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+
+    class Meta:
+        model = OrderItem
+        fields = ('product', 'unit_price', 'qty_requested', 'qty_approved', 'comments_request', 'comments_approved')
+        
+
 class NewPOItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
     qty_approved = forms.IntegerField(label='Qty Approved', widget=forms.TextInput(attrs={'readonly':'true'}))
@@ -459,7 +497,7 @@ class NewPOItemForm(ModelForm):
             ),
         )
     
-    # Ensure readonly/disabled 'product' field is not editable by users 
+    # Ensure readonly/disabled 'product' field (Select/ChoiceField) is not editable by users 
     # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot
     def clean_product(self):        
         if self.instance:

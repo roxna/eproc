@@ -39,7 +39,7 @@
 							    <td> {{ item.product.vendor_co }}</td>
 							    <td>
 							    	{{ item.date_due|date }}
-							    	<!-- Same as is_past_due.html for docs; However doesn't work for items because status must be 'Approved' -->
+							    	<!-- Same as is_past_due.html for docs; However doesn't work for items because status must be 'Approved' -->							    	
 							    	{% if item.is_past_due %}
 									  <span class="label label-danger">Overdue</span>
 									{% endif %}

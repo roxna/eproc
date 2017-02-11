@@ -43,6 +43,14 @@ def unit_type_formatting(unit_type):
 	else:
 		return ' / ' + unit_type
 
+@register.filter(name='is_past_due_formatting')
+def is_past_due_formatting(obj):
+	if obj.is_past_due():
+		return 'yo'
+		# return obj.date_due + '<span class="label label-danger">Overdue</span>'
+	else:
+		return ' / ' 
+
 @register.filter(name='as_percentage_of')
 def as_percentage_of(part, whole):
     try:

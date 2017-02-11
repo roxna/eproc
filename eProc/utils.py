@@ -144,7 +144,7 @@ def save_status(document, doc_status, item_status, author):
 def save_doc_status(document, doc_status, author):
     DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
-def save_item_status(document, item_status, file, author):
+def save_item_status(document, item_status, author):
     for item in document.items.all():
         if isinstance(document, Drawdown):
             DrawdownItemStatus.objects.create(value=item_status, author=author, item=item)
@@ -153,7 +153,7 @@ def save_item_status(document, item_status, file, author):
 
 def save_file_to_doc(file_form, file_type, file, document):
     file_instance = file_form.save(commit=False)
-    file_instance.name = '['+ document.number + ']' + file_type + ' (' + timezone.now().strftime('%Y-%m-%d') + ')'#eg. [INV4] Vendor Invoice (2017-04-04)
+    file_instance.name = file.name + ' (' + timezone.now().strftime('%Y-%m-%d') + ')'
     file_instance.document = document
     file_instance.save()
 

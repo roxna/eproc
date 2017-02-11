@@ -23,6 +23,9 @@
   <!-- *****************
        Footer
   ***************** -->
+  <form method="post">
+  {% csrf_token %}
+
   <div class="row no-print">
     <div class="col-xs-12">
       {% with invoice.get_latest_status as latest_status and user.buyer_profile as buyer %} 
@@ -52,6 +55,8 @@
       
     </div>
   </div>
+
+  </form>
 
 
 
