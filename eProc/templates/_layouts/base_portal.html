@@ -54,6 +54,7 @@
                <li class="dropdown notifications-menu">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">                    
                     <i class="fa fa-bell-o"></i>
+                    <!-- Only show counter if there are unread notifications -->
                     {% if unread_notifications.count > 0 %}
                       <span class="label label-warning">{{unread_notifications.count}}</span>
                     {% endif %}
@@ -63,15 +64,19 @@
                       <li>   
                       <!-- inner menu: contains the actual data -->
                       {% if unread_notifications.count > 0 %}
-                      <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 200px;">
-                        <ul class="menu" style="overflow: hidden; width: 100%; height: 200px;">                          
+                      <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: auto;">
+                        <ul class="menu" style="overflow: hidden; width: 100%; height: 100%;">
 
                           {% for notification in unread_notifications.list %}
                           <li>
                             {% with notification.category as category %}
-                              {% if notification.target %}<a href="{% url notification.target %}">
-                              {% else %}<a href="#">{% endif %}
-                              {{ICONS.category}} {{notification.text}}
+                              <a {% if notification.target %} href="{% url notification.target %}"{% endif %}>
+                              <i class="fa
+                                {% if notification.category == 'Info' %} {{ICONS.Info}}
+                                {% elif notification.category == 'Success' %} {{ICONS.Success}}
+                                {% elif notification.category == 'Warning' %} {{ICONS.Warning}}
+                                {% elif notification.category == 'Error' %} {{ICONS.Error}} {% endif %}">
+                                </i>{{notification.text}}
                               </a>
                             {% endwith %}
                           </li>
@@ -339,7 +344,7 @@
     {% block js %}{% endblock js %}
     
     <!-- Success/Error Notifications -->
-    <script>
+    <script type="text/javascript">
       $(function() {
           setTimeout(function() {
               $("#messageNotification").hide('fade', 500)

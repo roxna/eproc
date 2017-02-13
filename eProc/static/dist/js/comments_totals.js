@@ -5,10 +5,7 @@ $(document).ready(function(){
 
     /********************************************
 	****  NEW PO/INVOICE - UPDATE SUBTOTALS   ***
-	*********************************************/
-
-    var SubTotal = 0; 
-    var GrandTotal = 0;      
+	*********************************************/   
 
     /**************
     UPDATE TOTALS Function
@@ -38,17 +35,17 @@ $(document).ready(function(){
     // Function to update GRAND TOTAL from costs and sub_total
     var updateGrandTotal = function(){
         GrandTotal = SubTotal;
-        $('#grandTotal :input').val(GrandTotal);
+        $('#grandTotal').html(GrandTotal);
 
         $('td.amount').each(function() {
             // If cost, add; if discount, subtract
             $(this).hasClass('discount') ? GrandTotal -= parseInt($(this).children().val()) : GrandTotal += parseInt($(this).children().val());               
         });
-        $('#grandTotal :input').val(GrandTotal);
+        $('#grandTotal').html(GrandTotal);
     };
 
     /************** 
-     Update TOTALS functions called on keyup
+     Call UPDATE TOTALS on KEYUP
     **************/
     // SubTotal - on change in price or quantity
     $('.quantity, .unit_price').keyup(function(){
@@ -63,8 +60,11 @@ $(document).ready(function(){
     /************** 
      SETUP
      **************/        
+    var SubTotal = 0; 
+    var GrandTotal = 0;   
+
     $('#subTotal :input').prop('readonly', true);
-    $('#grandTotal :input').prop('readonly', true);
+    // $('#grandTotal :input').prop('readonly', true);
     updateSubTotal();
     updateGrandTotal();
 

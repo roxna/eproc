@@ -40,10 +40,10 @@ def icons(request):
 		"approval": "fa-book",
 
 		# Notifications icons
-		# "Success": 'text-aqua',
-		# "Info": '<i class="fa fa-users text-aqua"></i>',
-		# "Warning": '<i class="fa fa-users text-aqua"></i>',
-		# "Error": '<i class="fa fa-users text-aqua"></i>',
+		"Info": 'fa-flag text-blue',
+		"Success": 'fa-check text-green',		
+		"Warning": 'fa-warning text-yellow',
+		"Error": 'fa-warning text-red',
 	}
 	return {'ICONS': icons}
 

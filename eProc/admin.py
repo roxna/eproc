@@ -19,12 +19,12 @@ class RequisitionAdmin(admin.ModelAdmin):
     list_filter = ['number', 'sub_total']
 
 class POAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'grand_total']
+    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_grand_total']
     search_fields = ['number', 'department']
     list_filter = ['number', 'sub_total']
 
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'grand_total']
+    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_grand_total']
 
 class DrawdownAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'buyer_co' ]

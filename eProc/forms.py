@@ -687,7 +687,7 @@ class PurchaseOrderForm(ModelForm):
     class Meta:
         model = PurchaseOrder
         fields = ("number", "date_due", "vendor_co", "billing_add", "shipping_add", "comments", "terms", 
-                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other",  "grand_total")
+                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other")
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
@@ -713,7 +713,7 @@ class InvoiceForm(ModelForm):
     class Meta:
         model = Invoice
         fields = ("number", "date_issued", "date_due", "next_approver", "comments",
-                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other", "grand_total")
+                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other",)
  
 
 class DrawdownForm(ModelForm):       

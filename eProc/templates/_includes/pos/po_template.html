@@ -15,7 +15,7 @@
   Comments, Terms & Sub/Grand Total tables
   *************************************** -->
   
-  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=purchase_order.currency sub_total=purchase_order.sub_total grand_total=purchase_order.grand_total %}
+  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=purchase_order.currency sub_total=purchase_order.sub_total grand_total=purchase_order.get_grand_total %}
 
   <!-- *****************
        Footer

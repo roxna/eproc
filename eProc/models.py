@@ -191,7 +191,6 @@ class SalesOrder(Document):
 	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-	grand_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)	
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed", null=True, blank=True)
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped", null=True, blank=True)
 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
@@ -199,6 +198,7 @@ class SalesOrder(Document):
  	class Meta:
  		abstract = True	
 
+ 	@property
  	def get_grand_total(self):
  		return self.sub_total + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
@@ -416,14 +416,14 @@ class Notification(models.Model):
 
     """
 	text = models.CharField(max_length=100, blank=False)
-	CATEGORIES = (
-		('Success', 'Success'),
+	CATEGORIES = (		
 		('Info', 'Info'),
+		('Success', 'Success'),
 		('Warning', 'Warning'),
 		('Error', 'Error')
 	)
 	category = models.CharField(choices=CATEGORIES, default='Info', max_length=20)
-	recipients = models.ManyToManyField(User, blank=False, related_name='notifications')
+	recipients = models.ManyToManyField(User, null=True, blank=True, related_name='notifications') #null=True because need to save M2M field
 	is_unread = models.BooleanField(default=True, blank=False)
 	target = models.CharField(max_length=100, null=True, blank=True) #url
 

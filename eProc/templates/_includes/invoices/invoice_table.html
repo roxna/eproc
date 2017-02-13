@@ -9,7 +9,7 @@
       <td> 
         {% include "_includes/formatting/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' %}
       </td>
-      <td> {{ invoice.grand_total|currency_formatting:invoice.currency }}<br></td>
+      <td> {{ invoice.get_grand_total|currency_formatting:invoice.currency }}<br></td>
       <td> 
         <b>By: </b>{{ invoice.preparer }}<br>
         <b>On: </b>{{ invoice.date_issued | date }}<br>

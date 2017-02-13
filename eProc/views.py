@@ -37,6 +37,7 @@ import unicodedata
 ###         REGISTRATION         ### 
 ####################################
 
+
 def register(request):
     user_form = RegisterUserForm(request.POST or None)  
     buyer_company_form = BuyerCoForm(request.POST or None)      
@@ -370,7 +371,6 @@ def new_po_confirm(request):
                             approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, department=item.department, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
                             OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
                 
-            purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
             purchase_order.save()
             messages.success(request, 'PO created successfully')
             return redirect('purchaseorders')

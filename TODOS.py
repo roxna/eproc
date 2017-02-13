@@ -2,7 +2,6 @@
 
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
 
-
 # *****************************
 
 # QUES:
@@ -75,7 +74,7 @@
 # Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item
 #  Remove qty_ordered etc into own model??
-# DOc - sub and grand totals --> make into formuale, not indep fields
+# DOc - sub grand totals --> make into formula (like grand_total)
 # INVENTORY: 	
 	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
 # Sort in datatables for dates isnt working
@@ -94,6 +93,7 @@
 # CUSTOM DJANGO FILTERS: # Template filters (https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/#writing-custom-template-filters)
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # ADD_USER functionality in USERS when able to filter dept based on location 
+# Mark notifications as 'read'
 # Approval routing:
 	# For orders - Assign alt. approver
 	# For bills/payments
