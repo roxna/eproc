@@ -49,7 +49,45 @@
                     <span class="pull-right-container">GET STARTED</span>
                   </a>
                   {% endif %}
-                </li>            
+                </li>   
+
+               <li class="dropdown notifications-menu">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">                    
+                    <i class="fa fa-bell-o"></i>
+                    {% if unread_notifications.count > 0 %}
+                      <span class="label label-warning">{{unread_notifications.count}}</span>
+                    {% endif %}
+                  </a>
+
+                  <ul class="dropdown-menu">                
+                      <li>   
+                      <!-- inner menu: contains the actual data -->
+                      {% if unread_notifications.count > 0 %}
+                      <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 200px;">
+                        <ul class="menu" style="overflow: hidden; width: 100%; height: 200px;">                          
+
+                          {% for notification in unread_notifications.list %}
+                          <li>
+                            {% with notification.category as category %}
+                              {% if notification.target %}<a href="{% url notification.target %}">
+                              {% else %}<a href="#">{% endif %}
+                              {{ICONS.category}} {{notification.text}}
+                              </a>
+                            {% endwith %}
+                          </li>
+                          {% endfor %}
+
+                        </ul>
+                        <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 3px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 195.122px;">
+                        </div>
+                        <div class="slimScrollRail" style="width: 3px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;">
+                        </div>
+                      </div>
+                      {% endif %}
+                    </li>                    
+                  </ul>
+                </li>
+
                 <li class="dropdown user user-menu">
                   <a href="{% url 'logout' %}">
                     <span class="hidden-xs">Sign out</span>
@@ -294,6 +332,7 @@
     <script>$.widget.bridge('uibutton', $.ui.button);</script> <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
     <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
+    <script src="{% static 'plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>   <!-- Slimscroll - used for Notifications -->  
     <script src="{% static 'dist/js/app.js' %}"></script>
     <script src="{% static 'dist/js/custom.js' %}"></script>
 

@@ -115,8 +115,7 @@ urlpatterns=[
         url(r'^$', eProc_views.products, name='products'),
         url(r'^import-csv/$', eProc_views.upload_product_csv, name='upload_product_csv'),
         url(r'^bulk/$', eProc_views.products_bulk, name='products_bulk'),        
-        url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request
-        url(r'^categories/$', eProc_views.categories, name='categories'),
+        url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request        
     ])),
 
     url(r'^settings/', include([
@@ -125,10 +124,11 @@ urlpatterns=[
             url(r'^company/$', eProc_views.company_profile, name='company_profile'),
             url(r'^users/$', eProc_views.users, name='users'),
             url(r'^locations/$', eProc_views.locations, name='locations'),
+            url(r'^categories/$', eProc_views.categories, name='categories'),
             url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
             url(r'^account-codes/$', eProc_views.account_codes, name='account_codes'),
             url(r'^approval-routing/$', eProc_views.approval_routing, name='approval_routing'),
-            # url(r'^taxes/$', eProc_views.taxes, name='taxes'),
+            # url(r'^taxes/$', eProc_views.taxes, name='taxes'),            
     ])),
 
 ]

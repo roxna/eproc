@@ -71,7 +71,10 @@ class LocationAdmin(admin.ModelAdmin):
     list_filter = ['company',]
 
 class FileAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'file', 'document']    
+    list_display = ['id', 'name', 'file', 'document']  
+
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'text', 'category']
 
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
@@ -95,4 +98,5 @@ admin.site.register(DocumentStatus, DocumentStatusAdmin)
 admin.site.register(OrderItemStatus, OrderItemStatusAdmin)
 admin.site.register(DrawdownItemStatus, DrawdownItemStatusAdmin)
 admin.site.register(File, FileAdmin)
+admin.site.register(Notification, NotificationAdmin)
 admin.site.register(Tax)

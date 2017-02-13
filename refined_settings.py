@@ -1,5 +1,6 @@
 """
 Django settings for eProcure project.
+
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
@@ -98,7 +99,6 @@ TEMPLATES = [
                 # Custom template processors in processors.py
                 'eProc.processors.icons',
                 # 'eProc.processors.buyer',
-                'eProc.processors.notifications',
             ],
         },
     },
@@ -172,26 +172,29 @@ LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
-STATUSES = (
+ORDER_ITEM_STATUSES = (
     #### REQUEST Order Items  ####
-    ('Pending', 'Pending'), #new_req --> req not yet approved
-    ('Approved', 'Approved'), #view_req, view_po --> req approved or req created by superuser; or po cancelled
-    ('Denied', 'Denied'), #view_req --> req denied
-    ('Ordered', 'Ordered'), #view_po --> po items    
-    ('Cancelled', 'Cancelled'), #view_req --> req cancelled
-    ('Delivered Partial', 'Delivered Partial'), #receive_po
-    ('Delivered Complete', 'Delivered Complete'), #receive_po (qty_ordered = delivered+returned)
+    ('Request Pending', 'Request Pending'), #new_req --> req not yet approved
+    ('Request Approved', 'Request Approved'), #view_req, view_po --> req approved or req created by superuser; or po cancelled
+    ('Request Denied', 'Request Denied'), #view_req --> req denied
+    ('Request Cancelled', 'Cancelled'), #view_req --> req cancelled    
+    
+    ('Ordered', 'Ordered'), #view_po --> po items
+    # ('Delivered Partial', 'Delivered Partial'), #receive_po
+    ('Delivered', 'Delivered'), #receive_po (qty_ordered = delivered+returned)
+    
     ('Returned', 'Returned'), #receive_po
     ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
     
     #### DRAWDOWN Order Items  ####
-    # ('Pending', 'Pending'), #new_drawdown (Drawdown Requested)
-    # ('Approved', 'Approved'), #view_drawdown
-    # ('Denied', 'Denied'), #view_drawdown
-    # ('Cancelled', 'Cancelled'), #view_drawdown
-    ('Drawdown Partial', 'Drawdown Partial'), #call_drawdown
-    ('Drawdown Complete', 'Drawdown Complete'), #call_drawdown
-
+    ('Drawdown Pending', 'Drawdown Pending'), #new_drawdown (Drawdown Requested)
+    ('Drawdown Approved', 'Drawdown Approved'), #view_drawdown
+    ('Drawdown Denied', 'Drawdown Denied'), #view_drawdown
+    ('Drawdown Cancelled', 'Drawdown Cancelled'), #view_drawdown
+    # ('Drawdown Partial', 'Drawdown Partial'), #call_drawdown
+    ('Drawdown', 'Drawdown'), #call_drawdown
+)
+DOC_STATUSES = (
     #### Requisitions ####
     # ('Pending', 'Pending'), #new_req
     # ('Approved', 'Approved'), #view_req 
@@ -234,7 +237,6 @@ CATEGORIES = (
     ('Terms', 'Terms'),
     ('Responsiveness', 'Responsiveness'),
 )
-
 
 # Inform settings.py about local_settings.py
 try:

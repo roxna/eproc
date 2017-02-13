@@ -44,11 +44,11 @@
                     {% for hidden in form.hidden_fields %}
                         {{ hidden }}
                     {% endfor %}
-                    <div class="allocation" id="{{form.prefix}}">
+                    <div class="item" id="order_items">
                         {% crispy form form.helper %}                                
-                    </div>                            
+                    </div> <br>                           
                 {% endfor %}
-                <a id="add" href="#"><i class="fa fa-plus"></i> Add</a>
+                <a id="add" class="unbilled_items" href="#"><i class="fa fa-plus"></i> Add</a>
             </div>
 
             <div class="modal-footer">

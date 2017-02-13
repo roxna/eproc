@@ -48,6 +48,7 @@ def register(request):
             department = Department.objects.create(name='Admin', location=location)
             buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, location=location, company=company)
             messages.info(request, "Thank you for registering. You are now logged in.")
+            save_notification('Welcome! Super pumped to have you join the family!', 'Success', [request.user])
             user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
             user.is_active=False #User not active until activate account through email
             user.save()
@@ -67,8 +68,10 @@ def activate(request):
         user = User.objects.get(id=user_id)
         user.is_active=True
         user.save()
+        save_notification('Welcome! Super pumped to have you join the family!', 'Success', [user])
+        save_notification('User '+user.username+' is now active', 'Success', [request.user])
     except:
-        pass
+        save_notification('User '+user.username+' was not activated', 'Error', [request.user])
     return render(request,'registration/activate.html')
 
 def thankyou(request):
@@ -203,12 +206,16 @@ def new_requisition(request):
     if request.method == "POST":
         if requisition_form.is_valid() and orderitem_formset.is_valid():
             requisition = save_new_document(buyer, requisition_form)
+            print requisition
             # Save order_items and statuses (Req & Order Item status) --> see utils.py
             save_items(buyer, requisition, orderitem_formset)
             if buyer.role == 'SuperUser':
                 save_status(document=requisition, doc_status='Approved', item_status='Approved', author=buyer)
+                users = list(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Approver']))
+                save_notification('Requisition '+requisition.number+' has been approved', 'Success', users, target='requisitions')
             else:
                 save_status(document=requisition, doc_status='Pending', item_status='Requested', author=buyer)
+                save_notification('Requisition '+requisition.number+' is pending your approval', 'Success', requisition.next_approver.user, target='requisitions')
             messages.success(request, 'Requisition submitted successfully')
             return redirect('requisitions')
         else:
@@ -259,9 +266,13 @@ def view_requisition(request, requisition_id):
                 for form in approve_req_formset.forms:
                     save_doc_status(document=requisition, doc_status='Approved', author=buyer)
                     form.save()
+                    users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Approver'])), requisition.preparer.user)
+                    save_notification('Requisition '+requisition.number+' has been approved', 'Success', users, target='requisitions')
                 messages.success(request, 'Requisition approved')
         elif 'deny' in request.POST:
             save_status(document=requisition, doc_status='Denied', item_status='Denied', author=buyer)
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Approver'])), requisition.preparer.user)
+            save_notification('Requisition '+requisition.number+' has been denied', 'Warning', users, target='requisitions')
             messages.success(request, 'Requisition denied')
         elif 'cancel' in request.POST:
             save_status(document=requisition, doc_status='Cancelled', item_status='Cancelled', author=buyer)
@@ -349,12 +360,14 @@ def new_po_confirm(request):
                         item.save()
                         
                         OrderItemStatus.objects.create(value='Ordered', author=buyer, item=item)
+                        users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), purchase_order.preparer.user)
+                        save_notification('PO '+purchase_order.number+' has been created', 'Success', users, target='purchaseorders')
 
                         # Create a new Order Item with the same details (Item#, Req# etc) as current
                         # However, qty_requested = items that were approved but weren't ordered
                         approved_not_ordered = item.qty_approved - item.qty_ordered
                         if approved_not_ordered > 0:
-                            approved_not_ordered_item = OrderItem.objects.create(number=item.number, department=item.department, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
+                            approved_not_ordered_item = OrderItem.objects.create(number=item.number, qty_requested=approved_not_ordered, qty_approved=approved_not_ordered, department=item.department, unit_price=item.product.unit_price, date_due=item.date_due, account_code=item.account_code, product=item.product, comments_approved='Rem. items approved but not ordered in '+purchase_order.number)
                             OrderItemStatus.objects.create(value='Approved', author=item.requisition.get_status_with_value('Approved').get_author(), item=approved_not_ordered_item)
                 
             purchase_order.grand_total = purchase_order.sub_total + purchase_order.cost_shipping + purchase_order.cost_other + purchase_order.tax_amount - purchase_order.discount_amount
@@ -406,7 +419,9 @@ def view_po(request, po_id):
         if 'close' in request.POST:            
             DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
             # No Order Item status updates needed 
-            messages.success(request, 'Purchase Order closed')            
+            messages.success(request, 'Purchase Order closed')  
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), purchase_order.preparer.user)
+            save_notification('PO '+purchase_order.number+' has been closed', 'Success', users, target='purchaseorders')          
             return redirect('purchaseorders')
         elif 'cancel' in request.POST:
             # PO is Cancelled, Items go back into Approved list with reset #s
@@ -417,11 +432,13 @@ def view_po(request, po_id):
                 item.unit_price = item.product.unit_price
                 item.comments_order = None
                 item.purchase_order = None
-            messages.success(request, 'PO Cancelled')
+            messages.success(request, 'PO Cancelled')            
             return redirect('purchaseorders')
         elif 'paid' in request.POST:
             save_status(document=purchase_order, doc_status='Paid', item_status='Paid', author=buyer)
             messages.success(request, 'PO marked as Paid') 
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), purchase_order.preparer.user)
+            save_notification('PO '+purchase_order.number+' has been paid', 'Success', users, target='purchaseorders')
             return redirect('purchaseorders')
         else:
             messages.error(request, 'Error. PO not updated')
@@ -491,6 +508,8 @@ def receive_po(request, po_id):
                     if purchase_order.is_ready_to_close():
                         save_doc_status(purchase_order, 'Closed', buyer)                        
                         messages.success(request, 'PO Closed')
+                        users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), purchase_order.preparer.user)
+                        save_notification('PO '+purchase_order.number+' marked as closed', 'Success', users, target='purchaseorders')
                         return redirect('receive_pos')
             return redirect('receive_po', purchase_order.pk)
         else:
@@ -606,6 +625,8 @@ def new_invoice_confirm(request):
                 save_file_to_doc(invoice_file_form, 'Vendor Invoice', request.FILES['file'], invoice)
                 
                 DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
+                users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), invoice.preparer.user)
+                save_notification('PO '+invoice.number+' has been created', 'Success', users, target='invoices')
 
                 messages.success(request, 'Invoice created successfully')
                 return redirect('invoices')
@@ -655,15 +676,21 @@ def view_invoice(request, invoice_id):
         # Only Invoice statuses updated
         if 'approve' in request.POST:
             save_doc_status(document=invoice, doc_status='Approved',author=buyer)
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), invoice.preparer.user)
+            save_notification('Invoice '+invoice.number+' has been approved', 'Success', users, target='invoices')
             messages.success(request, 'Invoice Approved')
         elif 'deny' in request.POST:
             save_doc_status(document=invoice, doc_status='Denied', author=buyer)
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), invoice.preparer.user)
+            save_notification('Invoice '+invoice.number+' has been denied', 'Warning', users, target='invoices')
             messages.success(request, 'Invoice Denied')
         elif 'cancel' in request.POST:
             save_doc_status(document=invoice, doc_status='Cancelled', author=buyer)
             messages.success(request, 'Invoice Cancelled')
         elif 'paid' in request.POST:
             save_status(document=invoice, doc_status='Paid', item_status='Paid', author=buyer)
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Purchaser'])), invoice.preparer.user)
+            save_notification('Invoice '+invoice.number+' has been marked as paid', 'Success', users, target='invoices')
             
             # If all items are 'Paid' for that PO, mark PO as 'Paid'
             for item in item.purchase_order.items.all():
@@ -698,30 +725,29 @@ def unbilled_items(request):
     # ...and don't have an associated Invoice
     unbilled_items = OrderItem.latest_status_objects.unbilled.filter(requisition__buyer_co=buyer.company)
 
+    # TODOOOO WHEN ORDER_ITEMS ARE REFINED
+    # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
     # Unbilled Items Formset with editable Location/Department/AccountCode/Cost Allocation
-    UnbilledFormset = formset_factory(UnbilledItemAllocationForm, extra=1)
-    unbilled_formset = UnbilledFormset(request.POST or None)
+    # UnbilledFormset = formset_factory(UnbilledItemAllocationForm, extra=1)
+    # unbilled_formset = UnbilledFormset(request.POST or None)
 
-    if request.method == 'POST':
-        item_id = int(request.POST.get('edit')[5:])
-        item = get_object_or_404(OrderItem, pk=item_id)
-        if unbilled_formset.is_valid():
-            for form in unbilled_formset.forms:
-                department = form.cleaned_data['department']
-                account_code = form.cleaned_data['account_code']
-                cost = form.cleaned_data['cost']
-                # item.department
-                # CREATE NEW ITEMS (but then doubling the total?)
-                # OR MANY-MANY with DEPTS (but how get the total per dept?)
-            pass
-            messages.success(request, 'Item updated successfully')            
-        else:
-            messages.error(request, 'Error. Item not updated')
-        return redirect('unbilled_items')
+    # if request.method == 'POST':
+    #     item_id = int(request.POST.get('edit')[5:])
+    #     item = get_object_or_404(OrderItem, pk=item_id)
+    #     if unbilled_formset.is_valid():
+    #         for form in unbilled_formset.forms:
+    #             department = form.cleaned_data['department']
+    #             account_code = form.cleaned_data['account_code']
+    #             cost = form.cleaned_data['cost']
+    #         pass
+    #         messages.success(request, 'Item updated successfully')            
+    #     else:
+    #         messages.error(request, 'Error. Item not updated')
+    #     return redirect('unbilled_items')
 
     data = {
         'unbilled_items':unbilled_items,
-        'unbilled_formset': unbilled_formset,
+        # 'unbilled_formset': unbilled_formset,
         'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Unbilled', 'Unit Price', 'Vendor']
     }
     return render(request, "acpayable/unbilled_items.html", data)
@@ -800,10 +826,13 @@ def new_drawdown(request):
         if drawdown_form.is_valid() and drawdownitem_formset.is_valid():
             drawdown = save_new_document(buyer, drawdown_form)
             save_items(buyer, drawdown, drawdownitem_formset)
+            users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Inventory Manager'])), drawdown.preparer.user)
             if buyer.role == 'SuperUser':
                 save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
+                save_notification('Drawdown '+drawdown.number+' has been approved', 'Success', users, target='drawdowns')
             else:
-                save_status(document=drawdown, doc_status='Pending', item_status='Pending', author=buyer)
+                save_status(document=drawdown, doc_status='Pending', item_status='Pending', author=buyer)      
+                save_notification('Drawdown '+drawdown.number+' has been submitted and is pending', 'Success', users, target='drawdowns')
             messages.success(request, 'Drawdown submitted successfully')
             return redirect('drawdowns')
         else:
@@ -820,11 +849,14 @@ def view_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
     if request.method == 'POST': 
+        users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Inventory Manager'])), drawdown.preparer.user)
         if 'approve' in request.POST:
-            save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
+            save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)            
+            save_notification('Drawdown '+drawdown.number+' has been approved', 'Success', users, target='drawdowns')
             messages.success(request, 'Drawdown Approved')
         elif 'deny' in request.POST:
-            save_status(document=drawdown, doc_status='Denied', item_status='Denied', author=buyer)            
+            save_status(document=drawdown, doc_status='Denied', item_status='Denied', author=buyer)
+            save_notification('Drawdown '+drawdown.number+' has been denied', 'Warning', users, target='drawdowns')
             messages.success(request, 'Drawdown Denied')     
         elif 'cancel' in request.POST:
             save_status(document=drawdown, doc_status='Cancelled', item_status='Cancelled', author=buyer)
@@ -886,22 +918,26 @@ def call_drawdown(request, drawdown_id):
                 if form.is_valid() and form.has_changed():
                     qty_approved = form.cleaned_data['qty_approved']
                     qty_drawndown = form.cleaned_data['qty_drawndown']
+                    users = list(chain(User.objects.filter(buyer_profile__role__in=['SuperUser', 'Inventory Manager'])), drawdown.preparer.user)
                     if qty_drawndown > qty_approved:
                         messages.error(request, 'Error. Quantity drawdown must be less than quantity approved.')
                         return
                     elif qty_drawndown == qty_approved:
                         item = form.save()
                         DrawdownItemStatus.objects.create(value='Drawdown Complete', author=buyer, item=item)
+                        save_notification('Drawdown '+drawdown.number+' has been completely drawndown', 'Success', users, target='drawdowns')
                         messages.success(request, 'Drawdown updated successfully')
                     else:
                         item = form.save()
                         DrawdownItemStatus.objects.create(value='Drawdown Partial', author=buyer, item=item)
+                        save_notification('Drawdown '+drawdown.number+' has been partially drawndown', 'Success', users, target='drawdowns')
                         messages.success(request, 'Drawdown updated successfully')
                     
                     # If form.is_ready_to_close (qty_approved = qty_drawdown for all items), then automatically close
                     if drawdown.is_ready_to_close():
                         save_doc_status(drawdown, 'Closed', buyer)                        
-                        messages.success(request, 'Drawdown Closed')
+                        messages.success(request, 'Drawdown Closed')                        
+                        save_notification('Drawdown '+drawdown.number+' has been marked as closed', 'Success', users, target='drawdowns')
                         return redirect('call_drawdowns')
             return redirect('call_drawdown', drawdown.pk)
         else:
@@ -1014,13 +1050,15 @@ def view_location(request, location_id, location_name):
             if user_form.is_valid() and buyer_profile_form.is_valid():                
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)                
                 send_verific_email(user, user.id*conf_settings.SCALAR)
-                messages.success(request, 'User successfully invited')                
+                messages.success(request, 'User successfully invited')         
+                save_notification('User '+user.username+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='locations')       
             else:
                 messages.error(request, 'Error. User not added. Please try again.')
         elif 'add_Department' in request.POST:
             if department_form.is_valid():
-                save_department(department_form, buyer, location)                
-                messages.success(request, 'Department added successfully')                
+                department = save_department(department_form, buyer, location)                
+                messages.success(request, 'Department added successfully')   
+                save_notification('Department '+department.name+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='locations')
             else:
                 messages.error(request, 'Error. Department not added. Please try again.')
         return redirect('view_location', location.id, slugify(location.name))
@@ -1073,6 +1111,7 @@ def approval_routing(request):
         if approver_form.is_valid():
             approver_form.save()
             messages.success(request, 'Approver added successfully')
+            save_notification('New approver has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='approval_routing')
             return redirect('approval_routing')
         else:
             messages.error(request, 'Error. New Approval Route not set up.')
@@ -1097,6 +1136,7 @@ def products(request):
             product.buyer_cos.add(buyer.company)
             product.save()
             messages.success(request, "Product added successfully")
+            save_notification('New product ' + product.name + 'has been added to the catalog', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
             return redirect('products')
         else:
             messages.error(request, 'Error. Catalog list not updated.')
@@ -1118,6 +1158,7 @@ def upload_product_csv(request):
             try:                
                 handle_product_upload(reader, buyer.company)                
                 messages.success(request, 'Products successfully uploaded.')
+                save_notification('New products have been added to the catalog', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
                 return redirect('products')
             except:
                 messages.error(request, 'Error. Not all products uploaded. Please ensure all fields are correctly filled in and try again.')
@@ -1174,6 +1215,7 @@ def vendors(request):
             location.company = vendor
             location.save()
             messages.success(request, "Vendor added successfully")
+            save_notification('New vendor ' + vendor.name + 'added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
             return redirect('vendors')
         else:
             messages.error(request, 'Error. Vendor list not updated.')
@@ -1198,7 +1240,7 @@ def view_vendor(request, vendor_id, vendor_name):
         if vendor_form.is_valid() and location_form.is_valid():
             vendor_co = vendor_form.save()
             location = location_form.save()
-            messages.success(request, "Vendor updated successfully")
+            messages.success(request, "Vendor updated successfully")            
         else:
             messages.error(request, 'Error. Vendor not updated.')
     data = {
@@ -1222,6 +1264,7 @@ def upload_vendor_csv(request):
             try:                
                 handle_vendor_upload(reader, buyer.company, currency)
                 messages.success(request, 'Vendor list successfully uploaded.')
+                save_notification('New vendors have been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
                 return redirect('vendors')
             except:
                 messages.error(request, 'Error. Not all vendors uploaded. Please ensure all fields are correctly filled in and try again.')
@@ -1268,6 +1311,7 @@ def categories(request):
             category.buyer_co = request.user.buyer_profile.company
             category.save()
             messages.success(request, "Category added successfully")
+            save_notification('New category ' + category.name + 'added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
             return redirect('categories')   
         else:
             messages.error(request, 'Error. Category list not updated.')

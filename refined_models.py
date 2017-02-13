@@ -9,6 +9,9 @@ from django.utils import timezone
 from .managers import *
 from .validators import validate_file_extension
 
+# REDONE MODELS.PY WITH ORDERITEM STATUS' BUILT OUT SEPARATELY SO no qty_delivered etc
+# WOULD REQUIRE LOTS OF CHANGES TO FORMS, VIEWS etc
+
 
 ################################
 ###     COMPANY DETAILS     ### 
@@ -281,92 +284,70 @@ class CatalogItem(models.Model):
 
 class Item(models.Model):
 	number = models.CharField(max_length=20)
-	product = models.ForeignKey(CatalogItem, related_name='items')
-	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	qty_requested = models.IntegerField(default=1) 	
-	qty_approved = models.IntegerField(null=True, blank=True, default=0)	
-	comments_request = models.CharField(max_length=500, blank=True, null=True)
-	comments_approved = models.CharField(max_length=500, blank=True, null=True)
-	date_due = models.DateField(default=timezone.now)
+	product = models.ForeignKey(CatalogItem, related_name='%(class)ss')
+	date_due = models.DateField(default=timezone.now)	
 
 	# Managers - overridden in managers.py
 	objects = models.Manager() # default manager
 	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
 
-	# class Meta:
-	# 	abstract = True
+	class Meta:
+		abstract = True
 
-	def get_requested_date(self):
-	    return self.status_updates.filter(value='Pending').date
+	def __unicode__(self):
+		return "[{}] {}".format(self.number, self.product.name)
 
-	def get_approved_date(self):
-	    return self.status_updates.filter(value='Approved').date
-	
+	def is_pending(self):
+		if self.status_updates.latest('date').value in ['Request Pending', 'Request Approved', 'Ordered']:
+			return True
+		return False
+
 	def is_past_due(self):
-		if timezone.now().date() > self.date_due:
+		if timezone.now().date() > self.date_due and not self.is_pending():
 			return True
 		return False
 
 	def get_latest_status(self):
-	    return self.status_updates.latest('date')	
+	    return self.status_updates.order_by['-date'][0]
+	
+	# Return the latest status with specific value 
+	def get_status_with_value(self, value='Request Pending'):
+	    return self.status_updates.filter(value=value).order_by['-date'][0]
 
-class OrderItem(Item):		
-	qty_ordered = models.IntegerField(null=True, blank=True, default=0)
-	qty_delivered = models.IntegerField(null=True, blank=True, default=0)
-	qty_returned = models.IntegerField(null=True, blank=True, default=0)	
-	comments_order = models.CharField(max_length=500, blank=True, null=True)	
-	comments_delivery = models.CharField(max_length=500, blank=True, null=True)		
-	department = models.ForeignKey(Department, related_name="items")
-	account_code = models.ForeignKey(AccountCode, related_name="items", null=True, blank=True)	
-	requisition = models.ForeignKey(Requisition, related_name='items', null=True, blank=True)
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', null=True, blank=True)
-	invoice = models.ForeignKey(Invoice, related_name='items', null=True, blank=True)
+	# Return the details of the latest status with specific value (date/unit_price/quantity/sub-total/comments etc)
+	def get_date_with_status(self, status):
+		return self.get_status_with_value(status=status).date
 	
-	def __unicode__(self):
-		return "[{}] {}".format(self.number, self.product.name)
-	
-	# Helper function for all get_x_subtotal functions
-	def get_subtotal(self, price, quantity):
+	def get_price_with_status(self, status):
+		return self.get_status_with_value(status=status).unit_price
+
+	def get_quantity_with_status(self, status):
+		return self.get_status_with_value(status=status).quantity				
+
+	def get_subtotal_with_status(self, status):
 		try:
-			return price * quantity
+			return self.get_price_with_status(status=status) * self.get_quantity_with_status(status=status)
 		except TypeError: #If qty is not defined
 			return '-'
 
-	@property
-	def get_requested_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_requested)
-	
-	def get_approved_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_approved)
+	def get_comments_with_status(self, status):
+		return self.get_status_with_value(status=status).comments	
 
-	def get_ordered_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_ordered)
+class OrderItem(Item):
+	requisition = models.ForeignKey(Requisition, related_name='items', null=True, blank=True)
+	purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', null=True, blank=True)
+	invoice = models.ForeignKey(Invoice, related_name='items', null=True, blank=True)	
 
-	def get_delivered_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_delivered)
-
-	def get_refund_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_returned)
-
-	@property
-	def get_delivered_date(self):
-	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
-	
 
 class DrawdownItem(Item):
-	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
-	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
-	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)	
-
-	def get_drawdown_date(self):
-	    return self.status_updates.filter(value='Drawdown').date
+	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)
 
 ##########################################
 #####      STATUS (DOC & ITEM)       ##### 
 ########################################## 
 
-class Status(models.Model):
-	value = models.CharField(max_length=20, choices=settings.STATUSES, default='Pending')
+class Status(models.Model):	
+	value = models.CharField(max_length=20)
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")
 
@@ -386,17 +367,42 @@ class Status(models.Model):
 class DocumentStatus(Status):
 	document = models.ForeignKey(Document, related_name="status_updates")
 
-class OrderItemStatus(Status):
-	item = models.ForeignKey(OrderItem, related_name='status_updates')
+	# Override the choices for DocumentStatus 'value' field
+	def __init__(self, *args, **kwargs):
+        self._meta.get_field('value').choices=settings.DOC_STATUSES
+        super(DocumentStatus, self).__init__(*args, **kwargs)
 
-class DrawdownItemStatus(Status):
-	item = models.ForeignKey(DrawdownItem, related_name='status_updates')
+class ItemStatus(Status):
+	quantity = models.IntegerField()
+	department = models.ForeignKey(Department, related_name="items", null=True, blank=True)
+	comments = models.CharField(max_length=500, blank=True, null=True)
+	item = models.ForeignKey(OrderItem, related_name='status_updates')
+	
+	class Meta:
+		abstract = True
+
+class OrderItemStatus(ItemStatus):
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)	
+	account_code = models.ForeignKey(AccountCode, related_name="items", null=True, blank=True) #Mainly for billing of delivered items
+
+	# Override the choices for OrderItemStatus 'value' field
+	def __init__(self, *args, **kwargs):
+        self._meta.get_field('value').choices=settings.ORDER_ITEM_STATUSES
+        super(OrderItemStatus, self).__init__(*args, **kwargs)
+
+class DrawdownItemStatus(ItemStatus):
+	pass
+
+	# Override the choices for DrawdownItemStatus 'value' field
+	def __init__(self, *args, **kwargs):
+        self._meta.get_field('value').choices=settings.DRAWDOWN_ITEM_STATUSES
+        super(OrderItemStatus, self).__init__(*args, **kwargs)
 
 ##########################################
-#####    RATINGS & NOTIFICATIONS     ##### 
+#####           RATINGS              ##### 
 ########################################## 
 
-class Rating(models.Model):	
+class Rating(models.Model):
 	score = models.IntegerField(choices=settings.SCORES)
 	category = models.CharField(choices=settings.CATEGORIES, max_length=15, default='Total')
 	rater = models.ForeignKey(User, related_name="ratings")
@@ -404,33 +410,5 @@ class Rating(models.Model):
 	comments = models.CharField(max_length=100)
 
 	def __unicode__(self):
-		return u"{} - {}".format(self.receiver, self.value)
+		return "{} - {}".format(self.receiver, self.value)
 
-class Notification(models.Model):
-	"""
-    Significantly simplified version of django-notifications
-    Details: https://github.com/django-notifications/django-notifications/blob/master/notifications/models.py
-    Haven't implemented "Action model describing the actor acting out a verb (on an optional target)"
-    	<actor> <verb> <action_object> <target> <time> 
-    Instead, simple text string notification for now
-
-    """
-	text = models.CharField(max_length=100, blank=False)
-	CATEGORIES = (
-		('Success', 'Success'),
-		('Info', 'Info'),
-		('Warning', 'Warning'),
-		('Error', 'Error')
-	)
-	category = models.CharField(choices=CATEGORIES, default='Info', max_length=20)
-	recipients = models.ManyToManyField(User, blank=False, related_name='notifications')
-	is_unread = models.BooleanField(default=True, blank=False)
-	target = models.CharField(max_length=100, null=True, blank=True) #url
-
-	def __unicode__(self):
-		return u"{}".format(self.text)
-
-	def mark_as_read(self):
-		if self.unread:
-			self.unread = False
-			self.save()

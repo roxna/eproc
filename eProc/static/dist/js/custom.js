@@ -4,23 +4,33 @@ $(document).ready(function(){
 	**** REQ: ADD/DELETE ORDER ITEM DETAILS  ****
 	********************************************/
 	
-	var prefix = 'order_items';
+	// Set prefix based on formset name: 
+	if (window.location.pathname.includes('unbilled-items')){
+		// new_req, new_dd --> prefix='items'
+		var prefix = 'form';	
+	}else{
+		// unbilled_items
+		var prefix = 'items';
+	}
+	
+	
 	var id_regex = new RegExp('(' + prefix + '-\\d+)');
 
 	// Register the click event handlers
 	$("#add").click(function () {
-	    return addForm(this, prefix);
+		return addForm(this, prefix);
 	});
 
 	$(".delete").click(function () {
-	    return deleteForm(this, prefix);
-	});
+		return deleteForm(this, prefix);
+	});	
 
 	function addForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
 	    
         // Clone a form (w/o event handlers) from 1st form row & insert it after last form row
         var row = $(".item:first").clone(false).get(0);	
+        $(row).find(':input').val('');
         row = $(row).attr('id', $(row).attr('id').replace(id_regex, prefix+'-'+formCount));
         
         $(row).hide().insertAfter(".item:last").slideDown(300);
@@ -28,9 +38,10 @@ $(document).ready(function(){
         // Update the total form count
         $("#id_" + prefix + "-TOTAL_FORMS").val(formCount + 1);
 
-        // Add an event handler for the delete item/form link 
-        $(row).find(".delete").click(function () {
+        // Add an event handler for the delete item/form link
+        $(row).find(".delete").click(function () {        	
             return deleteForm(this, prefix);
+            // return prefixForDeleteForm(this);
         });
         
         // Remove the bits we don't want in the new row/form e.g. error messages
@@ -41,11 +52,11 @@ $(document).ready(function(){
         $(row).children().children().each(function () {
             updateElementIndex(this, prefix, formCount);
             $(this).attr('value', '');
-            console.log(this);
         });
 	}	
 
-	function updateElementIndex(el, prefix, ndx) {		
+	function updateElementIndex(el, prefix, ndx) {
+		// var id_regex = new RegExp('(' + prefix + '-\\d+)');
 	    var replacement = prefix + '-' + ndx;	    
 		
 		// Update the id/name/for values for each bit of the new row 
@@ -56,7 +67,7 @@ $(document).ready(function(){
 
 	function deleteForm(btn, prefix) {
 	    var formCount = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
-	    if (formCount > 1) {	        
+	    if (formCount > 1) {	 
 	        $(btn).parents('.item').remove(); // Delete the item/form 
 	        var forms = $('.item'); // Get all the forms  
 	        

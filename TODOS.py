@@ -1,9 +1,7 @@
-# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
-##### THREE WAY MATCH - receiving report (http://www.accountingcoach.com/blog/what-is-three-way-match)
+# OVERHAUL ORDER ITEM MODEL
 
-# (Bug) New Req/New DD - add Order_Items incl. unit_price not updating, delete not working
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
-# Issue receipts for goods??
+
 
 # *****************************
 
@@ -23,7 +21,7 @@
 # 12. customize dashboard based on auth permissions?
 # New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
-
+# 13. Issue receipts for goods???
 
 # BIG
 # ****************************
@@ -38,7 +36,6 @@
 
 # NEW FEATURES
 # ****************************
-# NOTIFICATIONS on approvals, order receipt etc
 # PAYMENTSS:
 	# https://www.procurify.com/product/pay
 	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
@@ -73,6 +70,7 @@
 # REFINEMENTS:
 # ****************************
 # activate - url shouldnt be 127:00...
+# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 # Fasclick menu select
 # Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item

@@ -425,9 +425,7 @@ class NewReqItemForm(ModelForm):
                 Div('qty_requested', css_class='col-md-2'),
                 Div('account_code', css_class='col-md-3'),
                 Div('comments_request', css_class='col-md-3'),
-                HTML('<div class="col-md-1 delete" style="margin-top: 2em;">' +
-                        '<a href="#"><i class="fa fa-trash"></i></a>' +
-                    '</div>'),
+                HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
         )
@@ -509,7 +507,7 @@ class NewPOItemForm(ModelForm):
         model = OrderItem
         fields = ("product", "qty_approved", "qty_ordered", "unit_price", "comments_order")
 
-# NOT A MODEL FORM
+# NOT A MODEL FORM - used in unbilled_items
 class UnbilledItemAllocationForm(forms.Form):
     location = forms.ModelChoiceField(queryset=Location.objects.all())
     department = forms.ModelChoiceField(queryset=Department.objects.all())
@@ -523,13 +521,11 @@ class UnbilledItemAllocationForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('location', css_class='col-sm-2 col-lg-3'),
-                Div('department', css_class='col-sm-2 col-lg-3'),
-                Div('account_code', css_class='col-sm-2 col-lg-2'),
-                Div('cost', css_class='col-sm-2 col-lg-2'),
-                HTML('<div class="col-sm-1 col-lg-1 delete" style="margin-top: 2em;">' +
-                        '<a href="#"><i class="fa fa-trash"></i></a>' +
-                    '</div>'),
+                Div('location', css_class='col-md-3'),
+                Div('department', css_class='col-md-3'),
+                Div('account_code', css_class='col-md-2'),
+                Div('cost', css_class='col-md-2'),
+                HTML('<a class="unbilled_items delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
         )
@@ -587,7 +583,7 @@ class DrawdownItemForm(ModelForm):
                 Div('product', css_class='col-md-4'),                
                 Div('qty_requested', css_class='col-md-2'),
                 Div('comments_requested', css_class='col-md-5'),
-                HTML('<a class="delete col-md-1" style="margin-top:30px" href="#"><i class="fa fa-trash"></i></a>'),
+                HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
         )

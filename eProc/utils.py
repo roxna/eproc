@@ -37,7 +37,7 @@ def initialize_req_form(buyer, requisition_form, orderitem_formset):
         requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
     
     for form in orderitem_formset: 
-        form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)
+        form.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)
         form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
 def initialize_po_form(buyer, po_form):
@@ -60,7 +60,7 @@ def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
         drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser']).exclude(user=buyer.user)
     
     for drawdownitem_form in drawdownitem_formset: 
-        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_co=buyer.company)    
+        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)    
 
 
 ################################
@@ -96,9 +96,9 @@ def save_items(buyer, document, item_formset):
             if isinstance(document, Requisition):
                 item.number = document.number + "-" + str(index+1)
                 item.requisition = document
-                item.department = requisition.department
+                item.department = document.department
                 item.save() #Need to save to get item.get_requested_subtotal
-                document.sub_total += item.get_requested_subtotal()
+                document.sub_total += item.get_requested_subtotal
                 if buyer.role == 'SuperUser':
                     item.qty_approved = item.qty_requested
                 item.unit_price = item.product.unit_price
@@ -156,6 +156,11 @@ def save_file_to_doc(file_form, file_type, file, document):
     file_instance.name = file.name + ' (' + timezone.now().strftime('%Y-%m-%d') + ')'
     file_instance.document = document
     file_instance.save()
+
+def save_notification(text, category, recipients=[], target=None):
+    notification = Notification.objects.create(text=text, category=category, target=target)
+    for recipient in recipients:
+        notification.recipients.add(recipient)
 
 
 ################################
