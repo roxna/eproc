@@ -13,7 +13,7 @@
 
     <div class="row">
       
-      {% include "_includes/analysis_chart.html" with chartID='supplierChart' legendID='supplierLegend' title='Top 10 Suppliers Percent of Spend' %}   
+      {% include "_includes/analysis_chart.html" with chartID='supplierChart' title='Top 10 Suppliers Percent of Spend' %}   
     
     </div> 
         
@@ -23,23 +23,9 @@
 
 {% block js %}
   <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+  <script src="{% static 'dist/js/charts.js' %}"></script>  
 
   <script type="text/javascript">
-
-    var options = {
-        tooltipTemplate: "<%= label %> (<%= value %>%)",
-        scales: {
-            xAxes: [{
-                stacked: true,
-                barPercentage: 0.7,
-                categoryPercentage: 0.9,
-            }],
-            yAxes: [{
-                stacked: true,
-            }]
-        },
-    };
-
 
     /****************** 
     Spend by Supplier      
@@ -51,15 +37,14 @@
             label: 'Top 10 Suppliers',
             // Best practices - 90% of spend should go to 5% of suppliers
             data: [{{top_supplier_spend_percent}}, 90],
-            backgroundColor: '{{background_color}}',
+            fillColor: "rgba(0,60,100,1)",
         }, 
       ]
-    };
-    
+    }; 
 
     // Pass in data/options and generate chart
     var supplierCtx = $("#supplierChart").get(0).getContext("2d");
-    var supplierChart = new Chart(supplierCtx).Bar(supplierData, options);
+    var supplierChart = new Chart(supplierCtx).Bar(supplierData, barChartOptions);
 
   </script>
 {% endblock js %}

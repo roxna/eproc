@@ -286,16 +286,28 @@
               </a>
               <ul class="treeview-menu">
                 <li>
-                  <a href="{%url 'analysis' %}">
-                    <i class="fa {{ICONS.company}}"></i> 
-                    <span>Company Spend</span>
+                  <a href="{%url 'spend_by_location_dept' %}">
+                    <i class="fa {{ICONS.locations}}"></i> 
+                    <span>Spend by Location/Dept</span>
                   </a>
                 </li>
-              <li>
-                <a href="{%url 'industry_benchmarks' %}">
-                  <i class="fa {{ICONS.industry}}"></i> 
-                  <span>Industry Benchmarks</span>
-                </a>
+                <li>
+                  <a href="{%url 'spend_by_product_category' %}">
+                    <i class="fa {{ICONS.products}}"></i> 
+                    <span>Spend by Product/Category</span>
+                  </a>
+                </li>     
+                <li>
+                  <a href="{%url 'spend_by_entity' %}">
+                    <i class="fa {{ICONS.users}}"></i> 
+                    <span>Spend by Entities</span>
+                  </a>
+                </li>                            
+                <li>
+                  <a href="{%url 'industry_benchmarks' %}">
+                    <i class="fa {{ICONS.industry}}"></i> 
+                    <span>Industry Benchmarks</span>
+                  </a>
               </li>
             </ul>                
             {% endif %}  

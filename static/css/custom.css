@@ -140,12 +140,16 @@ used in status_formatting_w/wo_href.html
 /**********************
 *** ANALYSIS CHARTS ***
 **********************/
-.pie-legend {
+.legend-container{
+	display: inline-block;
+	padding-right: 10px;
+}
+.legend {
 	list-style: none !important;
 	margin: 0;
 	padding: 0;
 }
-.pie-legend span {
+.legend span {
 	display: inline-block;
 	width: 14px;
 	height: 14px;

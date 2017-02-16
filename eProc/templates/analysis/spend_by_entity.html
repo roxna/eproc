@@ -1,12 +1,12 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 
-{% block title %}Analysis{% endblock title %}
+{% block title %}Spend by Entities{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Analysis</h1>{% endblock header %}
+{% block header %}<h1>Spend by Entities</h1>{% endblock header %}
 
 {% block content %}
 <section class="content"> 
@@ -17,10 +17,6 @@
       
   {% else %}
     <div class="row">
-      {% include "_includes/analysis_chart.html" with chartID='locationChart' legendID='locationLegend' title='Spend by Location' %}
-      {% include "_includes/analysis_chart.html" with chartID='deptChart' legendID='deptLegend' title='Spend by Department' %}
-      {% include "_includes/analysis_chart.html" with chartID='categoryChart' legendID='categoryLegend' title='Spend by Category' %}
-      {% include "_includes/analysis_chart.html" with chartID='productChart' legendID='productLegend' title='Spend by Product' %}      
       {% include "_includes/analysis_chart.html" with chartID='requesterChart' legendID='requesterLegend' title='Spend by Requester' %}
       {% include "_includes/analysis_chart.html" with chartID='approverChart' legendID='approverLegend' title='Spend by Approver' %}
       {% include "_includes/analysis_chart.html" with chartID='vendorChart' legendID='vendorLegend' title='Spend by Vendor' %}
@@ -33,7 +29,7 @@
 
 {% block js %}
   <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
-  <script>
+  <script type="text/javascript">
 
     var pastelColors = function(){
         var r = (Math.round(Math.random()* 127) + 127).toString(16);
@@ -56,70 +52,6 @@
       };
 
     $(function () {  
-
-      /****************** 
-      Spend by Location      
-      ********************/
-      var locationData = [];
-      {% for item in location_spend %}
-        locationData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.requisition__department__location__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-
-      // Pass in data/options, generate chart & legend
-      var locationCtx = $("#locationChart").get(0).getContext("2d");
-      var locationChart = new Chart(locationCtx).Pie(locationData, options);
-      $('#locationLegend').append(locationChart.generateLegend());
-
-      /****************** 
-      Spend by Department      
-      ********************/
-      var deptData = [];
-      {% for item in dept_spend %}
-        deptData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.requisition__department__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-
-      // Pass in data/options, generate chart & legend
-      var deptCtx = $("#deptChart").get(0).getContext("2d");
-      var deptChart = new Chart(deptCtx).Pie(deptData, options);
-      $('#deptLegend').append(deptChart.generateLegend());
-
-      /****************** 
-      Spend by Category      
-      ********************/
-      var categoryData = [];
-      {% for item in category_spend %}
-        categoryData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.product__category__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var categoryCtx = $("#categoryChart").get(0).getContext("2d");      
-      var categoryChart = new Chart(categoryCtx).Pie(categoryData, options);
-      $('#categoryLegend').append(categoryChart.generateLegend());
-
-      /****************** 
-      Spend by Product      
-      ********************/     
-      var productData = [];
-      {% for item in product_spend %}
-        productData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.product__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var productCtx = $("#productChart").get(0).getContext("2d");
-      var productChart = new Chart(productCtx).Pie(productData, options);
-      $('#productLegend').append(productChart.generateLegend());
 
       /****************** 
       Spend by Requester      

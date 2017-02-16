@@ -414,7 +414,6 @@ function _init() {
           ul.removeClass('menu-open');
           //Get the parent li
           var parent_li = $this.parent("li");
-          console.log(parent_li);
           //Open the target menu and add the menu-open class
           checkElement.slideDown(animationSpeed, function () {
             //Add the class active to the parent li

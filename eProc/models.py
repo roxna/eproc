@@ -72,7 +72,7 @@ class Location(models.Model):
 	company = models.ForeignKey(Company, related_name="locations", null=True, blank=True)
 
 	def __unicode__(self):
-		return "{}".format(self.name)		
+		return u"{}".format(self.name)		
 
 	def get_address(self):
 		# return self.address1 + self.address2 + '\n' + self.city, self.state, self.zipcode, self.country

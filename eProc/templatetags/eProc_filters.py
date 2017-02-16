@@ -1,5 +1,7 @@
 from django import template
 from datetime import date
+import json
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -53,3 +55,9 @@ def as_percentage_of(part, whole):
         return "%d%%" % (part / whole * 100)
     except:
         return "0%"
+
+# To pass a list of strings from Django to JS, need to encode data to JSON
+# http://stackoverflow.com/questions/21150133/pass-a-list-of-string-from-django-to-javascript
+@register.filter
+def as_json(data):
+    return mark_safe(json.dumps(data))

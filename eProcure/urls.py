@@ -99,7 +99,9 @@ urlpatterns=[
     ])),
 
     url(r'^reports/', include([
-        url(r'^analysis/$', eProc_views.analysis, name='analysis'),
+        url(r'^spend-by-location-department/$', eProc_views.spend_by_location_dept, name='spend_by_location_dept'),
+        url(r'^spend-by-product-category/$', eProc_views.spend_by_product_category, name='spend_by_product_category'),
+        url(r'^spend-by-entity/$', eProc_views.spend_by_entity, name='spend_by_entity'),
         url(r'^industry-benchmarks/$', eProc_views.industry_benchmarks, name='industry_benchmarks'),
     ])),
     

@@ -137,59 +137,6 @@ def dashboard(request):
     }
     return render(request, "main/dashboard.html", data)
 
-@login_required()
-def analysis(request):
-    buyer = request.user.buyer_profile
-    
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
-
-    location_spend = items.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    category_spend = items.values('product__category__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    product_spend = items.values('product__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    vendor_spend = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    requester_spend = items.values('requisition__preparer__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    approver_spend = items.values('requisition__next_approver__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-
-    data = {
-        'items': items,
-        'location_spend': location_spend,
-        'dept_spend': dept_spend,
-        'category_spend': category_spend,
-        'product_spend': product_spend,
-        'requester_spend': requester_spend,
-        'approver_spend': approver_spend,        
-        'vendor_spend': vendor_spend,
-    }    
-    return render(request, "main/analysis.html", data)
-
-import math 
-@login_required()
-def industry_benchmarks(request):
-    buyer = request.user.buyer_profile
-
-    ##### SUPPLIER SPEND TOP 5% #####
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
-    
-    items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    
-    # Calculating # suppliers that is 5%, rounded down, and at least 1 (else error in top_supplier_spend)
-    # Best practices - 90% of spend should go to 5% of suppliers
-    num_suppliers =  max(1, math.floor(0.05 * VendorCo.objects.filter(buyer_co=buyer.company).count()))
-    top_supplier_spend = items_by_vendor.order_by('-total_spend')[:num_suppliers].aggregate(Sum('total_spend'))['total_spend__sum']
-    total_supplier_spend = items_by_vendor.aggregate(Sum('total_spend'))['total_spend__sum']
-    top_supplier_spend_percent = top_supplier_spend/total_supplier_spend*100
-
-
-    data = {
-        'top_supplier_spend_percent': round(top_supplier_spend_percent,2),
-        # 'top_supplier_spend_competitors': top_supplier_spend_competitors,
-        'background_color': background_color,
-    }
-    return render(request, "main/industry_benchmarks.html", data)
-
 
 ####################################
 ###        REQUISITIONS          ### 
@@ -1358,3 +1305,151 @@ def company_profile(request):
         'currency': buyer.company.currency,
     }
     return render(request, "settings/company_profile.html", data)  
+
+
+####################################
+###    REPORTS & ANALYSIS        ### 
+####################################
+
+#TODO: ALL ARE VERY INEFFICIENT ON THE DB - TO REFINE
+
+@login_required()
+def spend_by_location_dept(request):
+    buyer = request.user.buyer_profile
+
+    items, periods, items_by_period = setup_analysis_data(buyer)
+
+    """
+    LOCATION SPEND
+    """
+    location_spend = items.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
+
+    # Declare all LOCATION variables
+    location_spend_labels, location_spend_data = [], []
+    location_period_spend_data = {                
+        # 'loc_name': [spend_old, spend_mid, spend_today],
+    }
+    
+    # Set up for the LOCATION arrays that are passed into charts.js
+    for index, spend in enumerate(list(location_spend)):     
+        location_spend_labels.append(spend['requisition__department__location__name'])
+        location_spend_data.append(int(spend['total_spend']))
+
+        # Add the LOCATION NAMES as the key for each element in location_period_spend_data dictionary
+        # Using 'location_spend' array because that contains data from ALL time periods, so should include ALL location_names
+        location_period_spend_data[str(spend['requisition__department__location__name'])]=[0, 0, 0]
+
+
+    # Add the SPEND VALUES as an ARRAY for the relevant location (key) in location_period_spend_data dictionary
+    # VALUES ARRAY: 1st (index=0) - spend in period_old, 2nd - period_mid, 3rd - period_today
+    # Outer loop is to loop through items_by_period array
+    # Inner loop is to loop through spend at each location in each items array (items_old etc)
+    for i, period in enumerate(items_by_period):
+        item_spend_by_period = list(period.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
+        for j, location in enumerate(item_spend_by_period):
+            try:
+                loc_name = location['requisition__department__location__name'] 
+                loc_spend = int(location['total_spend']) 
+                # Assign the spend to the (i-1)th element in the values array for that location
+                location_period_spend_data[loc_name][i]=loc_spend 
+            except:
+                pass
+
+    """
+    DEPT SPEND
+    Same process as Location Spend --> for details, reference Location comments
+    """
+    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
+    
+    dept_spend_labels, dept_spend_data = [], []
+    dept_period_spend_data = {}
+    
+    for index, spend in enumerate(list(dept_spend)):     
+        dept_spend_labels.append(spend['requisition__department__name'])
+        dept_spend_data.append(int(spend['total_spend']))
+
+        dept_period_spend_data[str(spend['requisition__department__name'])]=[0, 0, 0]
+
+    for i, period in enumerate(items_by_period):
+        item_spend_by_period = list(period.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
+        for j, location in enumerate(item_spend_by_period):
+            try:
+                dept_name = location['requisition__department__name'] 
+                dept_spend = int(location['total_spend']) 
+                dept_period_spend_data[dept_name][i]=dept_spend 
+            except:
+                pass
+
+    data = {
+        'items': items,
+        'periods': periods,
+
+        'location_spend_labels': location_spend_labels,
+        'location_spend_data': location_spend_data,      
+        'location_period_spend_data': location_period_spend_data,  #location_period_spend_labels = periods
+
+        'dept_spend_labels': dept_spend_labels,
+        'dept_spend_data': dept_spend_data,
+        'dept_period_spend_data': dept_period_spend_data,   #dept_period_spend_labels = periods
+    }    
+    return render(request, "analysis/spend_by_location_dept.html", data)
+
+@login_required()
+def spend_by_product_category(request):
+    buyer = request.user.buyer_profile
+    
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+
+    category_spend = items.values('product__category__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    product_spend = items.values('product__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+
+    data = {
+        'items': items,
+        'category_spend': category_spend,
+        'product_spend': product_spend,
+    }    
+    return render(request, "analysis/spend_by_product_category.html", data)
+
+@login_required()
+def spend_by_entity(request):
+    buyer = request.user.buyer_profile
+    
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+
+    vendor_spend = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    requester_spend = items.values('requisition__preparer__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    approver_spend = items.values('requisition__next_approver__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+
+    data = {
+        'items': items,
+        'requester_spend': requester_spend,
+        'approver_spend': approver_spend,        
+        'vendor_spend': vendor_spend,
+    }    
+    return render(request, "analysis/spend_by_entity.html", data)
+
+import math 
+@login_required()
+def industry_benchmarks(request):
+    buyer = request.user.buyer_profile
+
+    ##### SUPPLIER SPEND TOP 5% #####
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    
+    items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    
+    # Calculating # suppliers that is 5%, rounded down, and at least 1 (else error in top_supplier_spend)
+    # Best practices - 90% of spend should go to 5% of suppliers
+    num_suppliers =  max(1, math.floor(0.05 * VendorCo.objects.filter(buyer_co=buyer.company).count()))
+    top_supplier_spend = items_by_vendor.order_by('-total_spend')[:num_suppliers].aggregate(Sum('total_spend'))['total_spend__sum']
+    total_supplier_spend = items_by_vendor.aggregate(Sum('total_spend'))['total_spend__sum']
+    top_supplier_spend_percent = top_supplier_spend/total_supplier_spend*100
+
+    data = {
+        'top_supplier_spend_percent': round(top_supplier_spend_percent,2),
+        # 'top_supplier_spend_competitors': top_supplier_spend_competitors,
+    }
+    return render(request, "analysis/industry_benchmarks.html", data)

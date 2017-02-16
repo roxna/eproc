@@ -1,7 +1,8 @@
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, Q
 from django.utils import timezone
+from datetime import datetime, timedelta
 from eProc.forms import *
 from eProc.models import *
 
@@ -219,8 +220,32 @@ def handle_vendor_upload(reader, buyer_co, currency):
                                                   country=country, phone=phone, email=email, company=vendor_co)
 
 
+################################
+###   REPORTS / ANALYSIS     ### 
+################################ 
+# Get time blocks for spend over time - used by all report views
+time_delta = 90 #(3months)
 
+def setup_analysis_data(buyer):
+    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    period_today, period_mid, period_old, period_end, periods = setup_periods()
+    items_by_period = setup_items_by_period(items, period_today, period_mid, period_old, period_end)
+    return items, periods, items_by_period
 
+def setup_periods():
+    period_today = datetime.today()
+    period_mid = period_today - timedelta(days=time_delta)
+    period_old = period_mid - timedelta(days=time_delta)
+    period_end = period_old - timedelta(days=time_delta)
+    periods = [period_old.strftime("%b %Y"), period_mid.strftime("%b %Y"), period_today.strftime("%b %Y"), ]
+    return period_today, period_mid, period_old, period_end, periods
 
+def setup_items_by_period(items, period_today, period_mid, period_old, period_end):
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department    
+    items_today = items.filter(Q(status_updates__date__gte=period_mid), Q(status_updates__date__lte=period_today))
+    items_mid = items.filter(Q(status_updates__date__gte=period_old), Q(status_updates__date__lte=period_mid))
+    items_old = items.filter(Q(status_updates__date__gte=period_end), Q(status_updates__date__lte=period_old))
+    items_by_period = [items_old, items_mid, items_today]
+    return items_by_period
 
 

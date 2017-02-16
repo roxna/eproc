@@ -1,0 +1,174 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles eProc_filters %}
+
+{% block title %}Spend by Location & Depts{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Spend by Location & Depts</h1>{% endblock header %}
+
+{% block content %}
+<section class="content"> 
+
+  {% if not items %}
+    <!-- If no items have been delivered/received i.e no 'spend' -->
+      {% include "_includes/docs/no_docs_add_now.html" with text="You haven't recorded any spend yet!" href='receive_pos' action='Receive items now' %}
+      
+  {% else %}
+    <div class="row">
+      <!-- Location charts -->
+      {% include "_includes/analysis_chart.html" with chartID='locationChart' title='Spend by Location - Total' %}
+      {% include "_includes/analysis_chart.html" with chartID='locationChangeChart' title='Spend By Location - By Time Period' %}   
+
+      <!-- Department charts -->
+      {% include "_includes/analysis_chart.html" with chartID='deptChart' title='Spend by Department - Total' %}
+      {% include "_includes/analysis_chart.html" with chartID='deptChangeChart' title='Spend By Department - By Time Period' %}   
+    </div> 
+        
+  {% endif %}
+
+{% endblock content %}
+
+{% block js %}
+  
+<script src="{% static 'plugins/chartjs/Chart.js' %}"></script>  
+<script src="{% static 'dist/js/charts.js' %}"></script>  
+
+<script type="text/javascript">
+      
+      // GLOBAL Configurations
+      Chart.defaults.global.responsive = true;
+      Chart.defaults.global.maintainAspectRatio = true;
+      Chart.defaults.global.legend.position = 'right';
+      // Chart.defaults.global.scales.display = false;
+
+      /****************** 
+      Spend by Location      
+      ********************/
+      
+      // SPEND BY LOCATION SNAP SHOT (PIE CHART)
+      var location_spend_colors = []
+      for (i=0; i<{{location_spend_labels|length}}; i++){
+        location_spend_colors.push(pastelColors());
+      }
+      var locationData = {
+        labels: {{location_spend_labels|as_json}},
+        datasets: [
+          {
+            data: {{location_spend_data}},
+            backgroundColor: location_spend_colors,
+          }
+        ]
+      };
+
+      // Pass in data/options, generate chart & legend
+      var locationCtx = $("#locationChart").get(0).getContext("2d");
+      var locationChart = new Chart(locationCtx, {
+        type: 'pie',
+        data: locationData,
+        options: {},
+      });
+
+
+      // SPEND BY LOCATION CHANGE OVER TIME (BAR CHART)      
+      // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+      {% autoescape off %}  
+      var locationChangeData = {
+        labels: {{periods|as_json}},
+        datasets: [
+          // Each one of these represents a location
+          {% for key, value in location_period_spend_data.items %}
+          {              
+              label: "{{key|safe}}",
+              data: {{value}},
+              backgroundColor: pastelColors(),
+          }, 
+          {% endfor %}
+        ]
+      };      
+      {% endautoescape %} 
+
+      // Pass in data/options and generate chart
+      var locationChangeCtx = $("#locationChangeChart").get(0).getContext("2d");
+      var locationChangeChart = new Chart(locationChangeCtx, {
+        type: 'bar',
+        data: locationChangeData,
+        options: {
+          scales: {
+             xAxes: [{
+                  stacked: true,
+             }],
+             yAxes: [{
+                  stacked: true
+             }]
+          }
+        },
+      });
+
+
+      /****************** 
+      Spend by Department      
+      ********************/
+
+      // SPEND BY DEPT SNAP SHOT (PIE CHART)
+      var dept_spend_colors = []
+      for (i=0; i<{{dept_spend_labels|length}}; i++){
+        dept_spend_colors.push(pastelColors());
+      }
+      var deptData = {
+        labels: {{dept_spend_labels|as_json}},
+        datasets: [
+          {
+            data: {{dept_spend_data}},
+            backgroundColor: dept_spend_colors,
+          }
+        ]
+      };
+
+      // Pass in data/options, generate chart & legend
+      var deptCtx = $("#deptChart").get(0).getContext("2d");
+      var deptChart = new Chart(deptCtx, {
+        type: 'pie',
+        data: deptData,
+        options: {},
+      });
+
+      // SPEND BY DEPARTMENT CHANGE OVER TIME (BAR CHART)      
+      // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+      {% autoescape off %}  
+      var deptChangeData = {
+        labels: {{periods|as_json}},
+        datasets: [
+          // Each one of these represents a location
+          {% for key, value in dept_period_spend_data.items %}
+          {              
+              label: "{{key|safe}}",
+              data: {{value}},
+              backgroundColor: pastelColors(),
+          }, 
+          {% endfor %}
+        ]
+      };      
+      {% endautoescape %} 
+
+      // Pass in data/options and generate chart
+      var deptChangeCtx = $("#deptChangeChart").get(0).getContext("2d");
+      var deptChangeChart = new Chart(deptChangeCtx, {
+        type: 'bar',
+        data: deptChangeData,
+        options: {
+          scales: {
+             xAxes: [{
+                  stacked: true,
+             }],
+             yAxes: [{
+                  stacked: true
+             }]
+          }
+        },
+      });
+
+
+  </script>
+{% endblock js %}

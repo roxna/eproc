@@ -1,5 +1,7 @@
 # OVERHAUL ORDER ITEM MODEL
 
+# Analysis in detail - overtime, fix bug
+
 # PO/Invoice - overinvoiced, GL codes for each line item on invoice
 
 # *****************************
@@ -90,7 +92,6 @@
 # LOW PRIO REFINEMENTS
 # ****************************
 # SPEND by BU/Dept (in Locations)
-# CUSTOM DJANGO FILTERS: # Template filters (https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/#writing-custom-template-filters)
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # ADD_USER functionality in USERS when able to filter dept based on location 
 # Mark notifications as 'read'
