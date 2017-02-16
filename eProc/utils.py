@@ -224,16 +224,18 @@ def handle_vendor_upload(reader, buyer_co, currency):
 ###   REPORTS / ANALYSIS     ### 
 ################################ 
 # Get time blocks for spend over time - used by all report views
-time_delta = 90 #(3months)
+time_delta = 10 # (in days)
 
 def setup_analysis_data(buyer):
+    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
     period_today, period_mid, period_old, period_end, periods = setup_periods()
     items_by_period = setup_items_by_period(items, period_today, period_mid, period_old, period_end)
     return items, periods, items_by_period
 
 def setup_periods():
-    period_today = datetime.today()
+    import pytz
+    period_today = datetime.now(pytz.utc)
     period_mid = period_today - timedelta(days=time_delta)
     period_old = period_mid - timedelta(days=time_delta)
     period_end = period_old - timedelta(days=time_delta)
@@ -247,5 +249,38 @@ def setup_items_by_period(items, period_today, period_mid, period_old, period_en
     items_old = items.filter(Q(status_updates__date__gte=period_end), Q(status_updates__date__lte=period_old))
     items_by_period = [items_old, items_mid, items_today]
     return items_by_period
+
+# LOCATION / DEPARTMENT / PRODUCT / CATEGORY
+def get_spend_by(spend_by, total_spend, total_spend_labels, total_spend_data, period_spend_data):
+    # Set up for the arrays that are passed into charts.js
+    for index, spend in enumerate(list(total_spend)):     
+        total_spend_labels.append(spend[spend_by])
+        total_spend_data.append(int(spend['total_spend']))
+
+        # Add the Loc/Dept NAMES as the key for each element in loc/dept_period_spend_data dictionary
+        # Using 'location/dept_spend' array because that contains data from ALL time periods, so should include ALL loc/dept_names
+        period_spend_data[str(spend[spend_by])]=[0, 0, 0]
+    return total_spend_labels, total_spend_data, period_spend_data
+
+
+def get_period_spend_values(spend_by, items_by_period, period_spend_data):
+    # Add the SPEND VALUES as an ARRAY for the relevant location (key) in location_period_spend_data dictionary
+    # VALUES ARRAY: 1st (index=0) - spend in period_old, 2nd - period_mid, 3rd - period_today
+    # Outer loop is to loop through items_by_period array
+    # Inner loop is to loop through spend at each location in each items array (items_old etc)
+    for i, period in enumerate(items_by_period):
+        item_spend_by_period = list(period.values(spend_by).annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
+        for j, item in enumerate(item_spend_by_period):
+            try:
+                name = item[spend_by] 
+                spend = int(item['total_spend']) 
+                # Assign the spend to the (i-1)th element in the values array for that location
+                period_spend_data[name][i] = spend
+            except:
+                pass
+    return period_spend_data
+
+
+
 
 

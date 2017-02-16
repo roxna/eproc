@@ -1319,67 +1319,23 @@ def spend_by_location_dept(request):
 
     items, periods, items_by_period = setup_analysis_data(buyer)
 
-    """
-    LOCATION SPEND
-    """
     location_spend = items.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
+    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
 
-    # Declare all LOCATION variables
-    location_spend_labels, location_spend_data = [], []
-    location_period_spend_data = {                
-        # 'loc_name': [spend_old, spend_mid, spend_today],
+    # Declare all variables
+    location_spend_labels, location_spend_data, dept_spend_labels, dept_spend_data = [], [], [], []
+    location_period_spend_data, dept_period_spend_data = {}, {                
+        # 'loc_name/dept_name': [spend_old, spend_mid, spend_today],
     }
     
-    # Set up for the LOCATION arrays that are passed into charts.js
-    for index, spend in enumerate(list(location_spend)):     
-        location_spend_labels.append(spend['requisition__department__location__name'])
-        location_spend_data.append(int(spend['total_spend']))
+    # Set up for the arrays that are passed into charts.js (see utils.py)
+    location_spend_labels, location_spend_data, location_period_spend_data = get_spend_by('requisition__department__location__name',location_spend, location_spend_labels, location_spend_data, location_period_spend_data)
+    dept_spend_labels, dept_spend_data, dept_period_spend_data = get_spend_by('requisition__department__name', dept_spend, dept_spend_labels, dept_spend_data, dept_period_spend_data)
 
-        # Add the LOCATION NAMES as the key for each element in location_period_spend_data dictionary
-        # Using 'location_spend' array because that contains data from ALL time periods, so should include ALL location_names
-        location_period_spend_data[str(spend['requisition__department__location__name'])]=[0, 0, 0]
-
-
-    # Add the SPEND VALUES as an ARRAY for the relevant location (key) in location_period_spend_data dictionary
-    # VALUES ARRAY: 1st (index=0) - spend in period_old, 2nd - period_mid, 3rd - period_today
-    # Outer loop is to loop through items_by_period array
-    # Inner loop is to loop through spend at each location in each items array (items_old etc)
-    for i, period in enumerate(items_by_period):
-        item_spend_by_period = list(period.values('requisition__department__location__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
-        for j, location in enumerate(item_spend_by_period):
-            try:
-                loc_name = location['requisition__department__location__name'] 
-                loc_spend = int(location['total_spend']) 
-                # Assign the spend to the (i-1)th element in the values array for that location
-                location_period_spend_data[loc_name][i]=loc_spend 
-            except:
-                pass
-
-    """
-    DEPT SPEND
-    Same process as Location Spend --> for details, reference Location comments
-    """
-    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
+    # Get the spend values by period by location/dept
+    location_period_spend_data = get_period_spend_values('requisition__department__location__name', items_by_period, location_period_spend_data)
+    dept_period_spend_data = get_period_spend_values('requisition__department__name', items_by_period, dept_period_spend_data)
     
-    dept_spend_labels, dept_spend_data = [], []
-    dept_period_spend_data = {}
-    
-    for index, spend in enumerate(list(dept_spend)):     
-        dept_spend_labels.append(spend['requisition__department__name'])
-        dept_spend_data.append(int(spend['total_spend']))
-
-        dept_period_spend_data[str(spend['requisition__department__name'])]=[0, 0, 0]
-
-    for i, period in enumerate(items_by_period):
-        item_spend_by_period = list(period.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
-        for j, location in enumerate(item_spend_by_period):
-            try:
-                dept_name = location['requisition__department__name'] 
-                dept_spend = int(location['total_spend']) 
-                dept_period_spend_data[dept_name][i]=dept_spend 
-            except:
-                pass
-
     data = {
         'items': items,
         'periods': periods,
@@ -1397,37 +1353,79 @@ def spend_by_location_dept(request):
 @login_required()
 def spend_by_product_category(request):
     buyer = request.user.buyer_profile
-    
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
 
-    category_spend = items.values('product__category__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    items, periods, items_by_period = setup_analysis_data(buyer)
+
+    category_spend = items.values('product__category__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
     product_spend = items.values('product__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
 
+    # Declare all variables
+    category_spend_labels, category_spend_data, product_spend_labels, product_spend_data = [], [], [], []
+    category_period_spend_data, product_period_spend_data = {}, {}
+    
+    # Set up for the arrays that are passed into charts.js (see utils.py)
+    category_spend_labels, category_spend_data, category_period_spend_data = get_spend_by('product__category__name', category_spend, category_spend_labels, category_spend_data, category_period_spend_data)
+    product_spend_labels, product_spend_data, product_period_spend_data = get_spend_by('product__name', product_spend, product_spend_labels, product_spend_data, product_period_spend_data)
+
+    # Get the spend values by period by location/dept
+    category_period_spend_data = get_period_spend_values('product__category__name', items_by_period, category_period_spend_data)
+    product_period_spend_data = get_period_spend_values('product__name', items_by_period, product_period_spend_data)
+    
     data = {
         'items': items,
-        'category_spend': category_spend,
-        'product_spend': product_spend,
+        'periods': periods,
+
+        'category_spend_labels': category_spend_labels,
+        'category_spend_data': category_spend_data,      
+        'category_period_spend_data': category_period_spend_data,
+
+        'product_spend_labels': product_spend_labels,
+        'product_spend_data': product_spend_data,
+        'product_period_spend_data': product_period_spend_data,
     }    
     return render(request, "analysis/spend_by_product_category.html", data)
 
 @login_required()
 def spend_by_entity(request):
     buyer = request.user.buyer_profile
-    
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
 
-    vendor_spend = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
-    requester_spend = items.values('requisition__preparer__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    items, periods, items_by_period = setup_analysis_data(buyer)
+
+    vendor_spend = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
     approver_spend = items.values('requisition__next_approver__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))
+    requester_spend = items.values('requisition__preparer__user__username').annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField()))    
 
+    # Declare all variables
+    vendor_spend_labels, vendor_spend_data, approver_spend_labels, approver_spend_data, requester_spend_labels, requester_spend_data = [], [], [], [], [], []
+    vendor_period_spend_data, approver_period_spend_data, requester_period_spend_data = {}, {}, {}
+    
+    # Set up for the arrays that are passed into charts.js (see utils.py)
+    vendor_spend_labels, vendor_spend_data, vendor_period_spend_data = get_spend_by('product__vendor_co__name', vendor_spend, vendor_spend_labels, vendor_spend_data, vendor_period_spend_data)
+    approver_spend_labels, approver_spend_data, approver_period_spend_data = get_spend_by('requisition__next_approver__user__username', approver_spend, approver_spend_labels, approver_spend_data, approver_period_spend_data)
+    requester_spend_labels, requester_spend_data, requester_period_spend_data = get_spend_by('requisition__preparer__user__username', requester_spend, requester_spend_labels, requester_spend_data, requester_period_spend_data)
+
+    # Get the spend values by period by location/dept
+    vendor_period_spend_data = get_period_spend_values('product__vendor_co__name', items_by_period, vendor_period_spend_data)
+    approver_period_spend_data = get_period_spend_values('requisition__next_approver__user__username', items_by_period, approver_period_spend_data)
+    requester_period_spend_data = get_period_spend_values('requisition__preparer__user__username', items_by_period, requester_period_spend_data)
+    
     data = {
         'items': items,
-        'requester_spend': requester_spend,
-        'approver_spend': approver_spend,        
-        'vendor_spend': vendor_spend,
-    }    
+        'periods': periods,
+
+        'vendor_spend_labels': vendor_spend_labels,
+        'vendor_spend_data': vendor_spend_data,      
+        'vendor_period_spend_data': vendor_period_spend_data,
+
+        'approver_spend_labels': approver_spend_labels,
+        'approver_spend_data': approver_spend_data,
+        'approver_period_spend_data': approver_period_spend_data,
+
+        'requester_spend_labels': requester_spend_labels,
+        'requester_spend_data': requester_spend_data,
+        'requester_period_spend_data': requester_period_spend_data,
+    } 
+  
     return render(request, "analysis/spend_by_entity.html", data)
 
 import math 

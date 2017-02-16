@@ -1,5 +1,5 @@
 {% extends '_layouts/base_portal.html' %}
-{% load staticfiles %}
+{% load staticfiles eProc_filters %}
 
 {% block title %}Spend by Product & Category{% endblock title %}
 
@@ -17,8 +17,13 @@
       
   {% else %}
     <div class="row">
+    <!-- Category charts -->
       {% include "_includes/analysis_chart.html" with chartID='categoryChart' legendID='categoryLegend' title='Spend by Category' %}
+      {% include "_includes/analysis_chart.html" with chartID='categoryChangeChart' title='Spend By Category - By Time Period' %}
+
+    <!-- Product charts -->
       {% include "_includes/analysis_chart.html" with chartID='productChart' legendID='productLegend' title='Spend by Product' %}
+      {% include "_includes/analysis_chart.html" with chartID='productChangeChart' title='Spend By Product - By Time Period' %}   
     </div> 
         
   {% endif %}
@@ -28,63 +33,140 @@
 
 {% block js %}
   <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+  <script src="{% static 'dist/js/charts.js' %}"></script>  
+
   <script type="text/javascript">
 
-    var pastelColors = function(){
-        var r = (Math.round(Math.random()* 127) + 127).toString(16);
-        var g = (Math.round(Math.random()* 127) + 127).toString(16);
-        var b = (Math.round(Math.random()* 127) + 127).toString(16);
-        return '#' + r + g + b;
+    // GLOBAL Configurations
+    Chart.defaults.global.responsive = true;
+    Chart.defaults.global.maintainAspectRatio = true;
+    Chart.defaults.global.legend.position = 'right';
+
+    /****************** 
+    Spend by Category      
+    ********************/
+    
+    // SPEND BY CATEGORY SNAP SHOT (PIE CHART)
+    var category_spend_colors = []
+    for (i=0; i<{{category_spend_labels|length}}; i++){
+      category_spend_colors.push(pastelColors());
     }
+    var categoryData = {
+      labels: {{category_spend_labels|as_json}},
+      datasets: [
+        {
+          data: {{category_spend_data}},
+          backgroundColor: category_spend_colors,
+        }
+      ]
+    };
 
-    var options = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
-        animation : false,
-        legendTemplate : '<ul class="pie-legend">'
-                  +'<% for (var i=0; i<segments.length; i++) { %>'
-                    +'<li>'
-                    +'<span style=\"background-color:<%=segments[i].fillColor%>\"></span>'
-                    +'<% if (segments[i].label) { %><%= segments[i].label %> <% } %>'
-                  +'</li>'
-                +'<% } %>'
-              +'</ul>'
-      };
-
-    $(function () {  
-
-      /****************** 
-      Spend by Category      
-      ********************/
-      var categoryData = [];
-      {% for item in category_spend %}
-        categoryData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.product__category__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var categoryCtx = $("#categoryChart").get(0).getContext("2d");      
-      var categoryChart = new Chart(categoryCtx).Pie(categoryData, options);
-      $('#categoryLegend').append(categoryChart.generateLegend());
-
-      /****************** 
-      Spend by Product      
-      ********************/     
-      var productData = [];
-      {% for item in product_spend %}
-        productData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.product__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var productCtx = $("#productChart").get(0).getContext("2d");
-      var productChart = new Chart(productCtx).Pie(productData, options);
-      $('#productLegend').append(productChart.generateLegend());
-
-     
+    // Pass in data/options, generate chart & legend
+    var categoryCtx = $("#categoryChart").get(0).getContext("2d");
+    var categoryChart = new Chart(categoryCtx, {
+      type: 'pie',
+      data: categoryData,
+      options: {},
     });
 
+
+    // SPEND BY CATEGORY CHANGE OVER TIME (BAR CHART)      
+    // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+    {% autoescape off %}  
+    var categoryChangeData = {
+      labels: {{periods|as_json}},
+      datasets: [
+        // Each one of these represents a category
+        {% for key, value in category_period_spend_data.items %}
+        {              
+            label: "{{key|safe}}",
+            data: {{value}},
+            backgroundColor: pastelColors(),
+        }, 
+        {% endfor %}
+      ]
+    };      
+    {% endautoescape %} 
+
+    // Pass in data/options and generate chart
+    var categoryChangeCtx = $("#categoryChangeChart").get(0).getContext("2d");
+    var categoryChangeChart = new Chart(categoryChangeCtx, {
+      type: 'bar',
+      data: categoryChangeData,
+      options: {
+        scales: {
+           xAxes: [{
+                stacked: true,
+           }],
+           yAxes: [{
+                stacked: true
+           }]
+        }
+      },
+    });
+
+
+    /****************** 
+    Spend by Product      
+    ********************/
+
+    // SPEND BY PRODUCT SNAP SHOT (PIE CHART)
+    var product_spend_colors = []
+    for (i=0; i<{{product_spend_labels|length}}; i++){
+      product_spend_colors.push(pastelColors());
+    }
+    var productData = {
+      labels: {{product_spend_labels|as_json}},
+      datasets: [
+        {
+          data: {{product_spend_data}},
+          backgroundColor: product_spend_colors,
+        }
+      ]
+    };
+
+    // Pass in data/options, generate chart & legend
+    var productCtx = $("#productChart").get(0).getContext("2d");
+    var productChart = new Chart(productCtx, {
+      type: 'pie',
+      data: productData,
+      options: {},
+    });
+
+    // SPEND BY PRODUCT CHANGE OVER TIME (BAR CHART)      
+    // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+    {% autoescape off %}  
+    var productChangeData = {
+      labels: {{periods|as_json}},
+      datasets: [
+        // Each one of these represents a category
+        {% for key, value in product_period_spend_data.items %}
+        {              
+            label: "{{key|safe}}",
+            data: {{value}},
+            backgroundColor: pastelColors(),
+        }, 
+        {% endfor %}
+      ]
+    };      
+    {% endautoescape %} 
+
+    // Pass in data/options and generate chart
+    var productChangeCtx = $("#productChangeChart").get(0).getContext("2d");
+    var productChangeChart = new Chart(productChangeCtx, {
+      type: 'bar',
+      data: productChangeData,
+      options: {
+        scales: {
+           xAxes: [{
+                stacked: true,
+           }],
+           yAxes: [{
+                stacked: true
+           }]
+        }
+      },
+    });
 
   </script>
 {% endblock js %}

@@ -1,5 +1,5 @@
 {% extends '_layouts/base_portal.html' %}
-{% load staticfiles %}
+{% load staticfiles eProc_filters %}
 
 {% block title %}Spend by Entities{% endblock title %}
 
@@ -17,9 +17,18 @@
       
   {% else %}
     <div class="row">
-      {% include "_includes/analysis_chart.html" with chartID='requesterChart' legendID='requesterLegend' title='Spend by Requester' %}
-      {% include "_includes/analysis_chart.html" with chartID='approverChart' legendID='approverLegend' title='Spend by Approver' %}
-      {% include "_includes/analysis_chart.html" with chartID='vendorChart' legendID='vendorLegend' title='Spend by Vendor' %}
+      <!-- Vendor charts -->
+      {% include "_includes/analysis_chart.html" with chartID='vendorChart' title='Spend by Vendor - Total' %} 
+      {% include "_includes/analysis_chart.html" with chartID='vendorChangeChart' title='Spend By Vendor - By Time Period' %}
+      
+      <!-- Approver charts -->
+      {% include "_includes/analysis_chart.html" with chartID='approverChart' title='Spend by Approver - Total' %}
+      {% include "_includes/analysis_chart.html" with chartID='approverChangeChart' title='Spend by Approver - By Time Period' %}
+
+      <!-- Requester charts -->      
+      {% include "_includes/analysis_chart.html" with chartID='requesterChart' title='Spend by Requester - Total' %}
+      {% include "_includes/analysis_chart.html" with chartID='requesterChangeChart' title='Spend by Requester - By Time Period' %}
+      
     </div> 
         
   {% endif %}
@@ -29,75 +38,205 @@
 
 {% block js %}
   <script src="{% static 'plugins/chartjs/Chart.min.js' %}"></script>  
+  <script src="{% static 'dist/js/charts.js' %}"></script>  
+
   <script type="text/javascript">
 
-    var pastelColors = function(){
-        var r = (Math.round(Math.random()* 127) + 127).toString(16);
-        var g = (Math.round(Math.random()* 127) + 127).toString(16);
-        var b = (Math.round(Math.random()* 127) + 127).toString(16);
-        return '#' + r + g + b;
+    
+// GLOBAL Configurations
+    Chart.defaults.global.responsive = true;
+    Chart.defaults.global.maintainAspectRatio = true;
+    Chart.defaults.global.legend.position = 'right';
+
+    /****************** 
+    Spend by Vendor      
+    ********************/
+    
+    // SPEND BY VENDOR SNAP SHOT (PIE CHART)
+    var vendor_spend_colors = []
+    for (i=0; i<{{vendor_spend_labels|length}}; i++){
+      vendor_spend_colors.push(pastelColors());
     }
+    var vendorData = {
+      labels: {{vendor_spend_labels|as_json}},
+      datasets: [
+        {
+          data: {{vendor_spend_data}},
+          backgroundColor: vendor_spend_colors,
+        }
+      ]
+    };
 
-    var options = {
-        tooltipTemplate: "<%= label %> ($<%= value %>)",
-        animation : false,
-        legendTemplate : '<ul class="pie-legend">'
-                  +'<% for (var i=0; i<segments.length; i++) { %>'
-                    +'<li>'
-                    +'<span style=\"background-color:<%=segments[i].fillColor%>\"></span>'
-                    +'<% if (segments[i].label) { %><%= segments[i].label %> <% } %>'
-                  +'</li>'
-                +'<% } %>'
-              +'</ul>'
-      };
+    // Pass in data/options, generate chart & legend
+    var vendorCtx = $("#vendorChart").get(0).getContext("2d");
+    var vendorChart = new Chart(vendorCtx, {
+      type: 'pie',
+      data: vendorData,
+      options: {},
+    });
 
-    $(function () {  
 
-      /****************** 
-      Spend by Requester      
-      ********************/     
-      var requesterData = [];
-      {% for item in requester_spend %}
-        requesterData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.requisition__preparer__user__username}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var requesterCtx = $("#requesterChart").get(0).getContext("2d");
-      var requesterChart = new Chart(requesterCtx).Pie(requesterData, options);
-      $('#requesterLegend').append(requesterChart.generateLegend());
+    // SPEND BY vendor CHANGE OVER TIME (BAR CHART)      
+    // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+    {% autoescape off %}  
+    var vendorChangeData = {
+      labels: {{periods|as_json}},
+      datasets: [
+        // Each one of these represents a vendor
+        {% for key, value in vendor_period_spend_data.items %}
+        {              
+            label: "{{key|safe}}",
+            data: {{value}},
+            backgroundColor: pastelColors(),
+        }, 
+        {% endfor %}
+      ]
+    };      
+    {% endautoescape %} 
 
-      /****************** 
-      Spend by Approver      
-      ********************/     
-      var approverData = [];
-      {% for item in approver_spend %}
-        approverData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.requisition__next_approver__user__username}}',
-          color: pastelColors(),
-        };
-      {% endfor %}      
-      var approverCtx = $("#approverChart").get(0).getContext("2d");
-      var approverChart = new Chart(approverCtx).Pie(approverData, options);
-      $('#approverLegend').append(approverChart.generateLegend());   
+    // Pass in data/options and generate chart
+    var vendorChangeCtx = $("#vendorChangeChart").get(0).getContext("2d");
+    var vendorChangeChart = new Chart(vendorChangeCtx, {
+      type: 'bar',
+      data: vendorChangeData,
+      options: {
+        scales: {
+           xAxes: [{
+                stacked: true,
+           }],
+           yAxes: [{
+                stacked: true
+           }]
+        }
+      },
+    });
 
-      /****************** 
-      Spend by Vendor      
-      ********************/     
-      var vendorData = [];
-      {% for item in vendor_spend %}
-        vendorData[{{forloop.counter0}}] = {
-          value: {{item.total_spend}},
-          label: '{{item.product__vendor_co__name}}',
-          color: pastelColors(),
-        };
-      {% endfor %}
-      var vendorCtx = $("#vendorChart").get(0).getContext("2d");
-      var vendorChart = new Chart(vendorCtx).Pie(vendorData, options);
-      $('#vendorLegend').append(vendorChart.generateLegend());
 
+    /****************** 
+    Spend by APPROVER      
+    ********************/
+
+    // SPEND BY APPROVER (PIE CHART)
+    var approver_spend_colors = []
+    for (i=0; i<{{approver_spend_labels|length}}; i++){
+      approver_spend_colors.push(pastelColors());
+    }
+    var approverData = {
+      labels: {{approver_spend_labels|as_json}},
+      datasets: [
+        {
+          data: {{approver_spend_data}},
+          backgroundColor: approver_spend_colors,
+        }
+      ]
+    };
+
+    // Pass in data/options, generate chart & legend
+    var approverCtx = $("#approverChart").get(0).getContext("2d");
+    var approverChart = new Chart(approverCtx, {
+      type: 'pie',
+      data: approverData,
+      options: {},
+    });
+
+
+    // SPEND BY APPROVER CHANGE OVER TIME (BAR CHART)      
+    // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+    {% autoescape off %}  
+    var approverChangeData = {
+      labels: {{periods|as_json}},
+      datasets: [
+        // Each one of these represents a vendor
+        {% for key, value in approver_period_spend_data.items %}
+        {              
+            label: "{{key|safe}}",
+            data: {{value}},
+            backgroundColor: pastelColors(),
+        }, 
+        {% endfor %}
+      ]
+    };      
+    {% endautoescape %} 
+
+    // Pass in data/options and generate chart
+    var approverChangeCtx = $("#approverChangeChart").get(0).getContext("2d");
+    var approverChangeChart = new Chart(approverChangeCtx, {
+      type: 'bar',
+      data: approverChangeData,
+      options: {
+        scales: {
+           xAxes: [{
+                stacked: true,
+           }],
+           yAxes: [{
+                stacked: true
+           }]
+        }
+      },
+    });
+
+
+    /****************** 
+    Spend by REQUESTER      
+    ********************/
+
+    // SPEND BY REQUESTER (PIE CHART)
+    var requester_spend_colors = []
+    for (i=0; i<{{requester_spend_labels|length}}; i++){
+      requester_spend_colors.push(pastelColors());
+    }
+    var requesterData = {
+      labels: {{requester_spend_labels|as_json}},
+      datasets: [
+        {
+          data: {{requester_spend_data}},
+          backgroundColor: requester_spend_colors,
+        }
+      ]
+    };
+
+    // Pass in data/options, generate chart & legend
+    var requesterCtx = $("#requesterChart").get(0).getContext("2d");
+    var requesterChart = new Chart(requesterCtx, {
+      type: 'pie',
+      data: requesterData,
+      options: {},
+    });
+
+
+    // SPEND BY REQUESTER CHANGE OVER TIME (BAR CHART)      
+    // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+    {% autoescape off %}  
+    var requesterChangeData = {
+      labels: {{periods|as_json}},
+      datasets: [
+        // Each one of these represents a vendor
+        {% for key, value in requester_period_spend_data.items %}
+        {              
+            label: "{{key|safe}}",
+            data: {{value}},
+            backgroundColor: pastelColors(),
+        }, 
+        {% endfor %}
+      ]
+    };      
+    {% endautoescape %} 
+
+    // Pass in data/options and generate chart
+    var requesterChangeCtx = $("#requesterChangeChart").get(0).getContext("2d");
+    var requesterChangeChart = new Chart(requesterChangeCtx, {
+      type: 'bar',
+      data: requesterChangeData,
+      options: {
+        scales: {
+           xAxes: [{
+                stacked: true,
+           }],
+           yAxes: [{
+                stacked: true
+           }]
+        }
+      },
     });
 
 
