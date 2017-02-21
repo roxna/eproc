@@ -99,7 +99,8 @@ class Department(models.Model):
 
 	def get_spend_percent_of_budget(self):
 		try:
-			return "{} %".format(self.get_spend_approved_ytd()/self.budget*100)
+			percent = self.get_spend_approved_ytd()/self.budget*100
+			return str(round(percent, 2)) + '%'
 		except ZeroDivisionError:
 			return "No budget defined"
 
@@ -223,6 +224,7 @@ class PurchaseOrder(SalesOrder):
 class Invoice(SalesOrder):
 	date_issued = models.DateTimeField(default=timezone.now) #Date issued by the vendor
 	purchase_orders = models.ManyToManyField(PurchaseOrder, related_name="invoices")	
+
 
 class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')

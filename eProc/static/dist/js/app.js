@@ -389,12 +389,12 @@ function _init() {
     var _this = this;
     var animationSpeed = $.AdminLTE.options.animationSpeed;
     $(document).off('click', menu + ' li a')
-      .on('click', menu + ' li a', function (e) {
+      .on('click', menu + ' li a', function (e) {        
         //Get the clicked link and the next element
         var $this = $(this);
         var checkElement = $this.next();
 
-        //Check if the next element is a menu and is visible
+        //If the next element is a menu and is visible, slide the menu up
         if ((checkElement.is('.treeview-menu')) && (checkElement.is(':visible')) && (!$('body').hasClass('sidebar-collapse'))) {
           //Close the menu
           checkElement.slideUp(animationSpeed, function () {
@@ -404,7 +404,7 @@ function _init() {
           });
           checkElement.parent("li").removeClass("active");
         }
-        //If the menu is not visible
+        //If the menu is not visible, slide the menu down
         else if ((checkElement.is('.treeview-menu')) && (!checkElement.is(':visible'))) {
           //Get the parent menu
           var parent = $this.parents('ul').first();
@@ -419,7 +419,7 @@ function _init() {
             //Add the class active to the parent li
             checkElement.addClass('menu-open');
             parent.find('li.active').removeClass('active');
-            parent_li.addClass('active');
+            parent_li.addClass('active');            
             
             //Fix the layout in case the sidebar stretches over the height of the window
             _this.layout.fix();

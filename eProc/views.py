@@ -700,7 +700,7 @@ def unbilled_items(request):
     return render(request, "acpayable/unbilled_items.html", data)
 
 @login_required
-def receiving_reports(request):
+def receiving_summary(request):
     buyer = request.user.buyer_profile
     
     items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
@@ -711,9 +711,9 @@ def receiving_reports(request):
         'items_received_all': items_received_all,
         'items_received_this_week': items_received_this_week,
         'items_received_this_month': items_received_this_month,
-        'table_headers': ['PO No.', 'Item No.', 'Vendor', 'Product', 'Most Recent Delivery', 'Recd. - Qty', 'Recd. - Amount', 'Ordered - Qty', 'Ordered - Amount', 'Recd. %']
+        'table_headers': ['PO', 'Item', 'Vendor', 'Product', 'Most Recent Delivery', 'Recd. - Qty', 'Recd. - Amount', 'Ordered - Qty', 'Ordered - Amount', 'Recd. %']
     }
-    return render(request, "acpayable/receiving_reports.html", data)
+    return render(request, "acpayable/receiving_summary.html", data)
 
 ####################################
 ###          INVENTORY           ### 
@@ -1020,7 +1020,7 @@ def view_location(request, location_id, location_name):
 
         'departments': departments,
         'department_form': department_form,
-        'dept_table_headers': ['Name', 'Annual budget ('+currency+')'],        
+        'dept_table_headers': ['Name', 'Spend YTD', 'Spend % of budget'],        
     }
     return render(request, "settings/view_location.html", data)
 

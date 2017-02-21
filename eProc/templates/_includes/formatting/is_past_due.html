@@ -11,7 +11,7 @@
 
 	<!-- Else is a Document i.e. class = Req/PO/Invoice/DD -->
 	{% else %}
-		{% if doc.get_latest_status.value == 'Pending' and obj.is_past_due %}
+		{% if obj.get_latest_status.value == 'Pending' and obj.is_past_due %}
 		  <span class="label label-danger">Overdue</span>
 		{% endif %}
 	{% endif %}

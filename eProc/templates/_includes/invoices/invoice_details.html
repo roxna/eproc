@@ -16,7 +16,7 @@
                     <td>
                         {% if invoice.files %}
                         {% for file in invoice.files.all %}
-                          <a href="{{MEDIA_URL}}{{file.file}}">{{ file.name }}</a><br>
+                          <b><a href="{{MEDIA_URL}}{{file.file}}">{{ file.name }}</a></b><br>
                         {% endfor %}
                       {% else %}
                         No files

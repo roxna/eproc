@@ -1,9 +1,5 @@
 # OVERHAUL ORDER ITEM MODEL
 
-# Analysis in detail - overtime, fix bug
-
-# PO/Invoice - overinvoiced, GL codes for each line item on invoice
-
 # *****************************
 
 # QUES:
@@ -42,9 +38,9 @@
 	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
 	# Payment method for vendor (http://kb.procurify.com/?st_kb=accounts-payable-vendor-payment-methods-set)
 	# PRICING
-	# API - live commodities prices with alerts
-	# Wholesale prices for select products
 	# Multiple plans --> manage payment and subscription options
+# PRICES:
+	# API - live commodities prices with alerts (https://www.quandl.com)
 # COST BENCHMARKS
 	# Supplier Markups
 	# Costs - % spend breakdown in same industry
@@ -72,17 +68,13 @@
 # ****************************
 # activate - url shouldnt be 127:00...
 # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
-# Fasclick menu select
 # Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item
-#  Remove qty_ordered etc into own model??
 # DOc - sub grand totals --> make into formula (like grand_total)
-# INVENTORY: 	
-	# Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
+# INVENTORY: Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF
-# view_Vendor - link to invoice doc
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
 # Sub-GL codes?

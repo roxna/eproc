@@ -1,5 +1,4 @@
-  {% load staticfiles %}
-  {% load eProc_filters %}
+  {% load staticfiles eProc_filters %}
   
   {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
   
@@ -29,8 +28,7 @@
       </td>
       <td>
         {% for file in invoice.files.all %}
-          <!-- {#<a href="{% url file.base_url %}">#} -->
-          {{ file.name }}
+          <a href="{{MEDIA_URL}}{{file.file}}">{{file.name}}
           </a> <br>
         {% endfor %}
       </td>

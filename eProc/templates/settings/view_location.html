@@ -1,6 +1,5 @@
 {% extends '_layouts/base_portal.html' %}
-{% load staticfiles %}
-{% load crispy_forms_tags %}
+{% load staticfiles crispy_forms_tags eProc_filters %}
 
 {% block title %}{{location.name}}{% endblock title %}
 
@@ -53,14 +52,17 @@
                 <div class="box-body">     
                     <!-- Department List Table-->
                     <table id="departmentTable" class="table table-striped">
-                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=dept_table_headers %}           
+                      {% include "_includes/table_header.html" with header_class="basic-grey" table_headers=dept_table_headers %}           
 
                       <tbody>              
                         {% for dept in departments %}
-                          <tr>
-                            <td>{{ dept.name }}</td>
-                            <td>{{ dept.budget }}</td>
+                          {% with dept.location.company.currency as currency %}
+                          <tr>                            
+                            <td>{{ dept.name}}</td>                            
+                            <td>{{dept.get_spend_approved_ytd|currency_formatting:currency}}</td>
+                            <td>{{ dept.get_spend_percent_of_budget }}</td>
                           </tr>
+                          {% endwith %}
                         {% endfor %}
                       </tbody>
                     </table>  
@@ -81,7 +83,7 @@
                 <div class="box-body">     
                     <!-- User List Table-->
                     <table id="userTable" class="table table-striped">
-                      {% include "_includes/table_header.html" with header_class="basic-teal" table_headers=user_table_headers %}
+                      {% include "_includes/table_header.html" with header_class="basic-grey" table_headers=user_table_headers %}
 
                       <tbody>              
                         {% for buyer in buyers %}                           

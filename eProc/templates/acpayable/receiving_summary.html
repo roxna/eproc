@@ -27,17 +27,17 @@
             <div class="tab-content">
               <div class="tab-pane active" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include "_includes/receiving_reports.html" with items=items_received_all %}
+                 {% include "_includes/receiving_summary.html" with items=items_received_all %}
                   </table>
               </div>
               <div class="tab-pane" id="week">
                  <table id="weekTable" class="table table-striped">
-                 {% include "_includes/receiving_reports.html" with items=items_received_this_week %}
+                 {% include "_includes/receiving_summary.html" with items=items_received_this_week %}
                   </table>
               </div>
               <div class="tab-pane" id="month">
                  <table id="monthTable" class="table table-striped">
-                 {% include "_includes/receiving_reports.html" with items=items_received_this_month %}
+                 {% include "_includes/receiving_summary.html" with items=items_received_this_month %}
                   </table>
               </div>             
             </div>

@@ -56,6 +56,7 @@ def as_percentage_of(part, whole):
     except:
         return "0%"
 
+
 # To pass a list of strings from Django to JS, need to encode data to JSON
 # http://stackoverflow.com/questions/21150133/pass-a-list-of-string-from-django-to-javascript
 @register.filter

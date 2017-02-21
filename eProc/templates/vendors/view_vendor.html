@@ -77,8 +77,10 @@
 			         	<tbody>			         				         
 				         	{% for file in files %}
 				         		<tr>
-				         			<td><a href="{{MEDIA_URL}}{{file.file}}">{{file.name}}</a></td>
-				         			<td><a href="{% url 'view_invoice' file.document.id %}">{{file.document.number}}</a></td>				         			
+				         			<td><a href="{{MEDIA_URL}}{{file.file}}">{{file.name}}</a></td>	
+				         			{% with file.document as invoice%}
+				         				<td>{% include "_includes/formatting/status_formatting_w_href.html" with item=invoice value_to_display=invoice.number href='view_invoice' %}</td>
+				         			{% endwith %}
 				         		</tr>			         			         			
 				         	{% endfor %}
 				         </tbody>

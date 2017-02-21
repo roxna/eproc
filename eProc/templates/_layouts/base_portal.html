@@ -125,8 +125,8 @@
             ********  DASHBOARD  ********   
             **************************-->
             <!-- everyone has access -->
-            <li class="active treeview">
-              <a href="{%url 'dashboard' %}">
+            <li class="treeview {% if request.resolver_match.url_name == 'dashboard' %} active {% endif %}">
+              <a href="{% url 'dashboard' %}">
                 <i class="fa {{ICONS.dashboard}}"></i> 
                 <span>Dashboard</span>
               </a>
@@ -136,19 +136,19 @@
             ******  REQUISITIONS  ******   
             **************************-->
             <!-- everyone has access to create req / view status-->          
-            <li class="treeview">
+            <li class="treeview {% if 'requisitions' in request.path %} active {% endif %}">
               <a href="#">
                 <i class="fa {{ICONS.requisition}}"></i> 
                 <span>Requests</span>
                 <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
               </a>
               <ul class="treeview-menu">
-                <li>
+                <li class="{% if request.resolver_match.url_name == 'new_requisition' %} active {% endif %}">
                   <a href="{% url 'new_requisition' %}">
                     <i class="fa {{ICONS.new}}"></i> New Order
                   </a>
                 </li>
-                <li>
+                <li class="{% if request.resolver_match.url_name == 'requisitions' %} active {% endif %}">
                   <a href="{% url 'requisitions' %}">
                   <!-- only superuser & approver have access to approve (managed in view_req) -->
                   <i class="fa {{ICONS.requisition}}"></i> 
@@ -166,7 +166,7 @@
             ******  PURCHASE ORDERS  ******   
             *****************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
-              <li class="treeview">
+              <li class="treeview {% if 'purchase-orders' in request.path %} active {% endif %}">
                 <a href="#">
                   <i class="fa {{ICONS.po}}"></i> <span>Purchase Orders</span>
                   <span class="pull-right-container">
@@ -174,8 +174,12 @@
                   </span>
                 </a>
                 <ul class="treeview-menu">
-                  <li><a href="{%url 'new_po_items' %}"><i class="fa {{ICONS.new}}"></i> New PO</a></li>
-                  <li><a href="{%url 'purchaseorders' %}"><i class="fa {{ICONS.po}}"></i> Purchase Orders</a></li>
+                  <li class="{% if request.resolver_match.url_name == 'new_po_items' %} active {% endif %}">
+                    <a href="{%url 'new_po_items' %}"><i class="fa {{ICONS.new}}"></i> New PO</a>
+                  </li>
+                  <li class="{% if request.resolver_match.url_name == 'purchaseorders' %} active {% endif %}">
+                    <a href="{%url 'purchaseorders' %}"><i class="fa {{ICONS.po}}"></i> Purchase Orders</a>
+                  </li>
                 </ul>
               </li>   
             {% endif %}
@@ -184,7 +188,7 @@
             ******  RECEIVE DELIVERY  ******   
             ******************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Receiver' %}
-              <li>
+              <li class="treeview {% if 'receive' in request.path %} active {% endif %}">
                 <a href="{%url 'receive_pos' %}">
                   <i class="fa {{ICONS.receive}}"></i> 
                   <span>Receive Items</span>
@@ -195,8 +199,9 @@
             <!--****************************
             *****  INVOICES (Payer/AP) *****
             ******************************-->
+            
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Payer' %}
-              <li class="treeview">
+              <li class="treeview {% if 'accounts-payable' in request.path %} active {% endif %}">
                 <a href="#">
                   <i class="fa {{ICONS.payment}}"></i> <span>Accounts Payable</span>
                   <span class="pull-right-container">
@@ -204,19 +209,19 @@
                   </span>
                 </a>
                 <ul class="treeview-menu">
-                  <li>
+                  <li class="treeview {% if 'invoices' in request.path %} active {% endif %}">
                     <a href="{%url 'invoices' %}">
                       <i class="fa {{ICONS.payment}}"></i> Invoices
                     </a>
                   </li>                  
-                  <li>
+                  <li class="treeview {% if request.resolver_match.url_name == 'unbilled_items' %} active {% endif %}">
                     <a href="{%url 'unbilled_items' %}">
                       <i class="fa fa-align-left"></i> Unbilled Items
                     </a>
                   </li>
-                  <li>
-                    <a href="{%url 'receiving_reports' %}">
-                      <i class="fa {{ICONS.receive}}"></i> Receiving Reports
+                  <li class="treeview {% if request.resolver_match.url_name == 'receiving_summary' %} active {% endif %}">
+                    <a href="{%url 'receiving_summary' %}">
+                      <i class="fa {{ICONS.receive}}"></i> Receiving Summary
                     </a>
                   </li>                  
                 </ul>
@@ -227,7 +232,7 @@
             ******  DRAWDOWNS  ******   
             **************************-->
             <!-- everyone has access to create / view status-->             
-            <li class="treeview">
+            <li class="treeview {% if 'drawdowns' in request.path %} active {% endif %}">
               <a href="#">
                 <i class="fa {{ICONS.drawdown}}"></i> <span>Drawdowns</span>
                 <span class="pull-right-container">
@@ -235,12 +240,12 @@
                 </span>
               </a>
               <ul class="treeview-menu">
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'new_drawdown' %} active {% endif %}">
                   <a href="{%url 'new_drawdown' %}">
                     <i class="fa {{ICONS.new}}"></i> New Request
                   </a>
                 </li>
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'drawdowns' %} active {% endif %}">
                   <a href="{%url 'drawdowns' %}">
                   <i class="fa {{ICONS.drawdown}}"></i>
                   <!-- only superuser & approver have access to approve (managed in view_drawdown) -->
@@ -251,7 +256,7 @@
                   {% endif %}
                   </a>
                 </li>
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'call_drawdowns' %} active {% endif %}">
                   <a href="{%url 'call_drawdowns' %}">
                   <i class="fa fa-hourglass-half"></i>
                   <!-- After items are approved, keep track of quantity actually taken out of inventory -->
@@ -265,7 +270,7 @@
             *********  INVENTORY  **********   
             ******************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Inventory Manager' %}
-              <li>
+              <li class="treeview {% if 'inventory' in request.path %} active {% endif %}">
                 <a href="{%url 'inventory' %}">
                   <i class="fa {{ICONS.inventory}}"></i> 
                   <span>Inventory (In & Out)</span>
@@ -277,7 +282,7 @@
             *********  REPORTS & ANALYSIS  **********   
             ******************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.department == 'Admin' %}
-            <li class="treeview">
+            <li class="treeview {% if 'reports' in request.path %} active {% endif %}">
               <a href="#">
                 <i class="fa {{ICONS.analysis}}"></i> <span>Reports & Analysis</span>
                 <span class="pull-right-container">
@@ -285,25 +290,25 @@
                 </span>
               </a>
               <ul class="treeview-menu">
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'spend_by_location_dept' %} active {% endif %}">
                   <a href="{%url 'spend_by_location_dept' %}">
                     <i class="fa {{ICONS.locations}}"></i> 
                     <span>Spend by Location/Dept</span>
                   </a>
                 </li>
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'spend_by_product_category' %} active {% endif %}">
                   <a href="{%url 'spend_by_product_category' %}">
                     <i class="fa {{ICONS.products}}"></i> 
                     <span>Spend by Product/Category</span>
                   </a>
                 </li>     
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'spend_by_entity' %} active {% endif %}">
                   <a href="{%url 'spend_by_entity' %}">
                     <i class="fa {{ICONS.users}}"></i> 
                     <span>Spend by Entities</span>
                   </a>
                 </li>                            
-                <li>
+                <li class="treeview {% if request.resolver_match.url_name == 'industry_benchmarks' %} active {% endif %}">
                   <a href="{%url 'industry_benchmarks' %}">
                     <i class="fa {{ICONS.industry}}"></i> 
                     <span>Industry Benchmarks</span>
@@ -315,7 +320,7 @@
             <!--****************************
             *********   SETTINGS  **********   
             ******************************-->
-            <li>
+            <li class="treeview {% if 'settings' in request.path %} active {% endif %}">
               <a href="{%url 'settings' %}">
                 <i class="fa {{ICONS.settings}}"></i> 
                 <span>Settings</span>
@@ -347,9 +352,9 @@
     <script src="{% static 'jQuery/jquery-2.2.3.min.js' %}"></script>  <!-- jQuery 2.2.3 -->
     <script src="{% static 'jQuery/jquery-ui.min.js' %}"></script>  <!-- jQuery UI 1.11.4 -->
     <script>$.widget.bridge('uibutton', $.ui.button);</script> <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->  
-    <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>   <!-- Bootstrap 3.3.6 -->      
     <script src="{% static 'plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>   <!-- Slimscroll - used for Notifications -->  
+    <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>   <!-- Fastclick -->  
     <script src="{% static 'dist/js/app.js' %}"></script>
     <script src="{% static 'dist/js/custom.js' %}"></script>
 
