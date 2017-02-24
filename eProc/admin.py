@@ -14,14 +14,14 @@ class BuyerProfileAdmin(admin.ModelAdmin):
     list_filter = ['company', 'role']
 
 class RequisitionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'department', 'buyer_co', 'sub_total']
+    list_display = ['id', 'number', 'department', 'buyer_co', ]
     search_fields = ['number', 'department']
-    list_filter = ['number', 'sub_total']
+    list_filter = ['number',]
 
 class POAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_grand_total']
+    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_ordered_grand_total']
     search_fields = ['number', 'department']
-    list_filter = ['number', 'sub_total']
+    list_filter = ['number', ]
 
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_grand_total']
@@ -30,18 +30,18 @@ class DrawdownAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'buyer_co' ]
 
 class CatalogItemAdmin(admin.ModelAdmin):
-	list_display = ['id', 'name', 'unit_price', 'threshold', 'category']
+	list_display = ['id', 'name', 'unit_price', 'threshold', 'category', 'vendor_co']
 
 class CategoryAdmin(admin.ModelAdmin):
 	list_display = ['id', 'code', 'name']	
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_ordered','qty_approved', 'qty_delivered', 'unit_price', 'get_latest_status']
+    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_ordered','qty_approved', 'qty_delivered', 'current_status', 'get_latest_status']
     search_fields = ['product',  ]
     list_filter = ['product', 'requisition', 'purchase_order', 'invoice']
 
 class DrawdownItemAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_approved', 'unit_price', 'get_latest_status']
+    list_display = ['id', 'number', 'product', 'qty_requested', 'qty_approved', 'current_status', 'get_latest_status']
     search_fields = ['product',  ]
     list_filter = ['product', 'drawdown']
 

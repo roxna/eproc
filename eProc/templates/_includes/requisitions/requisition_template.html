@@ -1,5 +1,4 @@
-{% load eProc_filters %}
-{% load crispy_forms_tags %}
+{% load eProc_filters crispy_forms_tags %}
 
   <form method="POST">
   {% csrf_token %}
@@ -19,29 +18,29 @@
     Order Items Table
   ***************** -->
   <!-- If Req hasn't been Approved/Cancelled/Denied, formset for Req Order Items to update qty_approved -->
-      {% if requisition.get_latest_status.value == 'Pending' %}
-        <!-- Order Item Form in Request -->    
-          <div class="row">
-            <div class="col-xs-12">
-             <p class="lead">Request Line Items</p>
-            </div>
-            
-            <div class="col-xs-12">
-                  {{ approve_req_formset.management_form | crispy }}
+    {% if requisition.get_latest_status.value == 'Pending' %}
+      <!-- Order Item Form in Request -->    
+        <div class="row">
+          <div class="col-xs-12">
+           <p class="lead">Request Line Items</p>
+          </div>
+          
+          <div class="col-xs-12">
+                {{ approve_req_formset.management_form | crispy }}
 
-                  {% for form in approve_req_formset.forms %}                   
-                      {% for hidden in form.hidden_fields %}
-                          {{ hidden }}
-                      {% endfor %}
-                      <div class="item" id="{{form.prefix}}">
-                          {% crispy form form.helper %}                                
-                      </div>                            
-                  {% endfor %}
-            </div>
-          </div><br>
-      {% else %}
-        {% include "_includes/requisitions/requisition_item_table.html" with requisition=requisition %}
-      {% endif %}
+                {% for form in approve_req_formset.forms %}                   
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    <div class="item" id="{{form.prefix}}">
+                        {% crispy form form.helper %}
+                    </div>                            
+                {% endfor %}
+          </div>
+        </div><br>
+    {% else %}
+      {% include "_includes/requisitions/requisition_item_table.html" with requisition=requisition %}
+    {% endif %}
 
 
   <!-- *****************
@@ -49,7 +48,14 @@
   ***************** -->
   <div class="row">      
     <div class="col-xs-12 col-md-4 pull-right">
-      <p class="lead">Total Cost: {{requisition.sub_total|currency_formatting:requisition.currency }}</p>
+      <p class="lead">Total Cost: 
+      {% if requisition.get_latest_status.value == 'Approved' %}
+        {{requisition.get_approved_subtotal|currency_formatting:requisition.currency }}
+      <!-- If Req is pending/denied/cancelled: use requested_subtotal -->
+      {% else %}
+        {{requisition.get_requested_subtotal|currency_formatting:requisition.currency }}
+      {% endif %}
+      </p>
 
     </div>
   </div><br>
@@ -78,7 +84,7 @@
     {% with requisition.get_latest_status as latest_status %} 
       <!-- If req is PENDING -->
       {% if latest_status.value == 'Pending' %}
-        <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.sub_total -->
+        <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.requested_sub_total -->
         <!-- Cancel if user is PREPARER/SUPERUSER  -->
         {% include "_includes/approve_deny_cancel.html" with document=requisition is_requisition=True user_role='Approver' %}
       {% else %}

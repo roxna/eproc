@@ -20,15 +20,20 @@
 
         <tbody>        
           {% for item in order_items %}
-            <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
-            <tr id="orderItemList">
-              <td id="">{{ item.product.name }}</td>
-              <td>{{ item.qty_delivered }}</td>
-              <td>{{ item.get_delivered_date|date:"D, M d Y" }}</td>
-              <td>{{ item.requisition.department }}</td>
-              <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
-              <td> {{ item.get_ordered_subtotal|currency_formatting:item.product.currency }}</td>
-            </tr>
+            {% with item.product.currency as currency %}
+              <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
+              <tr id="orderItemList">
+                <td id="">{{ item.product.name }}</td>
+                <td>{{ item.qty_delivered }}</td>
+                <td> {% for status in item.get_delivered_statuses %}
+                      {{ status.date|date:"M d" }}, 
+                    {% endfor %}
+                </td>
+                <td>{{ item.requisition.department }}</td>
+                <td> {{ item.price_ordered|currency_formatting:currency }}</td>
+                <td> {{ item.get_ordered_subtotal|currency_formatting:currency }}</td>
+              </tr>
+            {% endwith %}
           {% endfor %}          
         </tbody>
       </table>

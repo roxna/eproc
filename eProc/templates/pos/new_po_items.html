@@ -42,7 +42,7 @@
 							    	{% include '_includes/formatting/is_past_due.html' with obj=item %}
 							    </td>
 							    <td> 
-							    	<span class="itemSubTotal">{{ item.get_requested_subtotal|currency_formatting:item.requisition.currency }}
+							    	<span class="itemSubTotal">{{ item.get_approved_subtotal|currency_formatting:item.requisition.currency }}
 							    	</span><br>
 							    </td>
 							  </tr>
@@ -78,10 +78,15 @@
       $('#next').attr('disabled', 'disabled');
       $('#next').addClass('disabled');
 
-      // Next Button is enabled only if any input field is changed
+      // Next Button is enabled only if at least one checkbox is selected
       $("input[type='checkbox']").click(function() {
+      	if($("#orderTable input:checked").length > 0){
 	        $('#next').removeAttr('disabled');
 	        $('#next').removeClass('disabled');
+	    } else {
+	    	$('#next').attr('disabled');
+	        $('#next').addClass('disabled');
+	    };
       });
 
     })

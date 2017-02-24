@@ -1,27 +1,43 @@
 
+{% load eProc_filters %}
+
+{% with drawdown.get_latest_status.value as latest_status %}
   <div class="row">
     <div class="col-xs-12">
-  	 <p class="lead">Drawdown Line Items</p>
+     <p class="lead">Drawdown Line Items</p>
     </div>
     <div class="col-xs-12 table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
             <th>Product</th>
-            <th>Quantity</th>
-            <th>Comments</th>
+            <th>Requested</th>
+            
+            {% if latest_status == 'Approved' %}
+              <th>Approved</th>              
+            {% endif %} 
+
+            <th>Comments</th>    
           </tr>
         </thead>
 
-        <tbody>
-          {% for item in items %}
-          <tr id="orderItemList">
-            <td id="">{{ item.product.name }}</td>
-            <td>{{ item.qty_drawndown }}</td>
-            <td>{{ item.comments_drawdown }}</td>
-          </tr>
-          {% endfor %}
+        <tbody> 
+          {% for item in drawdown.items.all %}
+            <!-- currency_formatting is a custom filter (see templatetags/eProc_filters.py) -->
+            <tr id="orderItemList">
+              <td id="">{{ item.product.name }}</td>
+              <td>{{ item.qty_requested }}</td> 
+
+              {% if latest_status == 'Approved' %}
+                <td>{{ item.qty_approved }}</td>
+                <td>{{ item.comments_approved }}</td>
+              {% else %}
+                <td>{{ item.comments_requested }}</td>
+              {% endif %}
+            </tr>
+          {% endfor %}          
         </tbody>
       </table>
     </div>
   </div><br>
+{% endwith %}

@@ -91,23 +91,21 @@
 
   	    // Update the unbilled items based on vendor selected
   	    $.ajax({
-              url: '/vendors/unbilled-items/'+vendor_id,
+              url: '/settings/vendors/unbilled-items/'+vendor_id,
               type: 'get',
               success: function(data){            	
               	// Set the selected vendor's name in the title
               	$('#itemsBox .box-title').html('Select Unbilled Items from <b>'+vendor+'</b> to Add to Invoice ');
 
               	// Append the data
-  				$.each(data, function(key, value){            
+  				    $.each(data, function(key, value){            
                       $('#orderTable tbody').append(
                           '<tr>'+
                               '<td><input type="checkbox" name="order_items" id="'+this['id']+'" value="'+this['id']+'"/>&nbsp;</td>'+
                               '<td><span>'+this['purchase_order']+'</span></td>'+
                               '<td><span class="itemName">'+this['product']+'</span></td>'+
                               '<td><span class="itemQty">'+this['qty_delivered']+'</span></td>'+
-                              '<td><span>'+this['get_delivered_date']+'</span></td>'+
-                              // '<td><span>'+this['vendor_co']+'</span></td>'+
-                              '<td><span class="itemSubTotal">'+this['currency']+' '+this['get_requested_subtotal']+'</span></td>'+
+                              '<td><span class="itemSubTotal">'+this['currency']+' '+this['get_delivered_subtotal']+'</span></td>'+
                           '<tr>'
                       );
                   }); 
@@ -121,11 +119,16 @@
 
 	    });
 
-      // Next Button is enabled only if any input field is changed
-      // Delegating the event handler to #orderTable, instead of binding handlers directly on the dynamic elements ("input[type='checkbox']")
+      // Next Button is enabled only if at least one checkbox is selected
+      // Delegating the event handler to #orderTable, instead of binding handlers directly on the dynamic elements ("input[type='checkbox']")      
       $("#orderTable").click(function() {
-	        $('#next').removeAttr('disabled');
-	        $('#next').removeClass('disabled');
+        if($("#orderTable input:checked").length > 0){
+          $('#next').removeAttr('disabled');
+          $('#next').removeClass('disabled');
+        } else {
+            $('#next').attr('disabled');
+            $('#next').addClass('disabled');
+        };
       });
 
     })

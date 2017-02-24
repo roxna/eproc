@@ -11,11 +11,17 @@
 {% block content %}
 <section class="content"> 
 
-    <div class="row">
+    {% if not items %}
+    <!-- If no items have been delivered/received i.e no 'spend' -->
+      {% include "_includes/docs/no_docs_add_now.html" with text="You haven't recorded any spend yet!" href='receive_pos' action='Get started now' %}
       
-      {% include "_includes/analysis_chart.html" with chartID='supplierChart' title='Top 10 Suppliers Percent of Spend' %}   
-    
+  {% else %}
+
+    <div class="row">      
+      {% include "_includes/analysis_chart.html" with chartID='supplierChart' title='Top 10 Suppliers Percent of Spend' %}       
     </div> 
+
+  {% endif %}
         
 
 {% endblock content %}
@@ -27,24 +33,48 @@
 
   <script type="text/javascript">
 
-    /****************** 
-    Spend by Supplier      
-    ********************/
-    var supplierData = {
-      labels: ["You", "Best Practice"],
-      datasets: [
-        {
-            label: 'Top 10 Suppliers',
-            // Best practices - 90% of spend should go to 5% of suppliers
-            data: [{{top_supplier_spend_percent}}, 90],
-            fillColor: "rgba(0,60,100,1)",
-        }, 
-      ]
-    }; 
+    window.onload = function(){
 
-    // Pass in data/options and generate chart
-    var supplierCtx = $("#supplierChart").get(0).getContext("2d");
-    var supplierChart = new Chart(supplierCtx).Bar(supplierData, barChartOptions);
+      // GLOBAL Configurations
+      Chart.defaults.global.responsive = true;
+      Chart.defaults.global.maintainAspectRatio = true;
+      Chart.defaults.global.legend.position = 'right';
+
+      /****************** 
+      Spend by Supplier      
+      ********************/
+      var supplierData = {
+        labels: ["You", "Best Practice"],
+        datasets: [
+          {
+              label: 'Top 10 Suppliers',
+              // Best practices - 90% of spend should go to 5% of suppliers
+              data: [{{top_supplier_spend_percent}}, {{benchmark_spend_percent}}],
+              backgroundColor: ["{{buyer_co_color}}", "#d2d6de"],
+          }, 
+        ]
+      }; 
+
+      // Pass in data/options and generate chart
+      var supplierCtx = $("#supplierChart").get(0).getContext("2d");
+      var supplierChart = new Chart(supplierCtx, {
+        type: 'bar',
+        data: supplierData,
+        options: {
+          scales: {
+             xAxes: [{
+                  stacked: true,
+                  gridLines: { display : false },
+             }],
+             yAxes: [{
+                  stacked: true,
+                  gridLines: { display : false },
+             }]
+          }
+        },
+      });
+
+  }
 
   </script>
 {% endblock js %}

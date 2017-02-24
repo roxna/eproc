@@ -2,51 +2,36 @@
 <!-- TABLE LIST OF ITEMS -->
 <table id="{{tableID}}" class="table table-striped">      
    <thead class="basic-grey">
-    <tr>
+   <tr>
       <th>Product</th>                        
       <th>Quantity</th>
-      <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
-      {% if queryset == 'true' %}
-        <th>Status</th>
-        <th>By</th>
-      {% else %}
+      <!-- Only flag when stock is running low for INVENTORY items -->
+      {% if is_inventory == 'true' %}
         <th>Status</th>
       {% endif %}
     </tr>
   </thead>
   
   <tbody> 
-    {% for item in items %}           
-    <tr>     
-      <!-- queryset = true is for drawdown & received items, not for current inventory (which is a python list) -->
-      {% if queryset == 'true' %}
+    {% for item_name, item_details in items.iteritems %}           
+    <tr>
+        <td>{{ item_name }}</td>
         
-        <td>{{ item.product.name }}</td>
-        <td class={{text_css}}><i class="fa {{i_class}}" aria-hidden="true"></i> 
-          {% if tableID == 'receivedTable' %}
-            {{ item.qty_delivered }}
-          {% elif tableID == 'drawndownTable'%}
-            {{ item.qty_drawndown }}
-          {% endif %}
+        <td class={{text_css}}>
+          <i class="fa {{i_class}}" aria-hidden="true"></i> 
+          {{ item_details.0 }}
         </td>
-        <td>{{ item.get_latest_status }}</td> 
-        <td>{{ item.get_latest_status.get_status_details }}</td>
 
-      {% else %}
-        
-        <td>{{item.product__name}}</td>
-        <td>{{item.total_qty}}</td>
-        <!-- Flag when inventory stock running low -->
-        <td>
-          {% if item.total_qty < item.product__threshold %}            
+        <!-- Only flag when stock is running low for INVENTORY items -->
+        {% if is_inventory == 'true' %}
+        <td>          
+          {% if item_details.0 < item_details.1 %}            
             <span class="label label-pending"> Running low</span> 
           {% else %}          
-            <span> OK</span>
+            <span> All good!</span>
           {% endif %}
         </td>
-
-      {% endif %}
-
+        {% endif %}
     </tr>
     {% endfor %}
   </tbody>            

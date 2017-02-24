@@ -173,56 +173,54 @@ LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
-STATUSES = (
-    #### REQUEST Order Items  ####
-    ('Pending', 'Pending'), #new_req --> req not yet approved
-    ('Approved', 'Approved'), #view_req, view_po --> req approved or req created by superuser; or po cancelled
-    ('Denied', 'Denied'), #view_req --> req denied
-    ('Ordered', 'Ordered'), #view_po --> po items    
-    ('Cancelled', 'Cancelled'), #view_req --> req cancelled
-    ('Delivered Partial', 'Delivered Partial'), #receive_po
-    ('Delivered Complete', 'Delivered Complete'), #receive_po (qty_ordered = delivered+returned)
-    ('Returned', 'Returned'), #receive_po
-    ('Paid', 'Paid'), # Updated on view_invoice/1 --> ref view_drawdown
-    
-    #### DRAWDOWN Order Items  ####
-    # ('Pending', 'Pending'), #new_drawdown (Drawdown Requested)
-    # ('Approved', 'Approved'), #view_drawdown
-    # ('Denied', 'Denied'), #view_drawdown
-    # ('Cancelled', 'Cancelled'), #view_drawdown
-    ('Drawdown Partial', 'Drawdown Partial'), #call_drawdown
-    ('Drawdown Complete', 'Drawdown Complete'), #call_drawdown
 
-    #### Requisitions ####
-    # ('Pending', 'Pending'), #new_req
-    # ('Approved', 'Approved'), #view_req 
-    # ('Denied', 'Denied'), #view_req 
-    # ('Cancelled', 'Cancelled'), #view_req
 
-    #### POs ####    
-    ('Open', 'Open'), #new_po --> WAITING TO BE RECEIVED
-    # ('Partial', 'Partial'),  NO - REMOVED 1/27
-    ('Closed', 'Closed'),  #receive_po --> all items received OR explicit CLOSE 
-    # ('Cancelled', 'Cancelled'), #view_po
-    # ('Paid', 'Paid'),  #view_invoice/1 --> TOCONFIRM WORKS - if all items paid then PO paid    
-
-    #### Invoices ####
-    # ('Pending', 'Pending'), #TODO Update: On invoice creation
-    # ('Approved', 'Approved'),  #new_invoice
-    # ('Cancelled', 'Cancelled'), #TODO
-    # ('Paid', 'Paid'),  #TODO: Updated on view_invoice/1
-    
-    #### DRAWDOWN  ###
-    # ('Pending', 'Pending'), #new_drawdown
-    # ('Approved', 'Approved'),  #view_drawdown
-    # ('Denied', 'Denied'),  #view_drawdown
-    # ('Cancelled', 'Cancelled'), #view_drawdown
-    # ('Partial', 'Partial'), #NOT DOING FOR NOW
-    # ('Closed', 'Closed'), #call_drawdown
-
-    #### ALL #### 
-    ('Archived', 'Archived'),
+# Statuses used by current_status property (OrderItem/DDItem models)
+CURRENT_STATUSES = (
+    ('Pending', 'Pending'), 
+    ('Approved', 'Approved'),
+    ('Denied', 'Denied'),
+    ('Cancelled', 'Cancelled'),
+    # OrderItems only
+    ('Ordered Partial', 'Ordered Partial'),
+    ('Ordered Complete', 'Ordered Complete'),
+    ('Delivered Partial', 'Delivered Partial'),
+    ('Delivered Complete', 'Delivered Complete'),
+    ('Returned Complete', 'Returned Complete'),
+    # DrawdownItems only
+    ('Drawndown Partial', 'Drawndown Partial'),
+    ('Drawndown Complete', 'Drawndown Complete'),
 )
+UNBILLED_STATUSES = ['Ordered Partial', 'Ordered Complete', 'Delivered Partial', 'Delivered Complete']
+DELIVERED_STATUSES = ['Delivered Partial', 'Delivered Complete']
+DRAWDOWN_STATUSES = ['Drawndown Partial', 'Drawndown Complete']
+
+# Statuses used by get_latest_status (StatusLog models)
+ITEM_STATUSES = (
+    # Common to OrderItems and DrawdownItems
+    ('Pending', 'Pending'), 
+    ('Approved', 'Approved'),
+    ('Denied', 'Denied'),
+    ('Cancelled', 'Cancelled'),
+    # OrderItems only
+    ('Ordered', 'Ordered'),
+    ('Delivered', 'Delivered'),
+    ('Returned', 'Returned'),
+    # DrawdownItems only
+    ('Drawndown', 'Drawndown'),
+)
+DOC_STATUSES = (
+    # Reqs/Invoices:    Pending/Approved/Denied/Cancelled
+    # POs:              Open/Closed/Cancelled
+    # Drawdowns:        Pending/Approved/Denied/Cancelled/Closed (call_dd)
+    ('Pending', 'Pending'),
+    ('Approved', 'Approved'),
+    ('Denied', 'Denied'), 
+    ('Cancelled', 'Cancelled'),
+    ('Open', 'Open'),
+    ('Closed', 'Closed'), 
+)
+
 SCORES = (
     (1, 'Poor'),
     (2, 'Average'),

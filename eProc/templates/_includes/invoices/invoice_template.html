@@ -18,7 +18,7 @@
   Comments, Terms & Sub/Grand Total tables
   *************************************** -->
 
-  {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice currency=invoice.currency sub_total=invoice.sub_total grand_total=invoice.get_grand_total %}
+  {% include "_includes/comments_totals.html" with tableID="InvoiceTable" form=invoice currency=invoice.currency sub_total=invoice.get_delivered_subtotal grand_total=invoice.get_grand_total %}
 
   <!-- *****************
        Footer

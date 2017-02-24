@@ -1,4 +1,19 @@
-# OVERHAUL ORDER ITEM MODEL
+
+
+# 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
+	# update model to M2M field, new_po_confirm, current_status - partially ordered??
+# New req - unit_price issues
+# DOCS --> make into current-status like items
+# docs - paid status formatting
+# Dashboard for average user
+
+# DONE
+# Overhaul OrderItem model v1
+# Update csv readers for m2m product.buyer_cos.add(buyer.company), add item_type
+# Req/DD add items bug,
+# new_po_items and new_invoice_items javascript --> if unselect all items, need to deactivate add_items to PO button
+# form error checks
+# Docs - make sub/grand totals into formula
 
 # *****************************
 
@@ -66,12 +81,13 @@
 
 # REFINEMENTS:
 # ****************************
+# Images - catalog items (csv upload/regular)
+# TODO: Manage if PO is cancelled and items become 'APPROVED' again - that doubles the count
 # activate - url shouldnt be 127:00...
 # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 # Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item
-# DOc - sub grand totals --> make into formula (like grand_total)
-# INVENTORY: Make all this more efficient: inventory_list = delivered_count | neg_drawndown_count  
+# Make all queries more efficient (eg Inventory drawdownlist | inventoryList etc)
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF
@@ -79,6 +95,7 @@
 # Sub-categories?
 # Sub-GL codes?
 # AUDIT LOGGGG for each item/doc
+# Add Controller, Branch Manager: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 
 
 # LOW PRIO REFINEMENTS
@@ -91,22 +108,16 @@
 	# For orders - Assign alt. approver
 	# For bills/payments
 # Profile no pw
-# new_po_items and new_invoice_items javascript --> if unselect all items, need to deactivate add_items to PO button
 # export csv for receiving report
-# Move company from buyer_profile to user
+# Move company from buyer_profile to user / # Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # PW_change (urls.py) - # TODO: password_change isn't passing messages framework as extra_context to show pw changed success
 # Each location can have multiple addresses (bill/ship)
-# Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # DELETE USER in Locations section
 # BuyerProfile - many2many with location - can have diff roles at diff locations (http://kb.procurify.com/?st_kb=accounts-payable-user-profile)
 # Restricted access for AJAX requests only to me (not to anyone with an account)
 # VENDOR RANKINGS / SCORE CARDS
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
-# forms 
-	# move errors to messages framework (view_location)
-	# Add checks in views - Total of docs can't be negative, qty approved can't be 0 etc
-	# Form errors not showing (view_location)
 # keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
 
 

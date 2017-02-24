@@ -48,6 +48,7 @@
       ********************/
       
       // SPEND BY LOCATION SNAP SHOT (PIE CHART)
+      // ********************
       var location_spend_colors = []
       for (i=0; i<{{location_spend_labels|length}}; i++){
         location_spend_colors.push(pastelColors());
@@ -71,7 +72,8 @@
       });
 
 
-      // SPEND BY LOCATION CHANGE OVER TIME (BAR CHART)      
+      // SPEND BY LOCATION CHANGE OVER TIME (BAR CHART)
+      // ********************      
       // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
       {% autoescape off %}  
       var locationChangeData = {
@@ -112,6 +114,7 @@
       ********************/
 
       // SPEND BY DEPT SNAP SHOT (PIE CHART)
+      // ********************
       var dept_spend_colors = []
       for (i=0; i<{{dept_spend_labels|length}}; i++){
         dept_spend_colors.push(pastelColors());
@@ -134,7 +137,8 @@
         options: {},
       });
 
-      // SPEND BY DEPARTMENT CHANGE OVER TIME (BAR CHART)      
+      // SPEND BY DEPARTMENT CHANGE OVER TIME (BAR CHART)  
+      // ********************    
       // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
       {% autoescape off %}  
       var deptChangeData = {

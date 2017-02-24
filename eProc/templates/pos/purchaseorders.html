@@ -2,12 +2,12 @@
 {% load staticfiles %}
 {% load eProc_filters %}
 
-{% block title %}{{title}}{% endblock title %}
+{% block title %}View POs{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>{{title}}</h1>{% endblock header %}
+{% block header %}<h1>View POs</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -36,27 +36,27 @@
             <div class="tab-content">
               <div class="tab-pane" id="all">
                  <table id="allTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=all_pos href=href %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=all_pos href='view_po' %}
                   </table>
               </div>
               <div class="tab-pane active" id="open"> 
                  <table id="openTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href=href %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href='view_po' %}
                   </table>
               </div>       
               <div class="tab-pane" id="closed">
                  <table id="closedTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=closed_pos href=href %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=closed_pos href='view_po' %}
                   </table>
               </div>
               <div class="tab-pane" id="paid">
                  <table id="paidTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=paid_pos href=href %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=paid_pos href='view_po' %}
                   </table>
               </div>  
               <div class="tab-pane" id="cancelled">
                  <table id="cancelledTable" class="table table-striped">
-                 {% include '_includes/pos/po_table.html' with purchaseorders=cancelled_pos href=href %}
+                 {% include '_includes/pos/po_table.html' with purchaseorders=cancelled_pos href='view_po' %}
                   </table>
               </div>
             </div>

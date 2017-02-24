@@ -25,10 +25,9 @@ $(document).ready(function(){
                 var qty = $(this).find('.quantity').text();
                 var price = $(this).find('.unit_price').text();
             }
-
             SubTotal += qty * price;
         });
-        $('#subTotal :input').val(SubTotal);
+        $('#subTotal').html(SubTotal);
 
     };      
     
@@ -63,7 +62,7 @@ $(document).ready(function(){
     var SubTotal = 0; 
     var GrandTotal = 0;   
 
-    $('#subTotal :input').prop('readonly', true);
+    $('#subTotal').prop('readonly', true);
     // $('#grandTotal :input').prop('readonly', true);
     updateSubTotal();
     updateGrandTotal();

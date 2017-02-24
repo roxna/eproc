@@ -4,15 +4,13 @@ $(document).ready(function(){
 	**** REQ: ADD/DELETE ORDER ITEM DETAILS  ****
 	********************************************/
 	
+	// Set global variables
 	// Set prefix based on formset name: 
-	if (window.location.pathname.includes('unbilled-items')){
-		// new_req, new_dd --> prefix='items'
-		var prefix = 'form';	
-	}else{
-		// unbilled_items
-		var prefix = 'items';
-	}
-	
+	if (window.location.pathname.includes('requisitions') || window.location.pathname.includes('drawdown')){
+		var prefix = 'items';  // new_req or new_dd
+	} else{		
+		var prefix = 'form'; // unbilled_items
+	}	
 	
 	var id_regex = new RegExp('(' + prefix + '-\\d+)');
 
@@ -41,7 +39,6 @@ $(document).ready(function(){
         // Add an event handler for the delete item/form link
         $(row).find(".delete").click(function () {        	
             return deleteForm(this, prefix);
-            // return prefixForDeleteForm(this);
         });
         
         // Remove the bits we don't want in the new row/form e.g. error messages
@@ -56,7 +53,6 @@ $(document).ready(function(){
 	}	
 
 	function updateElementIndex(el, prefix, ndx) {
-		// var id_regex = new RegExp('(' + prefix + '-\\d+)');
 	    var replacement = prefix + '-' + ndx;	    
 		
 		// Update the id/name/for values for each bit of the new row 

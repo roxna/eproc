@@ -29,7 +29,12 @@
       <td> 
         {{ requisition.comments }}         
       </td>
-      <td> {{ requisition.currency }} {{ requisition.sub_total }}<br>
+      <td> 
+        {% if requisition.get_latest_status.value == 'Pending' %}
+          {{ requisition.get_requested_subtotal|currency_formatting:requisition.currency }}
+        {% else %}
+          {{ requisition.get_approved_subtotal|currency_formatting:requisition.currency }}
+        {% endif %}<br>
         <em><small><b>Num. items:</b> {{ requisition.items.count }}</small></em>
       </td>
     </tr>

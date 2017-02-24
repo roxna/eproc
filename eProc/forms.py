@@ -364,8 +364,7 @@ class CategoryForm(ModelForm):
 
 class CatalogItemForm(ModelForm):
     name = forms.CharField(required=True)
-    desc = forms.CharField()
-    sku = forms.CharField(required=True)
+    sku = forms.CharField(required=True)    
     threshold = forms.IntegerField(label="Threshold quantity", help_text='Min. inventory level before alert is triggered.', required=False)
     unit_price = forms.DecimalField(required=True, min_value=0)
     unit_type = forms.CharField(required=True)
@@ -395,14 +394,15 @@ class CatalogItemForm(ModelForm):
             ),
             Div(
                 Div('vendor_co', css_class='col-md-4'),
-                Div('threshold', css_class='col-md-8'),                
+                Div('threshold', css_class='col-md-4'),                
+                Div('image', css_class='col-md-4'),
                 css_class='row',
             ),                        
         )
 
     class Meta:
         model = CatalogItem
-        fields = ('name', 'desc', 'sku', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
+        fields = ('name', 'sku', 'desc', 'image', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
 ####################################
 ###      ORDER ITEM FORMS        ### 
@@ -410,9 +410,10 @@ class CatalogItemForm(ModelForm):
 
 class NewReqItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)    
-    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
+    price_requested = forms.DecimalField(required=True)    
     qty_requested = forms.IntegerField(required=True, min_value=1)
-    comments_request = forms.CharField(required=False,)
+    account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all(), required=True)
+    comments_requested = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
         super(NewReqItemForm, self).__init__(*args, **kwargs)
@@ -421,10 +422,11 @@ class NewReqItemForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('product', css_class='item-product col-md-3'),
-                Div('qty_requested', css_class='col-md-2'),
-                Div('account_code', css_class='col-md-3'),
-                Div('comments_request', css_class='col-md-3'),
+                Div('product', css_class='item-product col-md-2'),
+                Div('qty_requested', css_class='item-quantity col-md-2'),
+                Div('price_requested', css_class='item-price col-md-2'),
+                Div('account_code', css_class='item-account-code col-md-2'),
+                Div('comments_requested', css_class='item-comments col-md-3'),
                 HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
@@ -432,14 +434,14 @@ class NewReqItemForm(ModelForm):
 
     class Meta:
         model = OrderItem
-        fields = ("product", "qty_requested", "account_code", "comments_request")
+        fields = ("product", "qty_requested", "price_requested", "account_code", "comments_requested")
 
 class ApproveReqItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
-    unit_price = forms.DecimalField(widget=forms.TextInput(attrs={'readonly':'true'}), label="Price")
+    price_approved = forms.DecimalField(widget=forms.TextInput(attrs={'readonly':'true'}), label="Price")
     qty_requested = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Requested')
     qty_approved = forms.IntegerField(required=True, label='Approved')
-    comments_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Request Comments')
+    comments_requested = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Request Comments')
     comments_approved = forms.CharField(required=False, label='Approval Comments')
 
 
@@ -450,11 +452,11 @@ class ApproveReqItemForm(ModelForm):
         self.helper.layout = Layout(
             Div( 
                 Div('product', css_class='col-md-2'),
-                Div('unit_price', css_class='col-md-1'),
+                Div('price_approved', css_class='col-md-1'),
                 Div('qty_requested', css_class='col-md-1'),                
-                Div('comments_request', css_class='col-md-3'),
-                Div('qty_approved', css_class='col-md-1'),
-                Div('comments_approved', css_class='col-md-4'),
+                Div('comments_requested', css_class='col-md-3'),
+                Div('qty_approved', css_class='col-md-2'),
+                Div('comments_approved', css_class='col-md-3'),
                 css_class='row',
             ),
         )  
@@ -467,17 +469,27 @@ class ApproveReqItemForm(ModelForm):
         else: 
             return self.cleaned_data['product']
 
+    def clean(self):
+        cleaned_data = super(ApproveReqItemForm, self).clean()
+        qty_approved = self.cleaned_data['qty_approved']
+        qty_requested = self.cleaned_data['qty_requested']
+        if qty_approved <= 0:
+            self.add_error('qty_approved', 'Quantity must be greater than 0')
+        elif qty_approved > qty_requested:
+            self.add_error('qty_approved', 'Only '+str(qty_requested)+' items have been requested')
+        return cleaned_data
+
     class Meta:
         model = OrderItem
-        fields = ('product', 'unit_price', 'qty_requested', 'qty_approved', 'comments_request', 'comments_approved')
+        fields = ('product', 'price_approved', 'qty_requested', 'qty_approved', 'comments_requested', 'comments_approved')
         
 
 class NewPOItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
     qty_approved = forms.IntegerField(label='Qty Approved', widget=forms.TextInput(attrs={'readonly':'true'}))
     qty_ordered = forms.IntegerField(required=True, min_value=1, label='Qty To Order')
-    unit_price = forms.DecimalField(required=True)  
-    comments_order = forms.CharField(required=False, label='Comments')
+    price_ordered = forms.DecimalField(required=True, label='Price')  
+    comments_ordered = forms.CharField(required=False, label='Comments')
 
     def __init__(self, *args, **kwargs):
         super(NewPOItemForm, self).__init__(*args, **kwargs)
@@ -489,8 +501,8 @@ class NewPOItemForm(ModelForm):
                 Div('product', css_class='col-md-2'),
                 Div('qty_approved', css_class='col-md-2'),
                 Div('qty_ordered', css_class='quantity col-md-2'),
-                Div('unit_price', css_class='unit_price col-md-2'),
-                Div('comments_order', css_class='col-md-4'),
+                Div('price_ordered', css_class='unit_price col-md-2'),
+                Div('comments_ordered', css_class='col-md-4'),
                 css_class='row',
             ),
         )
@@ -503,10 +515,66 @@ class NewPOItemForm(ModelForm):
         else: 
             return self.cleaned_data['product']
 
+    def clean(self):
+        cleaned_data = super(NewPOItemForm, self).clean()
+        qty_ordered = self.cleaned_data['qty_ordered']
+        qty_approved = self.cleaned_data['qty_approved']
+        if qty_ordered > qty_approved:
+            self.add_error('qty_ordered', 'Only '+str(qty_approved)+' items have been approved')
+        return cleaned_data
+
     class Meta:
         model = OrderItem
-        fields = ("product", "qty_approved", "qty_ordered", "unit_price", "comments_order")
+        fields = ("product", "qty_approved", "qty_ordered", "price_ordered", "comments_ordered")
 
+
+class ReceivePOItemForm(ModelForm):
+    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    qty_ordered = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Ordered')
+    qty_delivered = forms.IntegerField(required=True, label='Delivered')
+    qty_returned = forms.IntegerField(required=True, label='Returned')
+    comments_delivered = forms.CharField(required=False, label='Comments')
+
+
+    def __init__(self, *args, **kwargs):
+        super(ReceivePOItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('number', css_class='col-md-1'),   
+                Div('product', css_class='col-md-2'),
+                Div('qty_ordered', css_class='col-md-2'),
+                Div('qty_delivered', css_class='col-md-2'),
+                Div('qty_returned', css_class='col-md-2'),
+                Div('comments_delivered', css_class='col-md-3'),
+                css_class='row',
+            ),
+        )  
+
+    # Ensure readonly 'product' field is not editable by users 
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
+    def clean_product(self):
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+    
+    def clean(self):
+        cleaned_data = super(ReceivePOItemForm, self).clean()
+        qty_ordered = self.cleaned_data['qty_ordered']
+        qty_delivered = self.cleaned_data['qty_delivered']
+        qty_returned = self.cleaned_data['qty_returned']
+        if qty_delivered + qty_returned > qty_ordered:
+            self.add_error('qty_delivered', 'Delivered+returned should be less than ordered')
+            self.add_error('qty_returned', 'Delivered+returned should be less than ordered')
+        return cleaned_data            
+
+    class Meta:
+        model = OrderItem
+        fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivered')
+        
 # NOT A MODEL FORM - used in unbilled_items
 class UnbilledItemAllocationForm(forms.Form):
     location = forms.ModelChoiceField(queryset=Location.objects.all())
@@ -529,44 +597,6 @@ class UnbilledItemAllocationForm(forms.Form):
                 css_class='row',
             ),
         )
-
-class ReceivePOItemForm(ModelForm):
-    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
-    qty_ordered = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Ordered')
-    qty_delivered = forms.IntegerField(required=True, label='Received')
-    qty_returned = forms.IntegerField(required=True, label='Returned')
-    comments_delivery = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
-
-
-    def __init__(self, *args, **kwargs):
-        super(ReceivePOItemForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                Div('number', css_class='col-md-1'),   
-                Div('product', css_class='col-md-2'),
-                Div('qty_ordered', css_class='col-md-2'),
-                Div('qty_delivered', css_class='col-md-2'),
-                Div('qty_returned', css_class='col-md-2'),
-                Div('comments_delivery', css_class='col-md-3'),
-                css_class='row',
-            ),
-        )  
-
-    # Ensure readonly 'product' field is not editable by users 
-    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
-    def clean_product(self):
-        if self.instance:
-            return self.instance.product
-        else: 
-            return self.cleaned_data['product']
-
-    class Meta:
-        model = OrderItem
-        fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivery')
-        
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
@@ -592,6 +622,50 @@ class DrawdownItemForm(ModelForm):
         model = DrawdownItem
         fields = ("product", "qty_requested", "comments_requested")
 
+class ApproveDDItemForm(ModelForm):
+    product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
+    qty_requested = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Requested')
+    qty_approved = forms.IntegerField(required=True, label='Approved')
+    comments_requested = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Request Comments')
+    comments_approved = forms.CharField(required=False, label='Approval Comments')
+
+
+    def __init__(self, *args, **kwargs):
+        super(ApproveDDItemForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div( 
+                Div('product', css_class='col-md-2'),
+                Div('qty_requested', css_class='col-md-2'),                
+                Div('comments_requested', css_class='col-md-3'),
+                Div('qty_approved', css_class='col-md-2'),
+                Div('comments_approved', css_class='col-md-3'),
+                css_class='row',
+            ),
+        )  
+
+    # Ensure readonly 'product' field (Select/ChoiceField) is not editable by users 
+    # More here: http://stackoverflow.com/questions/324477/in-a-django-form-how-do-i-make-a-field-readonly-or-disabled-so-that-it-cannot   
+    def clean_product(self):
+        if self.instance:
+            return self.instance.product
+        else: 
+            return self.cleaned_data['product']
+
+    def clean(self):
+        cleaned_data = super(ApproveDDItemForm, self).clean()
+        qty_approved = self.cleaned_data['qty_approved']
+        qty_requested = self.cleaned_data['qty_requested']
+        if qty_approved <= 0:
+            self.add_error('qty_approved', 'Quantity must be greater than 0')
+        elif qty_approved > qty_requested:
+            self.add_error('qty_approved', 'Only '+str(qty_requested)+' items have been requested')
+        return cleaned_data
+
+    class Meta:
+        model = DrawdownItem
+        fields = ('product', 'qty_requested', 'qty_approved', 'comments_requested', 'comments_approved')
 
 class CallDrawdownItemForm(ModelForm):
     number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
@@ -624,9 +698,18 @@ class CallDrawdownItemForm(ModelForm):
         else: 
             return self.cleaned_data['product']
 
+    def clean(self):
+        cleaned_data = super(CallDrawdownItemForm, self).clean()
+        qty_drawndown = self.cleaned_data['qty_drawndown']
+        qty_approved = self.cleaned_data['qty_approved']
+        if qty_drawndown > qty_approved:
+            self.add_error('qty_drawndown', 'Only '+str(qty_approved)+' items have been approved')
+        return cleaned_data
+
     class Meta:
         model = DrawdownItem
         fields = ('number', 'product', 'qty_approved', 'qty_drawndown', 'comments_drawdown')
+
 
 
 ####################################
@@ -659,6 +742,20 @@ class RequisitionForm(ModelForm):
             )
         )    
 
+    def clean(self):
+        cleaned_data = super(RequisitionForm, self).clean()
+        date_due = self.cleaned_data['date_due']
+        if date_due < timezone.now().date():
+            self.add_error('date_due', 'Date due must be in the future')
+        return cleaned_data
+
+    def save(self, commit=True):
+        if self.clean():
+            instance = super(RequisitionForm, self).save(commit=False)
+            if commit:
+                instance.save()
+            return instance
+
     class Meta:
         model = Requisition
         fields = ("number", "date_due", "comments", "department", "next_approver")
@@ -684,10 +781,17 @@ class PurchaseOrderForm(ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
 
+    def clean(self):
+        cleaned_data = super(PurchaseOrderForm, self).clean()
+        date_due = self.cleaned_data['date_due']
+        if date_due < timezone.now().date():
+            self.add_error('date_due', 'Date due must be in the future')
+        return cleaned_data
+
     class Meta:
         model = PurchaseOrder
         fields = ("number", "date_due", "vendor_co", "billing_add", "shipping_add", "comments", "terms", 
-                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other")
+                 "tax_amount", "cost_shipping", "discount_amount", "cost_other")
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
@@ -700,20 +804,22 @@ class InvoiceForm(ModelForm):
         super(InvoiceForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-    
-    # Override save to make datetime objects timezone aware    
-    def save(self, commit=True):
-        instance = super(InvoiceForm, self).save(commit=False)
-        # instance.date_due = timezone.make_aware(self.cleaned_data['date_due'], timezone.now())
-        # instance.date_issued = timezone.make_aware(self.cleaned_data['date_issued'], timezone.now())
-        if commit:
-            instance.save()
-        return instance
+
+    def clean(self):
+        cleaned_data = super(InvoiceForm, self).clean()
+        date_due = self.cleaned_data['date_due']
+        date_issued = self.cleaned_data['date_issued']
+        if date_due < timezone.now().date():
+            self.add_error('date_due', timezone.now().date())
+            # 'Date due must be in the future'
+        elif date_due < date_issued:
+            self.add_error('date_due', 'Date due must be after issue date')
+        return cleaned_data
 
     class Meta:
         model = Invoice
         fields = ("number", "date_issued", "date_due", "next_approver", "comments",
-                "sub_total", "tax_amount", "cost_shipping", "discount_amount", "cost_other",)
+                 "tax_amount", "cost_shipping", "discount_amount", "cost_other",)
  
 
 class DrawdownForm(ModelForm):       
@@ -740,6 +846,13 @@ class DrawdownForm(ModelForm):
                 css_class='row',
             )
         )    
+
+    def clean(self):
+        cleaned_data = super(DrawdownForm, self).clean()
+        date_due = self.cleaned_data['date_due']
+        if date_due < timezone.now().date():
+            self.add_error('date_due', 'Date due must be in the future')
+        return cleaned_data
 
     class Meta:
         model = Drawdown

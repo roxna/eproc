@@ -3,8 +3,8 @@
     <!-- Approve/Deny if user is APPROVER/SUPERUSER -->
     {% if buyer.role == 'SuperUser' or buyer.role == user_role %}  
 
-      <!-- If APPROVAL_THRESHOLD > requestion.sub_total (for requisitions only, not POs/DDs) or buyer is SuperUser -->
-      {% if is_requisition and buyer.approval_threshold > requisition.sub_total or not is_requisition or buyer.role == 'SuperUser' %}
+      <!-- If APPROVAL_THRESHOLD > req requested_subtotal (for requisitions only, not POs/DDs) or buyer is SuperUser -->
+      {% if is_requisition and buyer.approval_threshold > requisition.get_requested_subtotal or not is_requisition or buyer.role == 'SuperUser' %}
         <button type="submit" name="approve" value="approve" class="btn basic-teal pull-right"><i class="fa fa-check"></i> Approve</button>
         <button type="submit" name="deny" value="deny" class="btn basic-red pull-right"><i class="fa fa-times"></i> Deny</button>
       {% else %}

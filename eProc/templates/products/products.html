@@ -29,19 +29,26 @@
                 <tbody class="products-list">  
                     {% for product in products %}                           
                     <tr>
-                      <td class="product-img"><img src="{{product.image.url}}" alt="{{product.name}}"/></td>
+                      <td class="product-img">
+                      {% if product.image %}
+                        <img src="{{product.image.url}}" alt="{{product.name}}"/>
+                      {% endif %}
+                      </td>
                       <td>{{ product.name }}</td>
                       <td>{{ product.sku|default_if_none:"-" }}</td>
-                      <td>{{ product.desc|truncatechars:15 }}</td>
+                      <td>{{ product.desc|truncatechars:35 }}</td>
                       <td>
                         {{product.unit_price|currency_formatting:product.currency}}
                         <span class="text-muted">{{product.unit_type|unit_type_formatting}}</span>
-                        <span class="label label-warning">Discounted</span>
+                        
+                        {% if product.item_type == 'Bulk Discount' %}
+                          <span class="label label-warning">Discounted</span>
+                        {% endif %}
                       </td>
                       <td>{{ product.threshold|default_if_none:"-" }}</td>
                       <td>{{ product.category }}</td>
                       <td>
-                      {% if product.item_type == 'Bulk Discount' %}                        
+                      {% if product.item_type == 'Bulk Discount' %}
                         eProc
                       {% else %}
                         {{ product.vendor_co }}

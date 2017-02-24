@@ -26,7 +26,7 @@
               <td id="">{{ item.product.name }}</td>
               <td>{{ item.product.sku }}</td>
               <td>{{ item.qty_ordered }}</td>
-              <td> {{ item.unit_price|currency_formatting:item.product.currency }}</td>
+              <td> {{ item.price_ordered|currency_formatting:item.product.currency }}</td>
               <td> {{ item.get_ordered_subtotal|currency_formatting:item.product.currency }}</td>
             </tr>
           {% endfor %}          

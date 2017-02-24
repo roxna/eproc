@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
+from datetime import date
 from django.db import models
 from django.db.models import Avg, Sum
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from collections import defaultdict
 from .managers import *
 from .validators import validate_file_extension
 
@@ -37,6 +39,12 @@ class Company (models.Model):
 class BuyerCo(Company):
 	pass
 
+	def has_created_dept(self):
+		for location in self.locations.all():
+			if location.departments.all().exists():
+				return True
+		return False
+
 class VendorCo(Company):
 	contact_rep = models.CharField(max_length=150, default='-')
 	vendorID = models.CharField(max_length=50, null=True, blank=True)
@@ -46,7 +54,7 @@ class VendorCo(Company):
 	company_number = models.CharField(max_length=20, null=True, blank=True)
 	comments = models.CharField(max_length=150, null=True, blank=True)
 	# M2M field if bulk_discount item; else FK
-	buyer_co = models.ManyToManyField(BuyerCo, related_name="vendor_cos", null=True, blank=True)
+	buyer_cos = models.ManyToManyField(BuyerCo, related_name="vendor_cos", null=True, blank=True)
 
 	def get_model_fields(model):
 	    return model._meta.fields
@@ -75,8 +83,47 @@ class Location(models.Model):
 		return u"{}".format(self.name)		
 
 	def get_address(self):
-		# return self.address1 + self.address2 + '\n' + self.city, self.state, self.zipcode, self.country
-		return "{} {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
+		if self.address1 and self.city:
+			return "{} {} \n {}, {} {}, {}".format(self.address1, self.address2, self.city, self.state, self.zipcode, self.country)
+		else:
+			return ""
+
+	def get_items(self, status_list):
+		items = OrderItem.objects.filter(requisition__department__location=self, current_status__in=status_list)
+		# DefaultDict is like a regular dictionary but works better if key doesn't exist
+		items_list = {}
+		for item in items:
+			try:
+				items_list[item.product.name] = [
+					items_list[item.product.name][0] + item.qty_delivered, #quantity
+					item.product.threshold, #threshold
+				]
+			except KeyError:
+				items_list[item.product.name] = [
+					 item.qty_delivered,
+					 item.product.threshold,
+				]
+		return items_list
+
+	def get_delivered_items(self):	    
+		return self.get_items(settings.DELIVERED_STATUSES)
+	
+	def get_drawndown_items(self):
+	    return self.get_items(settings.DRAWDOWN_STATUSES)
+
+	def get_inventory_items(self):
+	    delivered_items = self.get_items(settings.DELIVERED_STATUSES)
+	    drawndown_items = self.get_items(settings.DRAWDOWN_STATUSES)
+	    items_list = delivered_items
+	    for name, details in drawndown_items.iteritems():
+	    	try:
+	    		items_list[name][0] -= details[0]
+	    	except KeyError:
+	    		# Shouldn't have a key error because 
+	    		# items can be drawndown only if delivered
+	    		# OR items_list[name][0] = details[0] * -1  ???
+	    		pass
+	    return items_list
 
 ################################
 ###   ACCOUNTING DETAILS     ### 
@@ -93,7 +140,8 @@ class Department(models.Model):
 	# Total amount approved for spend or actually spent
 	def get_spend_approved_ytd(self):
 		spend = 0
-		for requisition in self.requisitions.all():
+		first_day_of_year = date(date.today().year, 1, 1)
+		for requisition in self.requisitions.filter(status_updates__date__gte=first_day_of_year):
 			spend += requisition.get_spend_approved_ytd()
 		return spend
 
@@ -160,7 +208,6 @@ class Document(models.Model):
 	date_created = models.DateTimeField(default=timezone.now)	
 	date_due = models.DateField(default=timezone.now)
 	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
-	sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	comments = models.CharField(max_length=100, null=True, blank=True)
 	terms = models.CharField(max_length=5000, null=True, blank=True)
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
@@ -174,6 +221,8 @@ class Document(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.number)
 
+	# For docs, get_latest_status should be the same as get_current_status (OrderItems)
+	# ...because all status updates are sequential
 	def get_latest_status(self):
 	    return self.status_updates.latest('date')
 
@@ -185,6 +234,23 @@ class Document(models.Model):
 			return True
 		return False
 
+	# Helper function for all get_x_subtotal functions
+	def get_subtotal(self, price, quantity):
+		subtotal = 0
+		for item in self.items.all():
+			try:
+				#getattr allows you to access an attribute using a variable
+				subtotal += getattr(item, price) * getattr(item, quantity)  
+			except TypeError: #If qty is not defined
+				pass
+		return subtotal
+
+	# If doc is requested/denied/cancelled --> requested_subtotal
+	def get_requested_subtotal(self):
+		return self.get_subtotal('price_requested', 'qty_requested')
+	def get_approved_subtotal(self):
+		return self.get_subtotal('price_approved', 'qty_approved')	
+
 class SalesOrder(Document):
 	cost_shipping = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	cost_other = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -195,21 +261,23 @@ class SalesOrder(Document):
 	billing_add = models.ForeignKey(Location, related_name="%(class)s_billed", null=True, blank=True)
 	shipping_add = models.ForeignKey(Location, related_name="%(class)s_shipped", null=True, blank=True)
 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
+	is_paid = models.BooleanField(default=False)
 
  	class Meta:
  		abstract = True	
 
- 	@property
- 	def get_grand_total(self):
- 		return self.sub_total + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
 class Requisition(Document):
 	department = models.ForeignKey(Department, related_name='requisitions')
 
 	def get_spend_approved_ytd(self):
 		spend = 0
-		for item in self.items.all():
-			spend += item.get_approved_subtotal()
+		first_day_of_year = date(date.today().year, 1, 1)
+		for item in self.items.filter(status_updates__date__gte=first_day_of_year):
+			try:
+				spend += item.get_approved_subtotal()
+			except TypeError:
+				pass
 		return spend
 
 class PurchaseOrder(SalesOrder):	
@@ -217,14 +285,28 @@ class PurchaseOrder(SalesOrder):
 
 	def is_ready_to_close(self):
 		for item in self.items.all():
-			if item.qty_ordered != item.qty_delivered + item.qty_returned:
+			if item.current_status != 'Delivered Complete':
 				return False
 		return True
 
+	# If doc is open/closed --> ordered_subtotal
+	def get_ordered_subtotal(self):
+		return self.get_subtotal('price_ordered', 'qty_ordered')
+
+ 	@property
+ 	def get_ordered_grand_total(self):
+ 		return self.get_ordered_subtotal + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
+
 class Invoice(SalesOrder):
 	date_issued = models.DateTimeField(default=timezone.now) #Date issued by the vendor
-	purchase_orders = models.ManyToManyField(PurchaseOrder, related_name="invoices")	
+	purchase_orders = models.ManyToManyField(PurchaseOrder, related_name="invoices", null=True, blank=True)	
 
+	def get_delivered_subtotal(self):
+		return self.get_subtotal('price_ordered', 'qty_delivered')	
+
+ 	@property
+ 	def get_grand_total(self):
+ 		return self.get_delivered_subtotal() + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
 class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')
@@ -232,12 +314,12 @@ class Drawdown(Document):
 
 	def is_ready_to_close(self):
 		for item in self.items.all():
-			if item.qty_approved != item.qty_drawndown:
+			if item.current_status != 'Drawndown Complete':
 				return False
 		return True
 
-# FILE - docs will be uploaded to <media_root>/<buyer_co_name>/<doc_model_name>/<doc_number>/<filename>
-# 							   Eg:       media/hattas-company/invoice/INV4/hatta.jpg  
+# Files uploaded to <media_root>/<buyer_co_name>/<doc_model_name>/<doc_number>/<filename>
+# 		  		Eg: media/hattas-company/invoice/INV4/hatta.jpg  
 def file_directory_path(instance, filename):	    
 	return '{0}/{1}/{2}/{3}'.format(slugify(instance.document.buyer_co.name), instance.document.__class__.__name__, instance.document.number, filename)
 
@@ -263,11 +345,16 @@ class Category(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.name)
 
+# Images uploaded to <media_root>/... 
+# To update path on whether it's 'Vendor Uploaded' or 'Bulk Discount'
+def img_directory_path(instance, filename):    
+	return 'catalog/images/{0}/{1}'.format(str(instance.id), filename)
+
 class CatalogItem(models.Model):
 	name = models.CharField(max_length=50)
 	desc = models.CharField(max_length=150, null=True, blank=True)
 	sku = models.CharField(max_length=20, null=True, blank=True)
-	image = models.ImageField(upload_to='images/catalog/bulk', null=True, blank=True)
+	image = models.ImageField(upload_to=img_directory_path, validators=[validate_file_extension], null=True, blank=True)
 	item_type = models.CharField(max_length=20, choices=(('Vendor Uploaded', 'Vendor Uploaded'), ('Bulk Discount', 'Bulk Discount')), default='Vendor Uploaded')
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	unit_type = models.CharField(max_length=20, default="each")
@@ -283,13 +370,15 @@ class CatalogItem(models.Model):
 
 class Item(models.Model):
 	number = models.CharField(max_length=20)
-	product = models.ForeignKey(CatalogItem, related_name='items')
-	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	qty_requested = models.IntegerField(default=1) 	
-	qty_approved = models.IntegerField(null=True, blank=True, default=0)	
-	comments_request = models.CharField(max_length=500, blank=True, null=True)
+	product = models.ForeignKey(CatalogItem, related_name='%(class)ss')
+	qty_requested = models.IntegerField(validators=[MinValueValidator(0)], )
+	qty_approved = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	qty_denied = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	qty_cancelled = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	comments_requested = models.CharField(max_length=500, blank=True, null=True)
 	comments_approved = models.CharField(max_length=500, blank=True, null=True)
 	date_due = models.DateField(default=timezone.now)
+	current_status = models.CharField(max_length=25, choices=settings.CURRENT_STATUSES, default='Pending')
 
 	# Managers - overridden in managers.py
 	objects = models.Manager() # default manager
@@ -313,62 +402,74 @@ class Item(models.Model):
 	    return self.status_updates.latest('date')	
 
 class OrderItem(Item):		
-	qty_ordered = models.IntegerField(null=True, blank=True, default=0)
-	qty_delivered = models.IntegerField(null=True, blank=True, default=0)
-	qty_returned = models.IntegerField(null=True, blank=True, default=0)	
-	comments_order = models.CharField(max_length=500, blank=True, null=True)	
-	comments_delivery = models.CharField(max_length=500, blank=True, null=True)		
-	department = models.ForeignKey(Department, related_name="items")
-	account_code = models.ForeignKey(AccountCode, related_name="items", null=True, blank=True)	
+	price_requested = models.DecimalField(max_digits=10, decimal_places=2)
+	price_approved = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	price_ordered = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	qty_ordered = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	qty_delivered = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	qty_returned = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	comments_ordered = models.CharField(max_length=500, blank=True, null=True)	
+	comments_delivered = models.CharField(max_length=500, blank=True, null=True)
+	department = models.ForeignKey(Department, related_name="items")  #Dept that requested the item	
 	requisition = models.ForeignKey(Requisition, related_name='items', null=True, blank=True)
-	purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', null=True, blank=True)
+	purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', null=True, blank=True)  #Assuming 1 item has 1PO for now
 	invoice = models.ForeignKey(Invoice, related_name='items', null=True, blank=True)
 	
 	def __unicode__(self):
 		return "[{}] {}".format(self.number, self.product.name)
-	
+
+	def is_invoiced(self):
+		return self.invoice is not None
+
+	def is_paid(self):
+		return self.invoice.is_paid		
+
 	# Helper function for all get_x_subtotal functions
 	def get_subtotal(self, price, quantity):
 		try:
 			return price * quantity
 		except TypeError: #If qty is not defined
 			return '-'
-
-	@property
+	
 	def get_requested_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_requested)
-	
+		return self.get_subtotal(self.price_requested, self.qty_requested)
 	def get_approved_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_approved)
-
+		return self.get_subtotal(self.price_approved, self.qty_approved)
 	def get_ordered_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_ordered)
-
+		return self.get_subtotal(self.price_ordered, self.qty_ordered)
 	def get_delivered_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_delivered)
+		return self.get_subtotal(self.price_ordered, self.qty_delivered)
+	def get_returned_subtotal(self):
+		return self.get_subtotal(self.price_ordered, self.qty_returned)
 
-	def get_refund_subtotal(self):
-		return self.get_subtotal(self.unit_price, self.qty_returned)
-
-	@property
-	def get_delivered_date(self):
-	    return self.status_updates.filter(value__in=['Delivered Partial', 'Delivered Complete']).order_by('-date')[0].date
+	def get_delivered_statuses(self):
+	    return self.status_updates.filter(value__in=['Delivered'])
 	
-
 class DrawdownItem(Item):
-	qty_drawndown = models.IntegerField(null=True, blank=True, default=0)
+	qty_drawndown = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True,)
 	comments_drawdown = models.CharField(max_length=500, blank=True, null=True)
 	drawdown = models.ForeignKey(Drawdown, related_name='items', null=True, blank=True)	
 
-	def get_drawdown_date(self):
-	    return self.status_updates.filter(value='Drawdown').date
+	def get_drawdown_statuses(self):
+	    return self.status_updates.filter(value__in=['Drawndown'])
+
+# Model to break down spend (DELIVERED_SUBTOTAL) of items between departments
+class SpendBreakdown(models.Model):
+	item = models.ForeignKey(OrderItem, related_name="spend_by_dept")
+	department = models.ForeignKey(Department, related_name="spend_breakdown")
+	account_code = models.ForeignKey(AccountCode, related_name="spend_breakdown")
+	spend = models.DecimalField(max_digits=10, decimal_places=2)
+
+	def __unicode__(self):
+		return "{} - {} spend of item {}".format(self.department.name, self.spend, self.item.number)	
 
 ##########################################
 #####      STATUS (DOC & ITEM)       ##### 
 ########################################## 
 
-class Status(models.Model):
-	value = models.CharField(max_length=20, choices=settings.STATUSES, default='Pending')
+class StatusLog(models.Model):
+	value = models.CharField(max_length=40, choices=settings.ITEM_STATUSES, default='Pending')
+	desc = models.CharField(max_length=100, null=True, blank=True)
 	date = models.DateTimeField(editable=False, default=timezone.now)
 	author = models.ForeignKey(BuyerProfile, related_name="%(class)s_updates")
 
@@ -385,13 +486,18 @@ class Status(models.Model):
 		abstract = True
 		get_latest_by = 'date'
 
-class DocumentStatus(Status):
+class DocumentStatus(StatusLog):
 	document = models.ForeignKey(Document, related_name="status_updates")
 
-class OrderItemStatus(Status):
+	# Override the choices for DocumentStatus 'value' field
+	def __init__(self, *args, **kwargs):
+		self._meta.get_field('value').choices=settings.DOC_STATUSES
+		super(DocumentStatus, self).__init__(*args, **kwargs)
+
+class OrderItemStatus(StatusLog):
 	item = models.ForeignKey(OrderItem, related_name='status_updates')
 
-class DrawdownItemStatus(Status):
+class DrawdownItemStatus(StatusLog):
 	item = models.ForeignKey(DrawdownItem, related_name='status_updates')
 
 ##########################################

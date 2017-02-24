@@ -37,15 +37,18 @@
 					      <td> 
 					        {% include "_includes/formatting/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}
 					      </td>
-					      <td> {{item.product.name}}<br></td>
-					      <td> {{item.get_delivered_date|date:"D, M d Y"}}</td>
-					      <td> {{item.requisition.department}}<br></td>
+					      <td> {{ item.product.name }}<br></td>
+					      <td> {% for status in item.get_delivered_statuses %}
+				                {{ status.date|date:"M d" }}, 
+				               {% endfor %}
+				      	  </td>
+					      <td> {{ item.requisition.department }}<br></td>
 					      
 					      <!-- Delivered = Unbilled because the queryset in view selects for items with no associated invoice -->
-					      <td> {{item.qty_delivered }}<br></td>  
+					      <td> {{ item.qty_delivered }}<br></td>  
 					      
-					      <td> {{item.unit_price|currency_formatting:item.product.currency }}<br></td>
-					      <td> {{item.product.vendor_co.name}} <br></td>
+					      <td> {{ item.qty_delivered|currency_formatting:item.product.currency }}<br></td>
+					      <td> {{ item.product.vendor_co.name }} <br></td>
 					      
 					      <!-- Edit the item to allocate to different Depts / Account Codes -->		    
 					      <!-- <td>

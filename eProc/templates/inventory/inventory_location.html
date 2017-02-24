@@ -27,15 +27,15 @@
             </ul>
 
             <!-- TABLES -->
-            <div class="tab-content">
+           <div class="tab-content">
               <div class="tab-pane active" id="inventory">
-                 {% include '_includes/inventory_template.html' with tableID='inventoryTable' items=inventory_list  queryset='false' text_css='text-black' i_class=ICONS.inventory %}
+                 {% include '_includes/inventory_template.html' with tableID='inventoryTable' items=inventory_list  is_inventory='true' text_css='text-black' %}
               </div>
               <div class="tab-pane" id="received"> 
-                 {% include '_includes/inventory_template.html' with tableID='receivedTable' items=delivered_list queryset='true' text_css='text-green' i_class=ICONS.incoming %}
+                 {% include '_includes/inventory_template.html' with tableID='receivedTable' items=delivered_list is_inventory='false' text_css='text-green' i_class=ICONS.incoming %}
               </div>
               <div class="tab-pane" id="drawndown"> 
-                 {% include '_includes/inventory_template.html' with tableID='drawndownTable' items=drawndown_list queryset='true' text_css='text-red' i_class=ICONS.outgoing %}
+                 {% include '_includes/inventory_template.html' with tableID='drawndownTable' items=drawndown_list is_inventory='false' text_css='text-red' i_class=ICONS.outgoing %}
               </div>
 
             </div>

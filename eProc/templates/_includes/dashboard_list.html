@@ -10,7 +10,7 @@
            <a href="{% url url doc.id %}">
               <span class="label {{color}}">{{doc}}</span>
             </a>
-           for {{doc.currency|upper}} {{doc.sub_total}}<br>
+           for {{doc.currency|upper}} {{doc.get_requested_subtotal}}<br>
 
            {% if user.buyer_profile == doc.preparer %}
               Pending approval by <b>{{doc.next_approver}}</b>

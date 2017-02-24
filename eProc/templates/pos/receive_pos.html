@@ -1,0 +1,41 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+{% load eProc_filters %}
+
+{% block title %}Receive PO Items{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Receive PO Items</h1>{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+          <div class="pages">
+            <div class="box-header with-border">
+                <h3 class="box-title">Select an Open PO to Receive Items</h3>
+              </div>          
+            <div class="box-body">  
+              <table id="openTable" class="table table-striped">        
+                {% include '_includes/pos/po_table.html' with purchaseorders=open_pos href='receive_po' %}
+              </table>
+            </div>
+          </div>
+
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/data_tables_notifications.html" %}
+<script type="text/javascript">
+  $(function () {
+    $("#openTable").DataTable();
+  });
+</script>
+{% endblock js %}

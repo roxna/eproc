@@ -148,7 +148,7 @@
                     <i class="fa {{ICONS.new}}"></i> New Order
                   </a>
                 </li>
-                <li class="{% if request.resolver_match.url_name == 'requisitions' %} active {% endif %}">
+                <li class="{% if request.resolver_match.url_name == 'requisitions' or request.resolver_match.url_name == 'view_requisition' %} active {% endif %}">
                   <a href="{% url 'requisitions' %}">
                   <!-- only superuser & approver have access to approve (managed in view_req) -->
                   <i class="fa {{ICONS.requisition}}"></i> 
@@ -256,7 +256,7 @@
                   {% endif %}
                   </a>
                 </li>
-                <li class="treeview {% if request.resolver_match.url_name == 'call_drawdowns' %} active {% endif %}">
+                <li class="treeview {% if request.resolver_match.url_name == 'call_drawdowns' or request.resolver_match.url_name == 'call_drawdown' %} active {% endif %}">
                   <a href="{%url 'call_drawdowns' %}">
                   <i class="fa fa-hourglass-half"></i>
                   <!-- After items are approved, keep track of quantity actually taken out of inventory -->

@@ -21,6 +21,8 @@ def get_documents_by_auth(buyer, document_type):
     else:        
         return document_type.objects.filter(preparer=buyer).filter(next_approver=buyer) # .filter().filter() --> either or (vs. filter(x, y))
 
+def get_users_for_notifications(roles, buyer_profile):
+    return list(User.objects.filter(Q(buyer_profile__role__in=roles) | Q(buyer_profile=buyer_profile)))
 
 ################################
 ###    INITIALIZE FORMS    ### 
@@ -44,7 +46,7 @@ def initialize_req_form(buyer, requisition_form, orderitem_formset):
 def initialize_po_form(buyer, po_form):
     po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
     po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_co=buyer.company) 
+    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company) 
 
 def initialize_invoice_form(buyer, invoice_form):
     invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
@@ -81,45 +83,22 @@ def save_new_document(buyer, form):
     document.currency = buyer.company.currency
     document.date_created = timezone.now()
     document.buyer_co = buyer.company
-    # Don't save if Invoice - will violate the not-null constraint for invoice.po etc
+    # Don't save if Invoice - will violate the not-null constraint for invoice.vendor_co etc
     if not isinstance(document, Invoice):
         document.save() 
     return document
 
-# Save the data for each form in the order_items formset 
-# Used by NEW_REQ, NEW_PO, NEW_DD
-def save_items(buyer, document, item_formset):    
-    for index, form in enumerate(item_formset.forms):
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.unit_price = item.product.unit_price  #Don't like this being set here            
-            item.date_due = document.date_due
-            if isinstance(document, Requisition):
-                item.number = document.number + "-" + str(index+1)
-                item.requisition = document
-                item.department = document.department
-                item.save() #Need to save to get item.get_requested_subtotal
-                document.sub_total += item.get_requested_subtotal
-                if buyer.role == 'SuperUser':
-                    item.qty_approved = item.qty_requested
-                item.unit_price = item.product.unit_price
-            elif isinstance(document, PurchaseOrder):
-                item.purchase_order = document
-                if buyer.role == 'SuperUser':
-                    item.qty_ordered = item.qty_approved            
-            elif isinstance(document, Drawdown):
-                item.number = document.number + "-" + str(index+1)
-                item.drawdown = document
-                if buyer.role == 'SuperUser':
-                    item.qty_approved = item.qty_requested                
-            item.save()
-    document.save()
+def save_vendor(vendor_form, buyer):
+    vendor = vendor_form.save()
+    vendor.currency = buyer.company.currency
+    vendor.buyer_cos.add(buyer.company)
+    vendor.save()
 
 # Used by locations and view_location
 def save_location(location_form, buyer):
     location = location_form.save(commit=False)
     location.company = buyer.company
-    location.save()    
+    location.save()
 
 # User by view_location (eventually in 'users' too)
 def save_user(user_form, buyer_profile_form, company, location):
@@ -136,6 +115,7 @@ def save_department(department_form, buyer, location):
     department = department_form.save(commit=False)
     department.location = location
     department.save() 
+    return department
 
 # Updates document and order_item statuses with relevant values/author
 def save_status(document, doc_status, item_status, author):
@@ -165,23 +145,151 @@ def save_notification(text, category, recipients=[], target=None):
 
 
 ################################
-###        GET METHODS       ### 
+###    SAVE ITEM METHODS     ### 
 ################################ 
+# Save the data for each form in the order_items/drawdown_items formset 
 
-def get_inventory_received(items):
-    available_for_drawdown_statuses = ['Delivered Partial', 'Delivered Complete']
-    delivered_ids = [item.id for item in items if item.get_latest_status().value in available_for_drawdown_statuses]
-    delivered_list = items.filter(id__in=delivered_ids)
-    delivered_count = delivered_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('qty_delivered'))
-    return delivered_list, delivered_count
+########  REQUISITIONS  ########
 
-def get_inventory_drawndown(items, multiplier=1):    
-    drawndown_statuses = ['Drawdown Approved'] #Change this to 'Drawdown Partial, Complete (when have process in place)'
-    drawndown_ids = [item.id for item in items if item.get_latest_status().value in drawndown_statuses]
-    drawndown_list = items.filter(id__in=drawndown_ids)
-    drawndown_count = drawndown_list.values('product__name', 'product__threshold').annotate(total_qty=Sum('qty_drawndown')*multiplier)
-    return drawndown_list, drawndown_count
+# (new_req): Save new_requisition order_items
+def save_new_requisition_items(buyer, requisition, formset):
+    for index, form in enumerate(formset.forms):
+        item = form.save(commit=False)
+        item.date_due = requisition.date_due
+        item.number = requisition.number + "-" + str(index+1)
+        item.requisition = requisition
+        item.department = requisition.department
+        item.current_status = 'Pending' #OrderItem --> Order PENDING
+        if buyer.role == 'SuperUser':
+            item.current_status = 'Approved'
+            item.qty_approved = item.qty_requested
+            item.price_approved = item.price_requested
+            item.price_ordered = item.price_approved #Setting this here, will be editable in new_po_confirm
+        item.save()
 
+# (view_req): Save items based on approve/deny/cancel
+def save_approved_requisition_items(buyer, requisition, formset):
+    for form in formset.forms:
+        item = form.save()
+        item.current_status = 'Approved'
+        item.price_ordered = item.price_approved #Setting this here, will be editable in new_po_confirm
+        item.save()
+    save_status(document=requisition, doc_status='Approved', item_status='Approved', author=buyer)
+
+def save_denied_cancelled_requisition_items(buyer, requisition, formset, status):    
+    for form in formset.forms:
+        item = form.save()
+        item.qty_approved = 0
+        item.current_status = status
+        if status == 'Denied':
+            item.qty_denied = item.qty_requested
+        elif status == 'Cancelled':            
+            item.qty_cancelled = item.qty_requested
+        item.save()
+    save_status(document=requisition, doc_status=status, item_status=status, author=buyer)
+
+
+#######  PURCHASE ORDERS  ########
+
+def save_new_po_items(buyer, purchase_order, formset):
+    for form in formset.forms:
+        item = form.save(commit=False)
+        item.date_due = purchase_order.date_due
+        item.purchase_order = purchase_order
+        item.current_status = 'Ordered'
+        item.save()
+
+# PO marked as Cancelled
+# Item back to Approved, PO de-linked
+def save_cancelled_po_items(buyer, purchase_order):
+    for form in purchase_order.items.all():        
+        item.current_status = 'Approved'
+        #In case a subset of initial approved items were ordered, not re-setting approved quantity to ordered quantity 
+        # will increase approved items beyond the initial number
+        item.qty_ordered = 0
+        item.comments_ordered = None
+        item.purchase_order = None
+        item.save()
+    save_status(document=requisition, doc_status='Cancelled', item_status='Approved', author=buyer)
+
+
+def save_received_po_items(buyer, formset):
+    for index, form in enumerate(formset.forms):
+        if form.has_changed():
+            item = form.save()            
+            if item.qty_ordered == item.qty_returned:
+                item.current_status = 'Returned Completed'
+                OrderItemStatus.objects.create(value='Returned', author=buyer, item=item)
+            elif item.qty_delivered + item.qty_returned == item.qty_ordered:
+                item.current_status = 'Delivered Completed'
+                OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
+            elif item.qty_delivered + item.qty_returned < item.qty_ordered:
+                item.current_status = 'Delivered Parial'
+                OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
+            item.save()
+
+
+#######  INVOICES  ########
+
+def save_new_invoice_items(buyer, invoice, items, vendor):
+    invoice.vendor_co = vendor
+    invoice.save()
+    for item in items:                
+        invoice.purchase_orders.add(item.purchase_order) # Adding a M2M relationship with PO        
+        item.invoice = invoice
+        item.save()
+    invoice.save()
+    DocumentStatus.objects.create(value='Pending', author=buyer, document=invoice)
+
+
+#######  DRAWDOWNS  ########
+
+# (new_dd)
+def save_new_drawdown_items(buyer, drawdown, formset):
+    for index, form in enumerate(formset.forms):
+        item = form.save(commit=False)
+        item.date_due = drawdown.date_due
+        item.number = drawdown.number + "-" + str(index+1)
+        item.drawdown = drawdown
+        item.current_status = 'Pending' #DrawdownItem --> Drawdown PENDING
+        if buyer.role == 'SuperUser':
+            item.current_status = 'Approved'
+            item.qty_approved = item.qty_requested
+        item.save()
+
+# (view_dd): Save items based on approve/deny/cancel
+def save_approved_dd_items(buyer, drawdown, formset):
+    for form in formset.forms:
+        item = form.save()
+        item.current_status = 'Approved'
+        item.save()
+    save_status(document=drawdown, doc_status='Approved', item_status='Approved', author=buyer)
+
+def save_denied_cancelled_dd_items(buyer, drawdown, formset, status):    
+    for form in formset.forms:
+        item = form.save()
+        item.qty_approved = 0
+        item.current_status = status
+        if status == 'Denied':
+            item.qty_denied = item.qty_requested
+        elif status == 'Cancelled':            
+            item.qty_cancelled = item.qty_requested
+        item.save()
+    save_status(document=drawdown, doc_status=status, item_status=status, author=buyer)
+
+
+def save_called_dd_items(buyer, formset):
+    for form in formset.forms:
+        if form.has_changed():
+            item = form.save()            
+            if item.qty_drawndown == item.qty_approved:
+                item.current_status = 'Drawndown Complete'
+                DrawdownItemStatus.objects.create(value='Drawndown', author=buyer, item=item)
+            elif item.qty_drawndown < item.qty_approved:
+                item.current_status = 'Drawndown Parial'
+                DrawdownItemStatus.objects.create(value='Drawndown', author=buyer, item=item)
+            item.save()
+  
 
 ################################
 ###        UPLOAD CSVs       ### 
@@ -196,8 +304,12 @@ def handle_product_upload(reader, buyer_co):
         unit_price = float(row['UNIT_PRICE'])
         unit_type = row['UNIT_TYPE']
         category, categ_created = Category.objects.get_or_create(name=row['CATEGORY'], buyer_co=buyer_co)
-        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR'], buyer_co=buyer_co, currency=buyer_co.currency)
-        CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, vendor_co=vendor_co, buyer_co=buyer_co)
+        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR'], currency=buyer_co.currency)
+        vendor_co.buyer_cos.add(buyer_co)
+        vendor_co.save()
+        product, product_created = CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, item_type='Vendor Uploaded', vendor_co=vendor_co)
+        product.buyer_cos.add(buyer_co)
+        product.save()
 
 def handle_vendor_upload(reader, buyer_co, currency):
     for row in reader:
@@ -215,7 +327,9 @@ def handle_vendor_upload(reader, buyer_co, currency):
         email = row['EMAIL']
         phone = row['PHONE']     
         vendor_co, vendor_created = VendorCo.objects.get_or_create(name=name, currency=currency, website=website, vendorID=vendorID,
-                                                                   contact_rep=contact_rep, comments=comments, buyer_co=buyer_co)        
+                                                                   contact_rep=contact_rep, comments=comments)
+        vendor_co.buyer_cos.add(buyer_co)
+        vendor_co.save()
         location = Location.objects.get_or_create(address1=address1, address2=address2, city=city, state=state, zipcode=zipcode, 
                                                   country=country, phone=phone, email=email, company=vendor_co)
 
@@ -228,7 +342,7 @@ time_delta = 10 # (in days)
 
 def setup_analysis_data(buyer):
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
-    items = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    items = OrderItem.objects.filter(current_status__in=settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
     period_today, period_mid, period_old, period_end, periods = setup_periods()
     items_by_period = setup_items_by_period(items, period_today, period_mid, period_old, period_end)
     return items, periods, items_by_period
@@ -242,6 +356,8 @@ def setup_periods():
     periods = [period_old.strftime("%b %Y"), period_mid.strftime("%b %Y"), period_today.strftime("%b %Y"), ]
     return period_today, period_mid, period_old, period_end, periods
 
+# Filter items based on date of status update
+# To change this to based on 'Order' or 'Delivery' date??
 def setup_items_by_period(items, period_today, period_mid, period_old, period_end):
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department    
     items_today = items.filter(Q(status_updates__date__gte=period_mid), Q(status_updates__date__lte=period_today))
@@ -269,7 +385,7 @@ def get_period_spend_values(spend_by, items_by_period, period_spend_data):
     # Outer loop is to loop through items_by_period array
     # Inner loop is to loop through spend at each location in each items array (items_old etc)
     for i, period in enumerate(items_by_period):
-        item_spend_by_period = list(period.values(spend_by).annotate(total_spend=Sum(F('qty_delivered')*F('unit_price'), output_field=models.DecimalField())))
+        item_spend_by_period = list(period.values(spend_by).annotate(total_spend=Sum(F('qty_delivered')*F('price_ordered'), output_field=models.DecimalField())))
         for j, item in enumerate(item_spend_by_period):
             try:
                 name = item[spend_by] 

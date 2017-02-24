@@ -65,9 +65,18 @@
                         </tr>
                     </thead>
                     <tbody> 
-                        <!-- <div class="item"> -->
-                            <!-- Updated in JQUERY -->
-                        <!-- </div> -->
+                        {% for item in items %}    
+                            {% with item.product.currency as currency %}                             
+                            <tr class="item">
+                                <td>{{item.product.name}}</td>
+                                <td class="quantity">{{ item.qty_delivered }}</td>
+                                <!-- Don't format this as currency because it would become a string
+                                and that would cause a problem in subtotal & grandtotal calculations -->
+                                <td class="unit_price">{{ item.price_ordered }}</td>
+                                <td>{{ item.get_delivered_subtotal|currency_formatting:currency }}</td>
+                            <tr>
+                            {% endwith %}
+                        {% endfor %}
                     </tbody>
                 </table>
 
@@ -106,25 +115,6 @@
 
 {% block js %}  
     <script src="{% static 'dist/js/comments_totals.js' %}"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-
-            $('#vendorName').html('{{vendor|upper}}');
-
-            {% for item in items %}                  
-                $('#itemsTable tbody').append(                    
-                    '<tr class="item">'+
-                        '<td>'+'{{item.product.name}}'+'</td>'+
-                        '<td class="quantity">'+{{item.qty_delivered}}+'</td>'+
-                        '<td class="unit_price">'+{{item.unit_price}}+'</td>'+
-                        '<td>'+'{{item.product.currency|currency_icon}}'+parseInt({{item.qty_delivered}})*parseInt({{item.unit_price}})+'</td>'+
-                    '<tr>' 
-                );
-
-            {% endfor %}
-        });
-    </script>
-
 {% endblock js %}
 
 

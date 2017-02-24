@@ -58,8 +58,9 @@
                         {% for dept in departments %}
                           {% with dept.location.company.currency as currency %}
                           <tr>                            
-                            <td>{{ dept.name}}</td>                            
-                            <td>{{dept.get_spend_approved_ytd|currency_formatting:currency}}</td>
+                            <td>{{ dept.name }}</td>   
+                            <td>{{ dept.budget|currency_formatting:currency }}</td>                            
+                            <td>{{ dept.get_spend_approved_ytd|currency_formatting:currency }}</td>
                             <td>{{ dept.get_spend_percent_of_budget }}</td>
                           </tr>
                           {% endwith %}
