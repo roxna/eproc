@@ -19,19 +19,22 @@
                 
                 <!-- Item Details -->
                 <p class="lead">Item Details</p>                
-                <table class="table">
+                <table class="table table-border">
                   <thead class="">
                     <tr>
                       <td><b>PO</b></td>
                       <td><b>QUANTITY</b></td>
                       <td><b>PRICE</b></td>
+                      <td><b>SPEND</b></td>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td><span class="label label-large label-{{item.purchase_order.get_latest_status|lower}}">{{item.purchase_order.number}}</span></td>
                       <td>{{item.qty_delivered}}</td>                      
-                      <td> {{ item.unit_price|currency_formatting:item.product.currency }}<br></td>
+                      <td> {{ item.price_ordered|currency_formatting:item.product.currency }}</td>
+                      <td> {{ item.get_delivered_subtotal|currency_formatting:item.product.currency }}</td>
+                      <br>
                     </tr>
                   </tbody>
                 </table>
@@ -46,14 +49,14 @@
                     {% endfor %}
                     <div class="item" id="order_items">
                         {% crispy form form.helper %}                                
-                    </div> <br>                           
+                    </div> <br>          
                 {% endfor %}
                 <a id="add" class="unbilled_items" href="#"><i class="fa fa-plus"></i> Add</a>
             </div>
 
             <div class="modal-footer">
               <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-              <button type="submit" name="save" class="btn basic-teal pull-right">Save</button>
+              <button type="submit" name="save"  value="save_{{item.id}}" class="btn basic-teal pull-right">Save</button>
             </div>
           
           </form>

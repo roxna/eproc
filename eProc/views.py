@@ -98,8 +98,7 @@ def get_started(request):
             ['products','4. Add items to catalog', CatalogItem.objects.filter(buyer_cos=buyer.company).exists()],
             ['account_codes','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
             ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gt=100).exists()],
-            ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],
-            
+            ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],      
         ],
         'request_list': [
             ['new_requisition','1. Create a new request', req_exists],
@@ -124,19 +123,16 @@ def dashboard(request):
     
     # Only show documents where user is preparer or next_approver (unless SuperUser)
     requisitions = get_documents_by_auth(buyer, Requisition)
-    pos = get_documents_by_auth(buyer, PurchaseOrder)
+    pos = get_documents_by_auth(buyer, PurchaseOrder)    
     
     # Order Items with current_status = 'Delivered PARTIAL/COMLPETE', in the past 7 days
     items_received = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES)
     items_received_this_week = items_received.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
-    data = {
-        # DASHBOARD FOR SUPERUSER
-        'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
-        'pending_pos': PurchaseOrder.latest_status_objects.pending.filter(pk__in=pos),
+    data = {        
+        'pending_requisitions': Requisition.objects.filter(current_status='Pending', pk__in=requisitions),
+        'pending_pos': PurchaseOrder.objects.filter(current_status='Pending', pk__in=pos),
         'items_received': items_received,
-
-        # DASHBOARD FOR AVERAGE USER
     }
     return render(request, "main/dashboard.html", data)
 
@@ -190,13 +186,13 @@ def requisitions(request):
     # Returns Reqs where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
     requisitions = get_documents_by_auth(buyer, Requisition)
     
-    # Returns relevant requisitions based on their latest_status (see managers.py)    
+    # Returns relevant requisitions based on their current_status
     data = {
-        'all_requisitions': Requisition.latest_status_objects.filter(pk__in=requisitions),
-        'pending_requisitions': Requisition.latest_status_objects.pending.filter(pk__in=requisitions),
-        'approved_requisitions': Requisition.latest_status_objects.approved.filter(pk__in=requisitions),
-        'denied_requisitions': Requisition.latest_status_objects.denied.filter(pk__in=requisitions),
-        'cancelled_requisitions': Requisition.latest_status_objects.cancelled.filter(pk__in=requisitions),
+        'all_requisitions': requisitions,
+        'pending_requisitions': requisitions.filter(current_status='Pending', pk__in=requisitions),
+        'approved_requisitions': requisitions.filter(current_status='Approved', pk__in=requisitions),
+        'denied_requisitions': requisitions.filter(current_status='Denied', pk__in=requisitions),
+        'cancelled_requisitions': requisitions.filter(current_status='Cancelled', pk__in=requisitions),
     }
     return render(request, "requests/requisitions.html", data)
 
@@ -316,11 +312,11 @@ def purchaseorders(request):
     pos = PurchaseOrder.objects.filter(buyer_co=buyer.company)
     
     data = {
-        'all_pos': PurchaseOrder.latest_status_objects.filter(pk__in=pos),
-        'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
-        'closed_pos': PurchaseOrder.latest_status_objects.closed.filter(pk__in=pos),
+        'all_pos': pos,
+        'open_pos': pos.filter(current_status='Open', pk__in=pos),
+        'closed_pos': pos.filter(current_status='Closed', pk__in=pos),
         'paid_pos': pos.filter(is_paid=True),
-        'cancelled_pos': PurchaseOrder.latest_status_objects.cancelled.filter(pk__in=pos),
+        'cancelled_pos': pos.filter(current_status='Cancelled', pk__in=pos),
     }
     return render(request, "pos/purchaseorders.html", data)
 
@@ -338,7 +334,9 @@ def view_po(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     if request.method == 'POST':
         users = get_users_for_notifications(['SuperUser', 'Purchaser'], purchase_order.preparer)
-        if 'close' in request.POST:            
+        if 'close' in request.POST:
+            purchase_order.current_status = 'Closed'
+            purchase_order.save()
             DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
             # No Order Item status updates needed because 'Close' only shows if purchase_order.is_ready_to_close
             # which is all items of purchase_order have current_status 'Delivered Complete'
@@ -347,6 +345,8 @@ def view_po(request, po_id):
             return redirect('purchaseorders')
         elif 'cancel' in request.POST:
             # PO is Cancelled, Items go back into Approved list, PO delinked
+            purchase_order.current_status = 'Cancelled'
+            purchase_order.save()
             save_cancelled_po_items(buyer, purchase_order)
             messages.success(request, 'PO Cancelled')            
             return redirect('purchaseorders')
@@ -368,7 +368,7 @@ def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
     data = {
-        'open_pos': PurchaseOrder.latest_status_objects.opened.filter(pk__in=pos),
+        'open_pos': PurchaseOrder.objects.filter(current_status='Pending', pk__in=pos),
     }
     return render(request, "pos/receive_pos.html", data)
 
@@ -513,10 +513,10 @@ def invoices(request):
     invoices = get_documents_by_auth(buyer, Invoice)
     
     data = {
-        'all_invoices': Invoice.latest_status_objects.filter(pk__in=invoices),
-        'pending_invoices': Invoice.latest_status_objects.pending.filter(pk__in=invoices),
-        'approved_invoices': Invoice.latest_status_objects.approved.filter(pk__in=invoices),
-        'denied_invoices': Invoice.latest_status_objects.denied.filter(pk__in=invoices)|Invoice.latest_status_objects.cancelled.filter(pk__in=invoices),
+        'all_invoices': invoices,
+        'pending_invoices': invoices.filter(current_status='Pending', pk__in=invoices),
+        'approved_invoices': invoices.filter(current_status='Approved', pk__in=invoices),
+        'denied_invoices': invoices.filter(current_status__in=['Denied', 'Cancelled'], pk__in=invoices),
         'paid_invoices': invoices.filter(is_paid=True),
         'table_headers': ['Invoice', 'Grand Total', 'Invoice Created', 'Date Due', 'Vendor', 'PO', 'Files', 'Comments']
     }
@@ -579,24 +579,20 @@ def vendor_invoices(request, vendor_id):
 def unbilled_items(request):
     buyer = request.user.buyer_profile
 
-    # Order Items with current_status = Ordered/Delivered, isn't linked to an invoice
-    unbilled_items = OrderItem.objects.filter(current_status__in=conf_settings.UNBILLED_STATUSES, invoice__isnull=True, requisition__buyer_co=buyer.company)
+    # Order Items with current_status = Delivered, isn't linked to an invoice
+    unbilled_items = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES, invoice__isnull=True, requisition__buyer_co=buyer.company)
 
-    # TODOOOO WHEN ORDER_ITEMS ARE REFINED
-    # Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
-    # Unbilled Items Formset with editable Location/Department/AccountCode/Cost Allocation
-    # UnbilledFormset = formset_factory(UnbilledItemAllocationForm, extra=1)
+    # # Unbilled items --> allocate to specific Depts/Account Codes
+    # UnbilledFormset = modelformset_factory(SpendAllocation, SpendAllocationForm, extra=1)
     # unbilled_formset = UnbilledFormset(request.POST or None)
 
+    # initialize_unbilled_form(buyer, unbilled_formset)
+    
     # if request.method == 'POST':
-    #     item_id = int(request.POST.get('edit')[5:])
-    #     item = get_object_or_404(OrderItem, pk=item_id)
     #     if unbilled_formset.is_valid():
-    #         for form in unbilled_formset.forms:
-    #             department = form.cleaned_data['department']
-    #             account_code = form.cleaned_data['account_code']
-    #             cost = form.cleaned_data['cost']
-    #         pass
+    #         item_id = int(request.POST.get('save')[5:])
+    #         item = get_object_or_404(OrderItem, pk=item_id)
+    #         save_spend_allocation_items(buyer, item, unbilled_formset)
     #         messages.success(request, 'Item updated successfully')            
     #     else:
     #         messages.info(request, 'Error. Item not updated')
@@ -613,7 +609,7 @@ def unbilled_items(request):
 def receiving_summary(request):
     buyer = request.user.buyer_profile
     
-    items_received_all = OrderItem.latest_status_objects.delivered.filter(requisition__buyer_co=buyer.company)
+    items_received_all = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
     items_received_this_week = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
     items_received_this_month = items_received_all.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=30))
 
@@ -738,12 +734,12 @@ def drawdowns(request):
     drawdowns = get_documents_by_auth(buyer, Drawdown)
 
     data = {
-        'all_drawdowns': Drawdown.latest_status_objects.filter(pk__in=drawdowns),
-        'pending_drawdowns': Drawdown.latest_status_objects.pending.filter(pk__in=drawdowns),
-        'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
-        'denied_drawdowns': Drawdown.latest_status_objects.denied.filter(pk__in=drawdowns),
-        'cancelled_drawdowns': Drawdown.latest_status_objects.cancelled.filter(pk__in=drawdowns),
-        'closed_drawdowns': Drawdown.latest_status_objects.closed.filter(pk__in=drawdowns),
+        'all_drawdowns': drawdowns.filter(pk__in=drawdowns),
+        'pending_drawdowns': drawdowns.filter(current_status='Pending', pk__in=drawdowns),
+        'approved_drawdowns': drawdowns.filter(current_status='Approved', pk__in=drawdowns),
+        'denied_drawdowns': drawdowns.filter(current_status='Denied', pk__in=drawdowns),
+        'cancelled_drawdowns': drawdowns.filter(current_status='Cancelled', pk__in=drawdowns),
+        'closed_drawdowns': drawdowns.filter(current_status='Closed', pk__in=drawdowns),
         'table_headers': ['Drawdown No.', 'Requested by', 'Requested Date', 'Due Date', 'Comments']
     }
     return render(request, "drawdowns/drawdowns.html", data)
@@ -753,7 +749,7 @@ def call_drawdowns(request):
     buyer = request.user.buyer_profile
     drawdowns = get_documents_by_auth(buyer, Drawdown)
     data = {
-        'approved_drawdowns': Drawdown.latest_status_objects.approved.filter(pk__in=drawdowns),
+        'approved_drawdowns': Drawdown.objects.filter(current_status='Approved', pk__in=drawdowns),
         'table_headers': ['Drawdown No.', 'Requested by', 'Requested Date', 'Due Date', 'Comments']
     }
     return render(request, "drawdowns/call_drawdowns.html", data)
@@ -1196,6 +1192,14 @@ def company_profile(request):
     }
     return render(request, "settings/company_profile.html", data)  
 
+def mark_notifications_as_read(request):
+    buyer = request.user.buyer_profile
+    unread_notifications = Notification.objects.filter(recipients=request.user)
+    for notification in unread_notifications:
+        notification.mark_as_read()
+    # Redirect user to same page
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
 
 ####################################
 ###    REPORTS & ANALYSIS        ### 
@@ -1325,7 +1329,7 @@ def industry_benchmarks(request):
 
     ##### CHART 1: SUPPLIER SPEND TOP 5% #####
     benchmark_spend_percent = 90
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
+    # Order Items with current_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
     
     items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('price_ordered'), output_field=models.DecimalField()))

@@ -191,7 +191,7 @@ CURRENT_STATUSES = (
     ('Drawndown Partial', 'Drawndown Partial'),
     ('Drawndown Complete', 'Drawndown Complete'),
 )
-UNBILLED_STATUSES = ['Ordered Partial', 'Ordered Complete', 'Delivered Partial', 'Delivered Complete']
+
 DELIVERED_STATUSES = ['Delivered Partial', 'Delivered Complete']
 DRAWDOWN_STATUSES = ['Drawndown Partial', 'Drawndown Complete']
 

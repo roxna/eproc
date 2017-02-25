@@ -136,7 +136,8 @@ urlpatterns=[
         url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
         url(r'^account-codes/$', eProc_views.account_codes, name='account_codes'),
         url(r'^approval-routing/$', eProc_views.approval_routing, name='approval_routing'),
-        # url(r'^taxes/$', eProc_views.taxes, name='taxes'),            
+        # url(r'^taxes/$', eProc_views.taxes, name='taxes'),
+        url(r'^notifications/mark_as_read$', eProc_views.mark_notifications_as_read, name='mark_notifications_as_read'),
     ])),      
 
 ]

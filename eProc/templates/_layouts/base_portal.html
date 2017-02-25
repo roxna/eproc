@@ -66,7 +66,10 @@
                       {% if unread_notifications.count > 0 %}
                       <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: auto;">
                         <ul class="menu" style="overflow: hidden; width: 100%; height: 100%;">
-
+                          <li class="header">
+                            <a href="{% url 'mark_notifications_as_read' %}">Mark all as read</a>
+                          </li>
+                          
                           {% for notification in unread_notifications.list %}
                           <li>
                             {% with notification.category as category %}

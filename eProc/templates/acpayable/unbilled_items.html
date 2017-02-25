@@ -35,7 +35,7 @@
 				    	{% with item.purchase_order as po %}
 					    <tr class={{product.id}}>
 					      <td> 
-					        {% include "_includes/formatting/status_formatting_w_href.html" with item=po value_to_display=po.number href='view_po' %}
+					        {% include "_includes/formatting/doc_status_formatting.html" with doc=po value_to_display=po.number href='view_po' %}
 					      </td>
 					      <td> {{ item.product.name }}<br></td>
 					      <td> {% for status in item.get_delivered_statuses %}
@@ -44,17 +44,16 @@
 				      	  </td>
 					      <td> {{ item.requisition.department }}<br></td>
 					      
-					      <!-- Delivered = Unbilled because the queryset in view selects for items with no associated invoice -->
-					      <td> {{ item.qty_delivered }}<br></td>  
-					      
-					      <td> {{ item.qty_delivered|currency_formatting:item.product.currency }}<br></td>
+					      <!-- All unbilled are Delivered Partial/Complete with no associated invoice -->
+					      <td> {{ item.qty_delivered }}</td>
+
+					      <td> {{ item.price_ordered | currency_formatting:item.product.currency }}<br></td>
 					      <td> {{ item.product.vendor_co.name }} <br></td>
 					      
 					      <!-- Edit the item to allocate to different Depts / Account Codes -->		    
-					      <!-- <td>
+					     <!--  <td>
 					      	<button type="button" class="btn basic-transparent pull-right" data-toggle="modal" data-target="#addModal"><i class='fa {{ICONS.new}} edit' id="edit_{{item.id}}"></i></button>					      
   							{#{% include "_includes/modal_unbilled.html" with formset=unbilled_formset item=item %}#}
-
   						  </td> -->
 
 					    </tr>

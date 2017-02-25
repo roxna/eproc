@@ -1,19 +1,10 @@
 
+# Mark notifications as 'read'
+# DOCS --> make into current-status like items, kill latest_status_objects (managers.py), change paid status formatting
+# New req - unit_price issues
 
 # 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
 	# update model to M2M field, new_po_confirm, current_status - partially ordered??
-# New req - unit_price issues
-# DOCS --> make into current-status like items
-# docs - paid status formatting
-# Dashboard for average user
-
-# DONE
-# Overhaul OrderItem model v1
-# Update csv readers for m2m product.buyer_cos.add(buyer.company), add item_type
-# Req/DD add items bug,
-# new_po_items and new_invoice_items javascript --> if unselect all items, need to deactivate add_items to PO button
-# form error checks
-# Docs - make sub/grand totals into formula
 
 # *****************************
 
@@ -21,13 +12,11 @@
 # ****************************
 # 1. WHO SHOULD SEE WHAT DOCS? Docs(Reqs/POs) etc show docs only if user is preparer or next_approver (see get_docs_by_auth). Any other situations?
 # 2. See initialize_new_req_forms - Should dept dropdown be anything if SuperUser AND if in "HQ" location (today only if superuser)?
-# 3. Do we want Drawdown ('Completed', 'Completed'), #TODO?? (After dd approved, when dd actually withdrawn)
 # 4. Off Catalog/Vendor (rogue) spending allowed? Who can add to catalog/vendor?
 # 5. Should dept be FK to company? or via locations?
 # 6. Does Invoice_quantity = PO_ordered_qty or delivered quantity?
 # 7. Do you have paid POs that aren't closed? So should po_template.html have if status==Closed or Open --> Mark as paid option?
 # 8. Mark PO as paid or Invoice as Paid? Correspondingly mark OrderItems as paid too?
-# 9. When Invoice approved/denied, what happens to order_items statuses?
 # 10. DDs, Reqs (and PO/Invoices) - link to Dept? Location? or none?
 # 11. Restrictions on who can add vendors/products/categories? If product not in the list and user wants to request it?
 # 12. customize dashboard based on auth permissions?
@@ -81,10 +70,10 @@
 
 # REFINEMENTS:
 # ****************************
-# Images - catalog items (csv upload/regular)
-# TODO: Manage if PO is cancelled and items become 'APPROVED' again - that doubles the count
+# Dashboard for average user based on role (if AP, show invoices not requisitions)
+# Unbilled v2 --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
+# Images - catalog items (csv upload)
 # activate - url shouldnt be 127:00...
-# Unbilled items --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 # Score card / vendor rating - rating/trends over time
 # In request - choose NON CATALOG item
 # Make all queries more efficient (eg Inventory drawdownlist | inventoryList etc)
@@ -102,8 +91,8 @@
 # ****************************
 # SPEND by BU/Dept (in Locations)
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
+# DD = Requisition (item_table)
 # ADD_USER functionality in USERS when able to filter dept based on location 
-# Mark notifications as 'read'
 # Approval routing:
 	# For orders - Assign alt. approver
 	# For bills/payments

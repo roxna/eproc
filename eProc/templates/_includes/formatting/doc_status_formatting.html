@@ -1,0 +1,10 @@
+<a href="{% url href doc.id %}">
+	{% with doc.current_status|slugify as current_status %}
+	    <span class="label label-large label-{{current_status}}"> 
+	    	{{ value_to_display }}
+	    </span>	    	   
+	{% endwith %}
+</a> 
+{% if doc.is_paid %}
+	<i class="fa fa fa-dollar is_paid"></i>
+{% endif %}

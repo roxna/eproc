@@ -14,20 +14,20 @@ class BuyerProfileAdmin(admin.ModelAdmin):
     list_filter = ['company', 'role']
 
 class RequisitionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'department', 'buyer_co', ]
+    list_display = ['id', 'number', 'current_status', 'department', 'buyer_co', ]
     search_fields = ['number', 'department']
     list_filter = ['number',]
 
 class POAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_ordered_grand_total']
+    list_display = ['id', 'number', 'current_status', 'buyer_co', 'vendor_co', 'get_ordered_grand_total']
     search_fields = ['number', 'department']
     list_filter = ['number', ]
 
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co', 'vendor_co', 'get_grand_total']
+    list_display = ['id', 'number', 'current_status', 'buyer_co', 'vendor_co', 'get_grand_total']
 
 class DrawdownAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'buyer_co' ]
+    list_display = ['id', 'number', 'current_status', 'buyer_co' ]
 
 class CatalogItemAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name', 'unit_price', 'threshold', 'category', 'vendor_co']
@@ -53,6 +53,9 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 class AccountCodeAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'name']    
+
+class SpendAllocationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'item', 'department', 'account_code', 'spend']
 
 class DocumentStatusAdmin(admin.ModelAdmin):
     list_display = ['id', 'value', 'date', 'author', 'document']
@@ -93,6 +96,7 @@ admin.site.register(Requisition, RequisitionAdmin)
 admin.site.register(PurchaseOrder, POAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
 admin.site.register(Drawdown, DrawdownAdmin)
+admin.site.register(SpendAllocation, SpendAllocationAdmin)
 admin.site.register(Rating)
 admin.site.register(DocumentStatus, DocumentStatusAdmin)
 admin.site.register(OrderItemStatus, OrderItemStatusAdmin)

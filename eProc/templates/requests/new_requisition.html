@@ -98,7 +98,14 @@
             // Get the DOM element for that row's unit-price field
             // and remove the first 4 chars ('div_')
             var price_dom_element = $(this).closest('.row').children('.item-price').children().attr('id');
-            price_dom_element = price_dom_element.substring(4, price_dom_element.length)
+
+            var formCount = $('.item').length;
+            price_dom_element = price_dom_element.substring(4, price_dom_element.length);
+            
+            // If 2nd or greater form, ID has 'div_' prepended
+            if (formCount > 1){
+                price_dom_element = 'div_' + price_dom_element;
+            }
 
             // AJAX request to get the selected product's unit price and set it in the DOM element
             $.ajax({
@@ -107,8 +114,12 @@
                 success: function(data){      
                     // Set the unit price of that product on the DOM element
                     var price = parseInt(data[0]['fields']['unit_price']);
-                    console.log(price_dom_element);
-                    $('#'+price_dom_element).val(price);
+                    // If 2nd or greater form, need to select the input element because there's also a div with the same ID
+                    if (formCount == 1){
+                        $('#'+price_dom_element).val(price);
+                    } else {
+                        $('#'+price_dom_element+' :input').val(price);
+                    }
                 },
                 error: function(data){
                     console.log(data);

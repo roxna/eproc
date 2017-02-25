@@ -213,10 +213,7 @@ class Document(models.Model):
 	preparer = models.ForeignKey(BuyerProfile, related_name="%(class)s_prepared_by")
 	next_approver = models.ForeignKey(BuyerProfile, related_name="%(class)s_to_approve", null=True, blank=True)	
 	buyer_co = models.ForeignKey(BuyerCo, related_name="%(class)s")
-	
-	# Managers - overridden in managers.py
-	objects = models.Manager() # default manager
-	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
+	current_status = models.CharField(max_length=25, choices=settings.DOC_STATUSES, default='Pending')
 	
 	def __unicode__(self):
 		return "{}".format(self.number)
@@ -281,7 +278,7 @@ class Requisition(Document):
 		return spend
 
 class PurchaseOrder(SalesOrder):	
-	pass	
+	pass
 
 	def is_ready_to_close(self):
 		for item in self.items.all():
@@ -295,7 +292,7 @@ class PurchaseOrder(SalesOrder):
 
  	@property
  	def get_ordered_grand_total(self):
- 		return self.get_ordered_subtotal + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
+ 		return self.get_ordered_subtotal() + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
 class Invoice(SalesOrder):
 	date_issued = models.DateTimeField(default=timezone.now) #Date issued by the vendor
@@ -380,10 +377,6 @@ class Item(models.Model):
 	date_due = models.DateField(default=timezone.now)
 	current_status = models.CharField(max_length=25, choices=settings.CURRENT_STATUSES, default='Pending')
 
-	# Managers - overridden in managers.py
-	objects = models.Manager() # default manager
-	latest_status_objects = LatestStatusManager() # manager to get approved/pending etc objects
-
 	# class Meta:
 	# 	abstract = True
 
@@ -454,10 +447,10 @@ class DrawdownItem(Item):
 	    return self.status_updates.filter(value__in=['Drawndown'])
 
 # Model to break down spend (DELIVERED_SUBTOTAL) of items between departments
-class SpendBreakdown(models.Model):
+class SpendAllocation(models.Model):
 	item = models.ForeignKey(OrderItem, related_name="spend_by_dept")
-	department = models.ForeignKey(Department, related_name="spend_breakdown")
-	account_code = models.ForeignKey(AccountCode, related_name="spend_breakdown")
+	department = models.ForeignKey(Department, related_name="spend_allocation")
+	account_code = models.ForeignKey(AccountCode, related_name="spend_allocation")
 	spend = models.DecimalField(max_digits=10, decimal_places=2)
 
 	def __unicode__(self):
@@ -539,6 +532,6 @@ class Notification(models.Model):
 		return u"{}".format(self.text)
 
 	def mark_as_read(self):
-		if self.unread:
-			self.unread = False
+		if self.is_unread:
+			self.is_unread = False
 			self.save()

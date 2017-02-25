@@ -575,28 +575,42 @@ class ReceivePOItemForm(ModelForm):
         model = OrderItem
         fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivered')
         
-# NOT A MODEL FORM - used in unbilled_items
-class UnbilledItemAllocationForm(forms.Form):
-    location = forms.ModelChoiceField(queryset=Location.objects.all())
+# (unbilled_items)
+class SpendAllocationForm(ModelForm):
     department = forms.ModelChoiceField(queryset=Department.objects.all())
     account_code = forms.ModelChoiceField(queryset=AccountCode.objects.all())
-    cost = forms.DecimalField(required=True)
+    spend = forms.DecimalField(required=True, label='Allocate Spend')
 
     def __init__(self, *args, **kwargs):
-        super(UnbilledItemAllocationForm, self).__init__(*args, **kwargs)
+        super(SpendAllocationForm, self).__init__(*args, **kwargs)
         self.empty_permitted = False
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('location', css_class='col-md-3'),
                 Div('department', css_class='col-md-3'),
+                Div('', css_class='col-md-1'),
                 Div('account_code', css_class='col-md-2'),
-                Div('cost', css_class='col-md-2'),
+                Div('', css_class='col-md-1'),
+                Div('spend', css_class='col-md-2'),
+                Div('', css_class='col-md-2'),
                 HTML('<a class="unbilled_items delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
         )
+
+    def clean(self):
+        cleaned_data = super(SpendAllocationForm, self).clean()
+        department = self.cleaned_data['department']
+        account_code = self.cleaned_data['account_code']    
+        # Check that the account code belongs to the department
+        if not Department.objects.filter(pk=department.id, account_codes=account_code).exists():
+            self.add_error('account_code', 'Account code must match department')
+        return cleaned_data            
+
+    class Meta:
+        model = SpendAllocation
+        fields = ('department', 'account_code', 'spend')
 
 class DrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), required=True)
@@ -672,7 +686,7 @@ class CallDrawdownItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
     qty_approved = forms.IntegerField(widget=forms.TextInput(attrs={'readonly':'readonly'}), label='Approved')
     qty_drawndown = forms.IntegerField(required=True, label='Drawndown')
-    comments_drawdown = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':2, 'cols':50}), label='Comments')
+    comments_drawdown = forms.CharField(required=False, label='Comments')
 
 
     def __init__(self, *args, **kwargs):

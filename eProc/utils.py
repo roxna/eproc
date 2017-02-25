@@ -65,6 +65,10 @@ def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
     for drawdownitem_form in drawdownitem_formset: 
         drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)    
 
+def initialize_unbilled_form(buyer, unbilled_formset):
+    for form in unbilled_formset:
+        form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
+        form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
 ################################
 ###   SAVE METHODS - COMMON  ### 
@@ -212,7 +216,6 @@ def save_cancelled_po_items(buyer, purchase_order):
         item.save()
     save_status(document=requisition, doc_status='Cancelled', item_status='Approved', author=buyer)
 
-
 def save_received_po_items(buyer, formset):
     for index, form in enumerate(formset.forms):
         if form.has_changed():
@@ -228,6 +231,13 @@ def save_received_po_items(buyer, formset):
                 OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
             item.save()
 
+#######  UNBILLED ITEMS / SPEND ALLOCATION  ########
+
+def save_spend_allocation_items(buyer, item, formset):
+    for form in formset.forms:
+        spend_allocation = form.save(commit=False)
+        spend_allocation.item = item
+        spend_allocation.save()
 
 #######  INVOICES  ########
 
