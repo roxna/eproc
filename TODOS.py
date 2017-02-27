@@ -1,14 +1,4 @@
 
-# addWhatFix
-# django permission decorator
-# request bulk discount items form
-
-# DONE
-# Stripe Payments Integration
-# user_passes_test (subscribed or trial not over) redirect
-# Ensure PW doesn't show in the updateProfileform
-# ENV variables for Stripe
-
 # 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
 	# update model to M2M field, new_po_confirm, current_status - partially ordered??
 
@@ -50,12 +40,10 @@
 
 # NEW FEATURES
 # ****************************
-# PAYMENTSS:
+# PAYMENTS FOR BUYERCO:
 	# https://www.procurify.com/product/pay
 	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
 	# Payment method for vendor (http://kb.procurify.com/?st_kb=accounts-payable-vendor-payment-methods-set)
-	# PRICING
-	# Multiple plans --> manage payment and subscription options
 # PRICES:
 	# API - live commodities prices with alerts (https://www.quandl.com)
 # COST BENCHMARKS
@@ -98,7 +86,7 @@
 # Sub-GL codes?
 # AUDIT LOGGGG for each item/doc
 # Add Controller, Branch Manager: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
-
+# addWhatFix
 
 # LOW PRIO REFINEMENTS
 # ****************************
@@ -121,4 +109,19 @@
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
 
+
+
+
+
+# NOTES:
+# cd Desktop/eProc/eProc
+# workon eProcure
+# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+# psql postgres then create database dbname; then \connect dbname
+# python manage.py migrate --run-syncdb
+
+
+# ON SETUP - need to create
+    # PLANS (stripe & DB)
+    # bulk discount items: name=ADMIN BUYERCO, CATEGORIES
 

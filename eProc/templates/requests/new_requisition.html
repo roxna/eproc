@@ -20,7 +20,7 @@
             {% include "_includes/docs/no_docs_add_now.html" with text="You haven't added any Vendors yet" href='vendors' action='Add one now' %}
         {% elif not company.categories.all %}
             {% include "_includes/docs/no_docs_add_now.html" with text="You haven't added any Categories yet" href='categories' action='Add one now' %} 
-        {% elif not company.catalog_items.all %}
+        {% elif not company.catalogitems.all %}
             {% include "_includes/docs/no_docs_add_now.html" with text="You haven't added any Products yet" href='products' action='Add one now' %} 
         {% elif not company.has_created_dept %}
             {% include "_includes/docs/no_docs_add_now.html" with text="Ooh one more... You haven't added any Departments yet" href='locations' action='Add one now' %} 

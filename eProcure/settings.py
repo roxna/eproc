@@ -4,15 +4,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-# NOTES:
-# cd Desktop/eProc/eProc
-# source ~/.bashrc
-# workon eProcure
-# Start server: pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
-# psql postgres then create database dbname; then \connect dbname
-# python manage.py migrate --run-syncdb
-
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os

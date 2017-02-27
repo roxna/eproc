@@ -372,24 +372,43 @@ class Category(models.Model):
 		return "{}".format(self.name)
 
 # Images uploaded to <media_root>/... 
-# To update path on whether it's 'Vendor Uploaded' or 'Bulk Discount'
+# To update path on whether it's 'Buyer Uploaded' or 'Bulk Discount'
 def img_directory_path(instance, filename):    
 	return 'catalog/images/{0}/{1}'.format(str(instance.id), filename)
 
-class CatalogItem(models.Model):
+# Parent model for CatalogItem/CatalogItemRequest models
+class Product(models.Model):
 	name = models.CharField(max_length=50)
 	desc = models.CharField(max_length=150, null=True, blank=True)
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2)  #For CatalogItemRequest - it's max price buyer is willing to pay
+	unit_type = models.CharField(max_length=20, default="each")
+	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
+	category = models.ForeignKey(Category, related_name="%(class)ss")
+	# M2M for bulk items, FK if not; No buyer_co if it's a bulk_discount category
+	buyer_cos = models.ManyToManyField(BuyerCo, related_name="%(class)ss", null=True, blank=True) 
+
+	class Meta:
+ 		abstract = True
+
+# An actual item in the catalog (either Buyer_Uploaded or Bulk_Discount)
+class CatalogItem(Product):	
 	sku = models.CharField(max_length=20, null=True, blank=True)
 	image = models.ImageField(upload_to=img_directory_path, validators=[validate_file_extension], null=True, blank=True)
-	item_type = models.CharField(max_length=20, choices=(('Vendor Uploaded', 'Vendor Uploaded'), ('Bulk Discount', 'Bulk Discount')), default='Vendor Uploaded')
-	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-	unit_type = models.CharField(max_length=20, default="each")
-	threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below
-	currency = models.CharField(choices=settings.CURRENCIES, default='USD', max_length=10)
-	category = models.ForeignKey(Category, related_name="catalog_items")
-	vendor_co = models.ForeignKey(VendorCo, related_name="catalog_items")
-	# M2M for bulk items, FK if not; No buyer_co if it's a bulk_discount category
-	buyer_cos = models.ManyToManyField(BuyerCo, related_name="catalog_items", null=True, blank=True) 
+	ITEM_TYPES = (
+		('Buyer Uploaded', 'Buyer Uploaded'), 
+		('Bulk Discount', 'Bulk Discount'), 
+	)
+	item_type = models.CharField(max_length=20, choices=ITEM_TYPES, default='Buyer Uploaded')	
+	threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below		
+	vendor_co = models.ForeignKey(VendorCo, related_name="catalogitems")
+	
+
+	def __unicode__(self):
+		return "{}".format(self.name)
+
+# Model that saves product requests from buyer_cos
+class CatalogItemRequest(Product):
+	author = models.ForeignKey(BuyerProfile, related_name="catalogitemrequests")
 
 	def __unicode__(self):
 		return "{}".format(self.name)

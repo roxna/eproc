@@ -30,7 +30,10 @@ class DrawdownAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'current_status', 'buyer_co' ]
 
 class CatalogItemAdmin(admin.ModelAdmin):
-	list_display = ['id', 'name', 'unit_price', 'threshold', 'category', 'vendor_co']
+	list_display = ['id', 'name', 'item_type', 'unit_price', 'threshold', 'category', 'vendor_co']
+
+class CatalogItemRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'unit_price', 'category']    
 
 class CategoryAdmin(admin.ModelAdmin):
 	list_display = ['id', 'code', 'name']	
@@ -83,6 +86,7 @@ admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
 admin.site.register(AccountCode, AccountCodeAdmin)
 admin.site.register(CatalogItem, CatalogItemAdmin)
+admin.site.register(CatalogItemRequest, CatalogItemRequestAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(DrawdownItem, DrawdownItemAdmin)

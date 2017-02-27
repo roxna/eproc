@@ -415,6 +415,39 @@ class CatalogItemForm(ModelForm):
         model = CatalogItem
         fields = ('name', 'sku', 'desc', 'image', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
+
+class CatalogItemRequestForm(ModelForm):
+    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
+    unit_price = forms.DecimalField(required=False, min_value=0, label="Max price")
+    unit_type = forms.CharField(required=True, initial='each')
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), label="Closest matching category")
+
+    def __init__(self, *args, **kwargs):
+        super(CatalogItemRequestForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-sm-12 col-md-6'),                
+                Div('category', css_class='col-sm-12 col-md-6'),
+                css_class='row',
+            ),       
+            Div(
+                Div('desc', css_class='col-md-12'),
+                css_class='row',
+            ),            
+            Div(
+                Div('currency', css_class='col-md-4'),
+                Div('unit_price', css_class='col-md-4'),
+                Div('unit_type', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
+
+    class Meta:
+        model = CatalogItemRequest
+        fields = ('name', 'desc', 'currency', 'unit_price', 'unit_type', 'category',)
+
 ####################################
 ###      ORDER ITEM FORMS        ### 
 ####################################

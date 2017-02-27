@@ -131,7 +131,7 @@ urlpatterns=[
         url(r'^products/', include([
             url(r'^$', eProc_views.products, name='products'),
             url(r'^import-csv/$', eProc_views.upload_product_csv, name='upload_product_csv'),
-            url(r'^bulk/$', eProc_views.products_bulk, name='products_bulk'),        
+            url(r'^bulk/$', eProc_views.products_bulk, name='products_bulk'),
             url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request        
         ])),
         url(r'^categories/$', eProc_views.categories, name='categories'),

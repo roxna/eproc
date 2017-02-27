@@ -885,9 +885,27 @@ def call_drawdown(request, drawdown_id):
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def settings(request):
-    all_bulk_products = CatalogItem.objects.filter(item_type='Bulk Discount')
-    data = {
-        'all_bulk_products': all_bulk_products,
+    buyer = request.user.buyer_profile
+    users = get_users_for_notifications(['SuperUser'], buyer)
+
+    product_request_form = CatalogItemRequestForm(request.POST or None)
+    product_request_form.fields['category'].queryset = Category.objects.filter(buyer_co__name='ADMIN BUYERCO')
+    
+    if request.method == "POST":
+        if product_request_form.is_valid():
+            product_request = product_request_form.save(commit=False)
+            product_request.author = buyer
+            product_request.save()
+            product_request.buyer_cos.add(buyer.company)
+            product_request.save()
+            messages.success(request, "Product request submitted")
+            save_notification('Request for ' + product_request.name + ' submitted by ' + request.user.username, 'Success', users)
+            return redirect('settings')
+        else:
+            messages.info(request, 'Error. Product request not submitted')
+    data = {        
+        'all_bulk_products': CatalogItem.objects.filter(item_type='Bulk Discount'),
+        'product_request_form': product_request_form,
     }
     return render(request, "settings/settings.html", data)
 
@@ -1065,7 +1083,7 @@ def products(request):
     products = CatalogItem.objects.filter(buyer_cos=request.user.buyer_profile.company)
     product_form = CatalogItemForm(request.POST or None)
     product_form.fields['category'].queryset = Category.objects.filter(buyer_co=buyer.company)
-    product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company)    
+    product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company)
     if request.method == "POST":
         if product_form.is_valid():
             product = product_form.save(commit=False)
@@ -1137,6 +1155,7 @@ def products_bulk(request):
 
     }
     return render(request, "products/products_bulk.html", data)
+
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')

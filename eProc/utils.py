@@ -24,26 +24,6 @@ def update_stripe_subscription(user, plan):
     subscription.plan = plan.identifier
     subscription.save()
 
-# def create_stripe_customer(email, source):
-#     return stripe.Customer.create(
-#         email=email,
-#         source=source,
-#     )
-
-# def create_stripe_charge(customer_id, amount, currency, description):
-#     return stripe.Charge.create(
-#         customer=customer_id,
-#         amount=amount,
-#         currency=currency,
-#         description=description,
-#     )
-
-# def create_stripe_subscription(customer_id, plan_identifier):
-#     return stripe.Subscription.create(
-#           customer=customer_id,
-#           plan=plan_identifier,
-#         )
-
 ################################
 ###     COMMON METHODS       ### 
 ################################ 
@@ -362,7 +342,7 @@ def handle_product_upload(reader, buyer_co):
         vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR'], currency=buyer_co.currency)
         vendor_co.buyer_cos.add(buyer_co)
         vendor_co.save()
-        product, product_created = CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, item_type='Vendor Uploaded', vendor_co=vendor_co)
+        product, product_created = CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, item_type='Buyer Uploaded', vendor_co=vendor_co)
         product.buyer_cos.add(buyer_co)
         product.save()
 

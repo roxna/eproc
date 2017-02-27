@@ -12,10 +12,10 @@
 <section class="content">
    <div class="row">
 
-	<div class="col-xs-12 col-md-6 col-lg-6">
+	<div class="col-xs-12 col-md-4 col-lg-4">
 	  <div class="box box-default">     
 	    <div class="box-header with-border">
-	      <h3 class="box-title">Company</h3>
+	      <h3 class="box-title">Profiles</h3>
 	    </div>       
 	    <div class="box-body">          
           {% if user.buyer_profile.role == 'SuperUser' %}
@@ -36,18 +36,18 @@
 	  </div>    
 	</div>
 
-	<div class="col-xs-12 col-md-6 col-lg-6">
+	<div class="col-xs-12 col-md-4 col-lg-4">
 	  <div class="box box-default">     
 	    <div class="box-header with-border">
-	      <h3 class="box-title">Operations</h3>
+	      <h3 class="box-title">Product & Vendor Management</h3>
 	    </div>       
 	    <div class="box-body">          
-            {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
+          {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
             <h4><a href="{%url 'vendors' %}"><i class="fa {{ICONS.vendors}}"></i> Vendors</a></h4>
             <p class="text-muted">Manage vendors incl. ratings and bulk CSV upload</p>
                         
             <h4><a href="{%url 'categories' %}"><i class="fa {{ICONS.products}}"></i> Product Categories</a></h4>
-            <h5>Manage product categories</h5>
+            <h5>Create categories for your products</h5>
 
             <h4><a href="{%url 'products' %}"><i class="fa {{ICONS.products}}"></i> Products</a></h4>
             <p class="text-muted">Manage own product list incl. CSV upload</p>
@@ -55,9 +55,30 @@
             <!-- Only show if there are discounted products available -->
             {% if all_bulk_products %} 
               <h4><a href="{%url 'products_bulk' %}"><i class="fa {{ICONS.products_bulk}}"></i> Products - Bulk Discounts</a></h4>            
-              <p class="text-muted">Select products at lower, pre-negotiated prices</p>
-            {% endif %}
-                
+              <p class="text-muted">Add discounted products (we've negotiated amazing rates for you!) to your catalog</p> <br>
+
+              Want us to negotiate prices for you on a specific product?<br>
+
+              <button type="button" class="btn btn-block basic-grey" data-toggle="modal" data-target="#addModal"> REQUEST THE PRODUCT NOW!</button>
+              {% include "_includes/modal_singleform.html" with target="Product Request" form=product_request_form %}
+                            
+            {% endif %}          
+
+          {% else %}
+          	<p class="text-muted">You don't have access rights to Product/Vendor Settings</p>
+          {% endif %}          
+	    </div>        
+	  </div>    
+	</div>
+
+
+  <div class="col-xs-12 col-md-4 col-lg-4">
+    <div class="box box-default">     
+      <div class="box-header with-border">
+        <h3 class="box-title">Operations</h3>
+      </div>       
+      <div class="box-body">    
+          {% if user.buyer_profile.role == 'SuperUser' %}                  
             <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
 
@@ -65,11 +86,16 @@
             <p class="text-muted">Manage approvers and threshold amounts</p>            
 
           {% else %}
-          	<p class="text-muted">You don't have access rights to Operations Settings</p>
+            <p class="text-muted">You don't have access rights to Operations Settings</p>
           {% endif %}          
-	    </div>        
-	  </div>    
-	</div>
+      </div>        
+    </div>    
+  </div>
+
+
+
+
+
 
   </div>    
 </section>
