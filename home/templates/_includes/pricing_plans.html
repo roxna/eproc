@@ -1,0 +1,70 @@
+{% load eProc_filters %}
+<div class="row header">
+	<div class="col-md-12">
+		<h3>Sign up now!</h3>
+		<p>No contract. Cancel when you want.</p>
+	</div>
+</div>
+
+<div class="row charts">
+{% for plan in plans %}
+
+	<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+		<div class="chart featured">
+			
+			<!-- <div class="popular">Most popular</div> -->
+			<div class="plan-name">{{plan.name}}</div>
+			
+			<div class="quantity">
+				<span class="dollar">{{plan.currency}}</span>
+				<span class="price">{{plan.price|divide:100}} </span>
+				<span class="period">/ {{plan.interval}}</span>
+			</div>		
+
+			<div class="specs">
+				
+				{% if plan.identifier == 'basic_monthly' %}
+				<div class="spec">
+					<span class="variable">Unlimited</span> users
+				</div>				
+				<div class="spec">
+					<span class="variable">Unlimited</span> orders
+				</div>
+				<div class="spec">
+					<span class="variable">Notifications</span> in real time
+				</div>
+
+				{% elif plan.identifier == 'intermediate_monthly' %}
+				<div class="spec">
+					<em>Everything in Basic plan</em>
+				</div>
+				<div class="spec">
+					Analytics on <span class="variable">company spend</span> 
+				</div>
+				<div class="spec">
+					Spend vs. <span class="variable">industry average</span>
+				</div>
+
+				{% elif plan.identifier == 'advanced_monthly' %}
+				<div class="spec">
+					<em>Everything in Intermediate plan</em>
+				</div>
+				<div class="spec">
+					Access to <span class="variable">alternate vendors</span> 
+				</div>
+				<div class="spec">
+					<span class="variable">Discounts</span> on select products
+				</div>
+				{% endif %}
+
+			</div>
+			<br>
+			<a href="{% url 'register' %}">
+				<button class="button basic-teal">Sign up now</button>
+			</a>
+		</div>
+	</div>
+				
+{% endfor %}
+</div>
+

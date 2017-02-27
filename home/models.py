@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
+from django.conf import settings
 
 
 class Author(models.Model):
@@ -25,12 +26,19 @@ class Blog(models.Model):
 	def __unicode__(self):
 		return "{}".format(self.title)
 
+# All plans have unlimited # users
 class Plan(models.Model):
 	name = models.CharField(max_length=20)
-	price_per_user = models.IntegerField(default=10)
+	identifier = models.CharField(default='xxx', max_length=20)	
+	bulk_purchasing = models.BooleanField(default=False)
+	analytics = models.BooleanField(default=False)	
+	price = models.IntegerField(default=10) 
+	interval = models.CharField(default='month', choices=(('month', 'month'), ('year', 'year')), max_length=20)
+	currency = models.CharField(default='USD', choices=settings.CURRENCIES, max_length=5)
+	is_active = models.BooleanField(default=False)
 
 	def __unicode__(self):
-		return "{} - ${}/user".format(self.name, self.price_per_user)
+		return "{} - {}{}/{}".format(self.name, self.currency, self.price, self.interval)
 
 class ContactRequest(models.Model):
 	TOPICS = (

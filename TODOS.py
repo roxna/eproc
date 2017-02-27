@@ -1,10 +1,25 @@
 
-# Mark notifications as 'read'
-# DOCS --> make into current-status like items, kill latest_status_objects (managers.py), change paid status formatting
-# New req - unit_price issues
+# addWhatFix
+# django permission decorator
+# request bulk discount items form
+
+# DONE
+# Stripe Payments Integration
+# user_passes_test (subscribed or trial not over) redirect
+# Ensure PW doesn't show in the updateProfileform
+# ENV variables for Stripe
 
 # 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
 	# update model to M2M field, new_po_confirm, current_status - partially ordered??
+
+# Update charts to daily
+# Guidoism.objects \
+#     # get specific dates (not hours for example) and store in "created" 
+#     .extra({'created':"date(created)"})
+#     # get a values list of only "created" defined earlier
+#     .values('created')
+#     # annotate each day by Count of Guidoism objects
+#     .annotate(created_count=Count('id'))
 
 # *****************************
 
@@ -28,9 +43,7 @@
 # ****************************
 # DECK
 # Tests
-# Payment
 # Blogs/website
-# Refactor
 # Caching (eg. css files)
 
 
@@ -91,12 +104,11 @@
 # ****************************
 # SPEND by BU/Dept (in Locations)
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
-# DD = Requisition (item_table)
+# Refactor - DD = Requisition (item_table)
 # ADD_USER functionality in USERS when able to filter dept based on location 
 # Approval routing:
 	# For orders - Assign alt. approver
 	# For bills/payments
-# Profile no pw
 # export csv for receiving report
 # Move company from buyer_profile to user / # Remove BYERPROFILE FK to Company (only need FK for each to Location)
 # PW_change (urls.py) - # TODO: password_change isn't passing messages framework as extra_context to show pw changed success

@@ -8,7 +8,7 @@ class BlogAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'author', 'date']
  
 class PlanAdmin(admin.ModelAdmin):
-	list_display = ['name', 'price_per_user']
+	list_display = ['name', 'identifier', 'price', 'currency', 'interval', 'is_active', 'analytics', 'bulk_purchasing']
 
 class TestimonialAdmin(admin.ModelAdmin):
 	list_display = ['author', 'date']

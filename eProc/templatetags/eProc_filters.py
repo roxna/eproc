@@ -57,6 +57,13 @@ def as_percentage_of(part, whole):
         return "0%"
 
 
+@register.filter(name='divide')
+def divide(value, arg):
+    try:
+        return int(value) / int(arg)
+    except (ValueError, ZeroDivisionError):
+        return None
+
 # To pass a list of strings from Django to JS, need to encode data to JSON
 # http://stackoverflow.com/questions/21150133/pass-a-list-of-string-from-django-to-javascript
 @register.filter

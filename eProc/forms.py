@@ -14,45 +14,34 @@ from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 ####################################
 
 class RegisterUserForm(UserCreationForm):
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True) 
+    full_name = forms.CharField(required=True)
+    username = forms.CharField(required=True) 
     email = forms.EmailField(required=True)
     # profile_pic = forms.ImageField(label="Profile Picture", required=False)
     
     def __init__(self, *args, **kwargs):
         super(RegisterUserForm, self).__init__(*args, **kwargs)
+        self.fields['password2'].required = False
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Div('first_name', css_class='col-md-6'),
-                Div('last_name', css_class='col-md-6'),
+                Div('full_name', css_class='col-md-6'),
+                Div('username', css_class='col-md-6'),
                 css_class='row',
             ),
             Div(
-                Div('username', css_class='col-md-6'),
-                Div('email', css_class='col-md-6'),
+                Div('email', css_class='email col-md-6'),
+                Div('password1', css_class='col-md-6'),
                 css_class='row',
             ),            
-            Div(
-                Div('password1', css_class='col-md-6'),
-                Div('password2', css_class='col-md-6'),
-                css_class='row',
-            ),   
         )
         self.helper.form_tag = False
 
-        self.helperReadOnly = FormHelper()
-        self.helperReadOnly.layout = Layout(
-            Field('username', css_class='form-control', readonly=True),
-            Field('email', css_class='form-control', readonly=True),
-        )
-        self.helperReadOnly.form_tag = False
-
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email", "password1", "password2")
+        fields = ("username", "email", "password1")
 
-    def clean_username(self):
+    def clean_username(self):        
         username = self.cleaned_data["username"]
         try:
             User._default_manager.get(username=username)
@@ -63,13 +52,35 @@ class RegisterUserForm(UserCreationForm):
             code='duplicate_username',
         )
 
+    def save(self, commit=True):
+        user = super(RegisterUserForm, self).save(commit=False)        
+        try:
+            user.first_name, user.last_name = self.cleaned_data["full_name"].split()
+        except ValueError:
+            # If there's no space to split on
+            user.first_name = self.cleaned_data["full_name"]
+        user.password2 = self.cleaned_data["password1"]
+        user.is_active = False  #User not active until activate account through email
+        if commit:
+            user.save()
+        return user
+
+# class SubscriptionForm(ModelForm):
+#     pass
+
+#     class Meta:
+#         model = Subscription
+#         fields = ('plan', )
+
+
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
 
-class ChangeUserForm(UserChangeForm):
+# Didn't use Django UserChangeForm because that requires PW
+class ChangeUserForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ChangeUserForm, self).__init__(*args, **kwargs)
@@ -83,7 +94,7 @@ class ChangeUserForm(UserChangeForm):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password')
+        fields = ('username', 'first_name', 'last_name', 'email',)
 
 
 # CREATING A USER WITH A TEMP PASSWORD
@@ -935,9 +946,9 @@ class ApprovalRoutingForm(forms.Form):
         )
 
     def save(self):
+        instance = super(ApprovalRoutingForm, self).save(commit=False)
         approver = self.cleaned_data['approver']
-        approval_threshold = self.cleaned_data['approval_threshold']
-        
+        approval_threshold = self.cleaned_data['approval_threshold']        
         approver.approval_threshold=approval_threshold
         approver.save()
         return approver

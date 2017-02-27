@@ -36,6 +36,10 @@ class ViewTestCase(TestCase):
             'currency': self.buyer_co_currency,
         }  
 
+    def tearDown(self):
+        pass
+        # del self.a
+
     def create_user(self, is_active=False):        
         return User.objects.create_user(username=self.username, email=self.email, password=self.password, is_active=is_active)
 

@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from datetime import date
+from datetime import date, timedelta
 from django.db import models
 from django.db.models import Avg, Sum
 from django.conf import settings
@@ -11,6 +11,13 @@ from collections import defaultdict
 from .managers import *
 from .validators import validate_file_extension
 
+################################
+###      PAYMENT / SALE      ### 
+################################ 
+
+class Subscription(models.Model):
+    charge_id = models.CharField(max_length=32)  #Stripe charge_id
+    plan = models.ForeignKey('home.Plan', related_name='subscriptions') #FK to Plan Model in home app
 
 ################################
 ###     COMPANY DETAILS     ### 
@@ -37,7 +44,21 @@ class Company (models.Model):
 		return [location for location in self.locations.all()]
 
 class BuyerCo(Company):
-	pass
+	is_subscribed = models.BooleanField(default=False)  #Is on trial_period or has subscribed
+
+	def is_trial_over(self):
+		return timezone.now() > (self.users.first().user.date_joined + timedelta(days=settings.TRIAL_PERIOD_DAYS))
+
+	def is_trial_over_not_subscribed(self):
+		# Check if date SuperUser (registerer) was created was more than TRIAL_PERIOD_DAYS ago
+		if not self.is_subscribed and self.is_trial_over():
+			return True
+		return False
+
+	def days_to_trial_over(self):
+		date_since_joined = (timezone.now().date() - self.users.first().user.date_joined.date()).days		
+		# Once # days since joined > TRIAL_PERIOD_DAYS, shouldn't return a negative # days left
+		return max(0, settings.TRIAL_PERIOD_DAYS - date_since_joined)
 
 	def has_created_dept(self):
 		for location in self.locations.all():
@@ -125,10 +146,6 @@ class Location(models.Model):
 	    		pass
 	    return items_list
 
-################################
-###   ACCOUNTING DETAILS     ### 
-################################ 
-
 class Department(models.Model):
 	name = models.CharField(max_length=50)
 	budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -151,6 +168,10 @@ class Department(models.Model):
 			return str(round(percent, 2)) + '%'
 		except ZeroDivisionError:
 			return "No budget defined"
+
+################################
+###   ACCOUNTING DETAILS     ### 
+################################ 
 
 class AccountCode(models.Model):
 	code = models.CharField(max_length=20)
@@ -182,9 +203,17 @@ class User(AbstractUser):
     # Already has username, firstname, lastname, email, is_staff, is_active, date_joined    
     title = models.CharField(max_length=100, null=True, blank=True)
     profile_pic = models.ImageField(upload_to=user_img_directory_path, default='../static/img/default_profile_pic.jpg', blank=True, null=True)
+    stripe_customer_id = models.CharField(max_length=50, null=True, blank=True)
 
     def __unicode__(self):
     	return self.username
+
+    def is_subscribed(self):
+    	return self.buyer_profile.company.is_subscribed
+
+    def is_trial_over(self):
+    	return self.buyer_profile.company.is_trial_over()
+
 
 class BuyerProfile(models.Model):
 	role = models.CharField(choices=settings.ROLES, max_length=15)

@@ -7,7 +7,7 @@ from home.models import *
 from home.forms import *
 
 def home(request):
-	plans = Plan.objects.all()
+	plans = Plan.objects.filter(is_active=True)
 	testimonials = Testimonial.objects.all().order_by('?')[:2]
 	# Newsletter sign up
 	if request.method == "POST":
@@ -24,7 +24,7 @@ def home(request):
 	return render(request, "home.html", data)
 
 def pricing(request):
-	plans = Plan.objects.all()
+	plans = Plan.objects.filter(is_active=True)
 	data = {
 		'plans': plans,
 	}

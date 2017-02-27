@@ -142,12 +142,27 @@ EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'xx@gmail.com'
 
 
+COMPANY_NAME = 'xxxx'
+CONTACT_EMAIL = 'hello@eproc.com'
+
 #######################################
 #       FILE UPLOAD OPTIONS           #
 #######################################
 
 CONTENT_TYPES = ['image', 'text', 'application']
 MAX_UPLOAD_SIZE = "2621440" # 2.5MB - 2621440 / 5MB - 5242880 / 10MB - 10485760
+
+
+#######################################
+#       PAYMENTS / STRIPE            #
+#######################################
+TRIAL_PERIOD_DAYS = 30
+
+STRIPE_TEST_SECRET_KEY = os.environ.get('STRIPE_TEST_SECRET_KEY')
+STRIPE_TEST_PUBLISHABLE_KEY = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
+
+STRIPE_LIVE_SECRET_KEY = ""
+STRIPE_LIVE_PUBLISHABLE_KEY = ""
 
 
 #######################################

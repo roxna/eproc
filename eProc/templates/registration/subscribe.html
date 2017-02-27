@@ -1,0 +1,24 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Subscribe{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}<h1>Subscribe Now</h1>{% endblock header %}
+
+{% block content %}
+<section class="content"> 
+
+    <div class="row">
+      {% include "_includes/pricing.html" with plans=plans %}
+    </div>        
+  
+</section>
+{% endblock content %}
+
+
+{% block js %}
+{% endblock js %}
+

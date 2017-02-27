@@ -43,6 +43,15 @@
 
             <div class="navbar-custom-menu">
               <ul class="nav navbar-nav">            
+                
+                <li class="dropdown user user-menu">
+                  {% if user.buyer_profile.role == 'SuperUser' and not user.buyer_profile.company.is_subscribed %} 
+                  <a href="{% url 'subscribe' %}">
+                    <span class="pull-right-container">{{user.buyer_profile.company.days_to_trial_over}} DAYS LEFT!</span>
+                  </a>
+                  {% endif %}
+                </li>  
+
                 <li class="dropdown user user-menu">
                   {% if user.buyer_profile.role == 'SuperUser' %} 
                   <a href="{% url 'get_started' %}" id="get-started">

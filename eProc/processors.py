@@ -38,6 +38,7 @@ def icons(request):
 		"vendors": "fa-credit-card",
 		"accounts": "fa-book",
 		"approval": "fa-book",
+		"charge": "fa-credit-card",
 
 		# Notifications icons
 		"Info": 'fa-flag text-blue',
@@ -59,3 +60,4 @@ def notifications(request):
 		'list': unread_notifications.order_by('-id')[:5],
 	}
 	return {'unread_notifications': notifications}
+	

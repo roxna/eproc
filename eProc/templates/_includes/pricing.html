@@ -1,0 +1,63 @@
+  {% load staticfiles eProc_filters %}
+
+  {% for plan in plans %}
+  <div class="col-md-4">
+
+    <!-- Plan Details -->
+    <div class="box box-widget widget-user-2">
+      
+      <div class="widget-user-header bg-grey text-black">
+        <!-- /.widget-user-image -->
+        <h3 class="widget-user-username">{{plan.name}}</h3>
+        <h5 class="widget-user-desc">{{plan.currency}} {{plan.price|divide:100}} / {{plan.interval}} </h5>
+      </div>
+
+      <div class="box-footer no-padding">
+        <ul class="nav nav-stacked">
+          {% if plan.identifier == 'basic_monthly' %}
+            <li><a>Unlimited users</a></li>
+            <li><a>Unlimited orders</a></li>
+            <li><a>Notifications in real time</a></li>
+
+        {% elif plan.identifier == 'intermediate_monthly' %}
+            <li><a><em>Everything in Basic plan</em></a></li>
+            <li><a>Analytics on company spend</a></li>
+            <li><a>Spend vs. industry average</a></li>
+
+        {% elif plan.identifier == 'advanced_monthly' %}
+            <li><a><em>Everything in Intermediate plan</a></em></li>
+            <li><a>Access to alternate vendors</a></li>
+            <li><a>Discounts on select products</a></li>        
+
+        {% endif %}
+        
+  
+        <!-- Plan Pay Button -->
+        <!-- <div class="text-center"> -->
+        <li><a>
+          <form action="" method="POST" >
+                <div class="form-group">
+                  {% csrf_token %}
+                  <input type="hidden" name="plan_id" value="{{plan.id}}">
+                  <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                      data-key="{{STRIPE_KEY}}"
+                      data-name="{{COMPANY_NAME}}"
+                      data-description="Subscription for {{plan.name}}"
+                      data-image="{% static 'dist/img/subscription_icon.png' %}"
+                      data-amount="{{plan.price}}"
+                      data-email="{{user.email}}",
+                      data-locale="auto">
+                  </script>
+                          
+                </div>
+          </form>
+        <!-- </div> -->
+        </a></li>
+        </ul><br>
+
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+

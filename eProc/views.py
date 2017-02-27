@@ -1,7 +1,7 @@
-from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
 from django.conf import settings as conf_settings
+from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.forms import UserChangeForm
 from django.core.serializers import serialize
@@ -22,6 +22,7 @@ from django.utils.text import slugify
 from datetime import datetime, timedelta
 from rest_framework.renderers import JSONRenderer
 from eProc.models import *
+from home.models import Plan
 from eProc.serializers import *
 from eProc.forms import *
 from eProc.utils import *
@@ -30,38 +31,101 @@ import csv
 from itertools import chain
 import pdb
 from random import randint
+import stripe
 import unicodedata
+
+stripe.api_key = conf_settings.STRIPE_TEST_SECRET_KEY
 
 
 ####################################
 ###         REGISTRATION         ### 
 ####################################
 
-
 def register(request):
     user_form = RegisterUserForm(request.POST or None)  
-    buyer_company_form = BuyerCoForm(request.POST or None)      
+    buyer_company_form = BuyerCoForm(request.POST or None)  
+
     if request.method == "POST":
         if  user_form.is_valid() and buyer_company_form.is_valid():
-            user_instance = user_form.save()
+            user = user_form.save()
             company = buyer_company_form.save()
             location = Location.objects.create(loc_type='HQ', name=company.name+' - HQ', company=company)
             department = Department.objects.create(name='Admin', location=location)
-            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user_instance, department=department, location=location, company=company)
-            messages.info(request, "Thank you for registering. You are now logged in.")
-            save_notification('Welcome! Super pumped to have you join the family!', 'Success', [request.user])
-            user = authenticate(username=user_form.cleaned_data['username'],password=user_form.cleaned_data['password1'])
-            user.is_active=False #User not active until activate account through email
+            buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user, department=department, location=location, company=company)            
+            
+            # Create Stripe Customer and Subscription objects (subscribed to 'free' plan)
+            customer = stripe.Customer.create(
+                email=user.email,
+                source=request.POST['stripeToken'],
+            )            
+            subscription = stripe.Subscription.create(
+              customer=user.id,
+              plan="free",
+            )
+            # Update DB to hold user's stripe_customer_id
+            user.stripe_customer_id=customer.id
             user.save()
+
+            authenticate(username=user.username,password=user_form.cleaned_data['password1'])
             send_verific_email(user, user.id*conf_settings.SCALAR)
+            save_notification('Welcome! Super pumped to have you join the family!', 'Success', [request.user])
             return redirect('thankyou')
         else:
-            messages.info(request, 'Error. Registration unsuccessful') #TODO: Figure out how to show errors
+            messages.info(request, 'Error. Registration unsuccessful')
     data = {
         'user_form': user_form,
         'buyer_company_form': buyer_company_form
     }
     return render(request, "registration/register.html", data)
+
+def subscribe(request):
+    buyer = request.user.buyer_profile
+
+    if request.method == "POST": 
+        plan_id = int(request.POST.get('plan_id'))
+        plan = Plan.objects.get(id=plan_id)
+
+        update_stripe_subscription(request.user, plan)
+        
+        # Update BuyerCo is_subscribed' status
+        buyer.company.is_subscribed = True
+        buyer.company.save()
+        
+        messages.success(request, 'Nice! Registration successful! As a bonus, your first week is free!')
+        save_notification('Welcome! First week on us!', 'Success', [request.user])
+        return redirect('dashboard')
+    data = {
+        'plans': Plan.objects.filter(is_active=True),
+        'STRIPE_KEY': conf_settings.STRIPE_TEST_PUBLISHABLE_KEY,  
+        'COMPANY_NAME': conf_settings.COMPANY_NAME,      
+        'CONTACT_EMAIL': conf_settings.CONTACT_EMAIL,
+    }
+    return render(request, "registration/subscribe.html", data)
+
+@login_required()
+def trial_over_not_subscribed(request):
+    buyer = request.user.buyer_profile
+
+    if request.method == "POST": 
+        plan_id = int(request.POST.get('plan_id'))
+        plan = Plan.objects.get(id=plan_id)
+
+        update_stripe_subscription(request.user, plan)
+        
+        # Update BuyerCo is_subscribed' status
+        buyer.company.is_subscribed = True
+        buyer.company.save()
+        
+        messages.success(request, 'Nice! Registration successful! As a bonus, your first week is free!')
+        save_notification('Welcome! First week on us!', 'Success', [request.user])
+        return redirect('dashboard')
+    data = {
+        'plans': Plan.objects.filter(is_active=True),
+        'STRIPE_KEY': conf_settings.STRIPE_TEST_PUBLISHABLE_KEY,  
+        'COMPANY_NAME': conf_settings.COMPANY_NAME,      
+        'CONTACT_EMAIL': conf_settings.CONTACT_EMAIL,
+    }
+    return render(request, "registration/trial_over_not_subscribed.html", data)
 
 def activate(request):
     user_id = int(request.GET.get('id'))/conf_settings.SCALAR
@@ -83,6 +147,7 @@ def thankyou(request):
 ####################################
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def get_started(request):
     buyer = request.user.buyer_profile
     req_exists = Requisition.objects.filter(buyer_co=buyer.company).exists()
@@ -118,6 +183,7 @@ def get_started(request):
     return render(request, "main/get_started.html", data)
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def dashboard(request):
     buyer = request.user.buyer_profile
     
@@ -141,7 +207,8 @@ def dashboard(request):
 ###        REQUISITIONS          ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_requisition(request): 
     buyer = request.user.buyer_profile
     requisition_form = RequisitionForm(request.POST or None,
@@ -174,12 +241,13 @@ def new_requisition(request):
     return render(request, "requests/new_requisition.html", data)
 
 # Get relevant product and serialize the data into json for ajax request
-@login_required
+@login_required()
 def product_details(request, product_id):
     product = get_object_or_404(CatalogItem, pk=product_id)    
     return HttpResponse(serialize('json', [product,]), content_type='application/json')
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def requisitions(request):
     buyer = request.user.buyer_profile
     
@@ -196,7 +264,8 @@ def requisitions(request):
     }
     return render(request, "requests/requisitions.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_requisition(request, requisition_id):
     buyer = request.user.buyer_profile
     requisition = get_object_or_404(Requisition, pk=requisition_id)    
@@ -229,7 +298,8 @@ def view_requisition(request, requisition_id):
     }
     return render(request, "requests/view_requisition.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def print_requisition(request, requisition_id):
     requisition = get_object_or_404(Requisition, pk=requisition_id)
     data = {
@@ -241,7 +311,8 @@ def print_requisition(request, requisition_id):
 ###      PURCHASE ORDERS         ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_po_items(request):
     buyer = request.user.buyer_profile
     
@@ -265,7 +336,8 @@ def new_po_items(request):
     }
     return render(request, "pos/new_po_items.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_po_confirm(request):    
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
@@ -304,7 +376,8 @@ def new_po_confirm(request):
     }
     return render(request, "pos/new_po_confirm.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def purchaseorders(request):
     buyer = request.user.buyer_profile
     
@@ -320,7 +393,8 @@ def purchaseorders(request):
     }
     return render(request, "pos/purchaseorders.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def print_po(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     data = {
@@ -328,7 +402,8 @@ def print_po(request, po_id):
     }
     return render(request, "pos/print_po.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_po(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
@@ -363,7 +438,8 @@ def view_po(request, po_id):
     }
     return render(request, "pos/view_po.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
@@ -372,7 +448,8 @@ def receive_pos(request):
     }
     return render(request, "pos/receive_pos.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def receive_po(request, po_id):
     buyer = request.user.buyer_profile
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
@@ -400,7 +477,8 @@ def receive_po(request, po_id):
     }
     return render(request, "pos/receive_po.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def po_orderitems(request, po_id):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_id)
     buyer_co = request.user.buyer_profile.company
@@ -417,7 +495,8 @@ def po_orderitems(request, po_id):
 ###     INVOICES & A/PAYABLE     ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_invoice_items(request):
     buyer = request.user.buyer_profile
     
@@ -445,7 +524,8 @@ def new_invoice_items(request):
     }
     return render(request, "invoices/new_invoice_items.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_invoice_confirm(request):
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
@@ -492,7 +572,8 @@ def new_invoice_confirm(request):
     return render(request, "invoices/new_invoice_confirm.html", data)
 
 # AJAX request used to update new_invoice_items list
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def unbilled_items_by_vendor(request, vendor_id):
     buyer = request.user.buyer_profile        
     vendor_co = get_object_or_404(VendorCo, pk=vendor_id)
@@ -505,7 +586,8 @@ def unbilled_items_by_vendor(request, vendor_id):
     # Serialize the data into json for ajax request
     return HttpResponse(JSONRenderer().render(data), content_type='application/json')
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def invoices(request):
     buyer = request.user.buyer_profile    
     
@@ -522,7 +604,8 @@ def invoices(request):
     }
     return render(request, "invoices/invoices.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def print_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     data = {
@@ -530,7 +613,8 @@ def print_invoice(request, invoice_id):
     }
     return render(request, "invoices/print_invoice.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_invoice(request, invoice_id):
     buyer = request.user.buyer_profile
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -562,7 +646,8 @@ def view_invoice(request, invoice_id):
     }
     return render(request, "invoices/view_invoice.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def vendor_invoices(request, vendor_id):
     buyer_co = request.user.buyer_profile.company
     vendor_co = get_object_or_404(VendorCo, pk=vendor_id)    
@@ -575,7 +660,8 @@ def vendor_invoices(request, vendor_id):
         pass
     return HttpResponse(data, content_type='application/json')
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def unbilled_items(request):
     buyer = request.user.buyer_profile
 
@@ -605,7 +691,8 @@ def unbilled_items(request):
     }
     return render(request, "acpayable/unbilled_items.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def receiving_summary(request):
     buyer = request.user.buyer_profile
     
@@ -625,7 +712,8 @@ def receiving_summary(request):
 ###          INVENTORY           ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def inventory(request):    
     buyer = request.user.buyer_profile
     locations = Location.objects.filter(company=buyer.company)        
@@ -634,7 +722,8 @@ def inventory(request):
     }
     return render(request, "inventory/inventory.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_location_inventory(request, location_id, location_name):
     buyer = request.user.buyer_profile
     location = get_object_or_404(Location, pk=location_id)
@@ -652,7 +741,8 @@ def view_location_inventory(request, location_id, location_name):
 ###          DRAWDOWNS           ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def new_drawdown(request):
     buyer = request.user.buyer_profile
     drawdown_form = DrawdownForm(request.POST or None,
@@ -684,7 +774,8 @@ def new_drawdown(request):
     return render(request, "drawdowns/new_drawdown.html", data)
 
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)     
@@ -717,8 +808,8 @@ def view_drawdown(request, drawdown_id):
     }
     return render(request, "drawdowns/view_drawdown.html", data)
 
-
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def print_drawdown(request, drawdown_id):
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
     data = {
@@ -726,7 +817,8 @@ def print_drawdown(request, drawdown_id):
     }
     return render(request, "drawdowns/print_drawdown.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def drawdowns(request):
     buyer = request.user.buyer_profile
 
@@ -744,7 +836,8 @@ def drawdowns(request):
     }
     return render(request, "drawdowns/drawdowns.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def call_drawdowns(request):
     buyer = request.user.buyer_profile
     drawdowns = get_documents_by_auth(buyer, Drawdown)
@@ -754,7 +847,8 @@ def call_drawdowns(request):
     }
     return render(request, "drawdowns/call_drawdowns.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def call_drawdown(request, drawdown_id):
     buyer = request.user.buyer_profile
     drawdown = get_object_or_404(Drawdown, pk=drawdown_id)
@@ -788,7 +882,8 @@ def call_drawdown(request, drawdown_id):
 ###           SETTINGS           ### 
 ####################################
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def settings(request):
     all_bulk_products = CatalogItem.objects.filter(item_type='Bulk Discount')
     data = {
@@ -796,7 +891,8 @@ def settings(request):
     }
     return render(request, "settings/settings.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def users(request):    
     buyer = request.user.buyer_profile
     # user_form = AddUserForm(request.POST or None)
@@ -841,7 +937,8 @@ def users(request):
     }
     return render(request, "settings/users.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def locations(request):
     buyer = request.user.buyer_profile
     locations = Location.objects.filter(company=buyer.company).annotate(num_users=Count('users'), num_depts=Count('departments'))
@@ -859,7 +956,8 @@ def locations(request):
     }
     return render(request, "settings/locations.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_location(request, location_id, location_name):
     buyer = request.user.buyer_profile
     currency = buyer.company.currency
@@ -913,7 +1011,8 @@ def view_location(request, location_id, location_name):
     }
     return render(request, "settings/view_location.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def account_codes(request):
     buyer = request.user.buyer_profile
     account_codes = AccountCode.objects.filter(company=buyer.company)    
@@ -936,7 +1035,8 @@ def account_codes(request):
     }
     return render(request, "settings/account_codes.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def approval_routing(request):
     buyer = request.user.buyer_profile
     approver_form = ApprovalRoutingForm(request.POST or None)
@@ -958,7 +1058,8 @@ def approval_routing(request):
     }
     return render(request, "settings/approval_routing.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def products(request):
     buyer = request.user.buyer_profile
     products = CatalogItem.objects.filter(buyer_cos=request.user.buyer_profile.company)
@@ -985,7 +1086,8 @@ def products(request):
     }
     return render(request, "products/products.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def upload_product_csv(request):
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)
     buyer = request.user.buyer_profile
@@ -1004,7 +1106,8 @@ def upload_product_csv(request):
     }
     return render(request, "products/catalog_import.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def products_bulk(request):
     buyer = request.user.buyer_profile
     all_bulk_products = CatalogItem.objects.filter(item_type='Bulk Discount')
@@ -1035,7 +1138,8 @@ def products_bulk(request):
     }
     return render(request, "products/products_bulk.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def vendors(request):
     buyer = request.user.buyer_profile
     vendors = VendorCo.objects.filter(buyer_cos=buyer.company)
@@ -1059,7 +1163,8 @@ def vendors(request):
     }
     return render(request, "vendors/vendors.html", data)    
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def view_vendor(request, vendor_id, vendor_name):
     vendor_co = get_object_or_404(VendorCo, pk=vendor_id)
     location = Location.objects.filter(company=vendor_co)[0]
@@ -1085,7 +1190,8 @@ def view_vendor(request, vendor_id, vendor_name):
     }
     return render(request, "vendors/view_vendor.html", data)    
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def upload_vendor_csv(request):
     buyer = request.user.buyer_profile
     csv_form = UploadCSVForm(request.POST or None, request.FILES or None)    
@@ -1105,7 +1211,8 @@ def upload_vendor_csv(request):
     }
     return render(request, "vendors/vendor_import.html", data)
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def rate_vendor(request, vendor_id, vendor_name):
     buyer = request.user.buyer_profile
     vendor_co = get_object_or_404(VendorCo, pk=vendor_id)    
@@ -1133,7 +1240,8 @@ def rate_vendor(request, vendor_id, vendor_name):
     }
     return render(request, "vendors/vendor_rating.html", data)    
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def categories(request):
     buyer = request.user.buyer_profile
     categories = Category.objects.filter(buyer_co=request.user.buyer_profile.company)
@@ -1155,9 +1263,10 @@ def categories(request):
     }
     return render(request, "settings/categories.html", data)   
 
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def user_profile(request):
-    user_form = ChangeUserForm(request.POST or None, instance=request.user)   #TODO: Ensure PW doesn't show in the form
+    user_form = ChangeUserForm(request.POST or None, instance=request.user)   
     # buyer_profile_form = BuyerProfileForm(request.POST or None, instance=request.user.buyer_profile)
     if request.method == "POST":
         if user_form.is_valid():
@@ -1174,7 +1283,8 @@ def user_profile(request):
     return render(request, "settings/user_profile.html", data)    
 
 # DONE
-@login_required
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def company_profile(request):
     buyer = request.user.buyer_profile
     company_form = BuyerCoForm(request.POST or None, instance=buyer.company)
@@ -1192,6 +1302,7 @@ def company_profile(request):
     }
     return render(request, "settings/company_profile.html", data)  
 
+@login_required()
 def mark_notifications_as_read(request):
     buyer = request.user.buyer_profile
     unread_notifications = Notification.objects.filter(recipients=request.user)
@@ -1208,6 +1319,7 @@ def mark_notifications_as_read(request):
 #TODO: ALL ARE VERY INEFFICIENT ON THE DB - TO REFINE
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def spend_by_location_dept(request):
     buyer = request.user.buyer_profile
 
@@ -1245,6 +1357,7 @@ def spend_by_location_dept(request):
     return render(request, "analysis/spend_by_location_dept.html", data)
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def spend_by_product_category(request):
     buyer = request.user.buyer_profile
 
@@ -1280,6 +1393,7 @@ def spend_by_product_category(request):
     return render(request, "analysis/spend_by_product_category.html", data)
 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def spend_by_entity(request):
     buyer = request.user.buyer_profile
 
@@ -1324,6 +1438,7 @@ def spend_by_entity(request):
 
 import math 
 @login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def industry_benchmarks(request):
     buyer = request.user.buyer_profile
 

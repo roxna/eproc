@@ -33,7 +33,7 @@ urlpatterns=[
     url(r'^privacy-policy/$', home_views.privacy_policy, name='privacy_policy'),
 
     ###### REGISTRATION URLS (in eProc) ######
-    url(r'^register/$', eProc_views.register, name='register'),
+    url(r'^register/$', eProc_views.register, name='register'),    
     url(r'^activate/$', eProc_views.activate, name='activate'),
     url(r'^login/$', login, {'authentication_form': LoginForm, }, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
@@ -56,6 +56,8 @@ urlpatterns=[
     
     url(r'^get-started/$', eProc_views.get_started, name='get_started'),
     url(r'^dashboard/$', eProc_views.dashboard, name='dashboard'),
+    url(r'^trial-over-subscribe-now/$', eProc_views.trial_over_not_subscribed, name='trial_over_not_subscribed'),
+    url(r'^subscribe/$', eProc_views.subscribe, name='subscribe'),
         
     url(r'^requisitions/', include([
         url(r'^new/$', eProc_views.new_requisition, name='new_requisition'),

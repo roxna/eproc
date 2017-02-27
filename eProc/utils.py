@@ -5,6 +5,48 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from eProc.forms import *
 from eProc.models import *
+import stripe
+
+
+################################
+###   PAYMENTS / CHARGES     ### 
+################################ 
+
+# Used for method decorator @user_passes_test
+def is_subscribed_or_trial_not_over(user):
+    return user.is_subscribed() or not user.is_trial_over()
+
+def update_stripe_subscription(user, plan):
+    # Stripe Customer & Subscription to 'free' plan created on register
+    # Here update Subscription to the selected paid plan
+    customer = stripe.Customer.retrieve(user.stripe_customer_id)    
+    subscription = stripe.Subscription.retrieve(customer.subscriptions.data[0].id)  #Assuming 1 user - 1 plan
+    subscription.plan = plan.identifier
+    subscription.save()
+
+# def create_stripe_customer(email, source):
+#     return stripe.Customer.create(
+#         email=email,
+#         source=source,
+#     )
+
+# def create_stripe_charge(customer_id, amount, currency, description):
+#     return stripe.Charge.create(
+#         customer=customer_id,
+#         amount=amount,
+#         currency=currency,
+#         description=description,
+#     )
+
+# def create_stripe_subscription(customer_id, plan_identifier):
+#     return stripe.Subscription.create(
+#           customer=customer_id,
+#           plan=plan_identifier,
+#         )
+
+################################
+###     COMMON METHODS       ### 
+################################ 
 
 def send_verific_email(user,random_id):
     text_content = 'Hi {}, \n\n Please click on the following link to activate your account:\nhttp://127.0.0.1:8000/activate/?id={}". \n\n If you have any questions, please reach out at support@eproc.com. \n\n Team at eProc'.format(user.first_name, random_id)
@@ -23,6 +65,7 @@ def get_documents_by_auth(buyer, document_type):
 
 def get_users_for_notifications(roles, buyer_profile):
     return list(User.objects.filter(Q(buyer_profile__role__in=roles) | Q(buyer_profile=buyer_profile)))
+
 
 ################################
 ###    INITIALIZE FORMS    ### 
@@ -127,6 +170,8 @@ def save_status(document, doc_status, item_status, author):
     save_item_status(document, item_status, author)
 
 def save_doc_status(document, doc_status, author):
+    document.current_status = status
+    document.save()
     DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
 def save_item_status(document, item_status, author):
