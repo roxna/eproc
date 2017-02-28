@@ -115,8 +115,10 @@ urlpatterns=[
         url(r'^industry-benchmarks/$', eProc_views.industry_benchmarks, name='industry_benchmarks'),
     ])),    
 
-    url(r'^price-alerts/$', eProc_views.price_alerts, name='price_alerts'),
-
+    url(r'^price-alerts/', include([
+        url(r'^$', eProc_views.price_alerts, name='price_alerts'),
+        url(r'^current-price/(?P<commodity_id>\w+)/$', eProc_views.get_commodity_current_price, name='get_commodity_current_price'),  # AJAX request to populate the price_alerts table
+    ])),
     url(r'^settings/', include([
         url(r'^$', eProc_views.settings, name='settings'),
         url(r'^profile/$', eProc_views.user_profile, name='user_profile'),

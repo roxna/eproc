@@ -27,12 +27,12 @@ from eProc.serializers import *
 from eProc.forms import *
 from eProc.utils import *
 from collections import defaultdict
-import csv
+import csv, pdb, json, requests, stripe, unicodedata
 from itertools import chain
-import pdb
+# import pdb
 from random import randint
-import stripe
-import unicodedata
+# import stripe
+# import unicodedata
 
 stripe.api_key = conf_settings.STRIPE_TEST_SECRET_KEY
 
@@ -894,12 +894,12 @@ def price_alerts(request):
 
     if request.method == "POST":
         if price_alert_form.is_valid():
-            price_alert = price_alert_form.save(commit=False)
-            price_alert.author = buyer
-            price_alert.buyer_co = buyer.company
-            price_alert.save()
+            alert = price_alert_form.save(commit=False)
+            alert.author = buyer
+            alert.buyer_co = buyer.company
+            alert.save()
             messages.success(request, "Price alert created")
-            save_notification('Price alert created for '+price_alert.commodity+' ('+price_alert.currency+price_alert+')', 'Success', users, target="price_alerts")
+            save_notification('Price alert created for '+str(alert.commodity.name)+' ('+str(alert.alert_price)+')', 'Success', users, target="price_alerts")
             return redirect('price_alerts')
 
     data = {
@@ -909,7 +909,15 @@ def price_alerts(request):
     }
     return render(request, "main/price_alerts.html", data)
 
-
+# AJAX request to populate the price_alerts table
+def get_commodity_current_price(request, commodity_id):
+    commodity = get_object_or_404(Commodity, pk=commodity_id)    
+    url = "https://www.quandl.com/api/v3/datasets/{0}.json?column_index=2&rows=1&api_key={1}".format(commodity.api_key_code, conf_settings.QUANDL_API_KEY)
+    data = requests.get(url).json()
+    # See https://www.quandl.com/api/v3/datasets/LME/PR_FM.json?column_index=2&rows=1
+    # Gets the ""Cash Seller & Settlement" price ([1]) for most recent date
+    current_price = float(data['dataset']['data'][0][1])  #
+    return HttpResponse(json.dumps(current_price), content_type='application/json')
 
 ####################################
 ###           SETTINGS           ### 

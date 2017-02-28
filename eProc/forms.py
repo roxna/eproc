@@ -920,9 +920,8 @@ class DrawdownForm(ModelForm):
 ####################################
 
 class PriceAlertForm(ModelForm):
-    commodity = forms.ChoiceField(conf_settings.COMMODITIES, required=True)
-    price = forms.DecimalField(required=True, min_value=0, label='Trigger Price')
-    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
+    commodity = forms.ModelChoiceField(Commodity.objects.all(), required=True)
+    alert_price = forms.DecimalField(required=True, min_value=0, label='Alert Trigger Price')
 
     def __init__(self, *args, **kwargs):
         super(PriceAlertForm, self).__init__(*args, **kwargs)
@@ -930,16 +929,15 @@ class PriceAlertForm(ModelForm):
         self.helper.form_tag = False   
         self.helper.layout = Layout(            
             Div(
-                Div('commodity', css_class='col-md-6'),
-                Div('currency', css_class='col-md-2'),
-                Div('price', css_class='col-md-4'),
+                Div('commodity', css_class='commodity col-md-6'),
+                Div('alert_price', css_class='col-md-6'),
                 css_class='row',
             ),
         )  
 
     class Meta:
         model = PriceAlert
-        fields = ("commodity", "currency", "price", )
+        fields = ("commodity", "alert_price",)
 
 class FileForm(ModelForm):    
     file = forms.FileField(required=False)

@@ -26,17 +26,11 @@
 
                 <tbody class="products-list">  
                     {% for alert in price_alerts %}
-                    <tr>
+                    <tr id="{{alert.pk}}" data-commodity_id="{{alert.commodity.pk}}">
                       <td>{{ alert.commodity }}</td>
-                      <td>{{ alert.price | currency_formatting:alert.currency }}</td>
-                      <td>{{ alert.get_current_price | currency_formatting:alert.currency }}</td>       
-                      <td>
-                        {% if alert.trigger_price_alert %}            
-                          <span class="label label-danger"> TING TING TING</span> 
-                        {% else %}          
-                          <em><small><p class="text-muted"> Tracking...</p></small></em>
-                        {% endif %}
-                      </td>
+                      <td id="price_{{alert.pk}}">{{ alert.alert_price }}</td>
+                      <td id="current_price_{{alert.pk}}"><!-- Set in AJAX request below --></td> 
+                      <td id="trigger_price_alert_{{alert.pk}}"><!-- Set in AJAX request below --></td>
                       <td>{{ alert.author }}</td>
                     </tr>
                   {% endfor %}
@@ -53,4 +47,43 @@
 
 {% block js %}
   {% include "_includes/data_tables_notifications.html" with tableID="priceAlertTable" %}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+      $(window).load(function(){
+
+        $('#priceAlertTable tbody tr').each(function(){  
+          
+          var commodity_id = $(this).data('commodity_id');
+          var alert_id = $(this).attr('id');
+          
+          // Update the commodity.current_price based on AJAX request
+          $.ajax({
+                url: '/price-alerts/current-price/'+commodity_id,
+                type: 'get',
+                success: function(data){              
+                  // Set the price based on the API pull
+                  var current_price = data;
+                  $('#current_price_'+alert_id).html(current_price);
+
+                  // Update the trigger_price_alert based on if current price has dropped below alert_price
+                  if (current_price < $('#price_'+alert_id).val()){
+                    $('#trigger_price_alert_'+alert_id).html('<span class="label label-danger"> TING TING TING</span> ');
+                  }else{
+                    $('#trigger_price_alert_'+alert_id).html('<em><small><p class="text-muted"> Tracking...</p></small></em>');
+                  }
+
+                },
+                error: function(data){
+                    console.log(data);
+                }
+            });
+        });
+
+    });
+
+    })
+  </script> 
+
 {% endblock js %}

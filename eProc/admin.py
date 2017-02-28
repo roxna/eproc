@@ -82,6 +82,12 @@ class FileAdmin(admin.ModelAdmin):
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ['id', 'text', 'category']
 
+class PriceAlertAdmin(admin.ModelAdmin):
+    list_display = ['id', 'commodity', 'alert_price']
+
+class CommodityAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+
 admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile, BuyerProfileAdmin)
 admin.site.register(AccountCode, AccountCodeAdmin)
@@ -108,3 +114,5 @@ admin.site.register(DrawdownItemStatus, DrawdownItemStatusAdmin)
 admin.site.register(File, FileAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(Tax)
+admin.site.register(PriceAlert, PriceAlertAdmin)
+admin.site.register(Commodity, CommodityAdmin)

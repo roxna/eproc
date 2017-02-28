@@ -2,6 +2,7 @@
 # DONE:
 # price_alerts set up
 
+# Price_alert processors.py: # TODO: buyer_co=request.user.buyer_profile.company, 
 
 # PRICES: API - live commodities prices with alerts (https://www.quandl.com)
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc, PRICE_ALERTS
@@ -18,7 +19,7 @@
 #     .annotate(created_count=Count('id'))
 
 # Stripe/own db?? - subscription about to expire - send email
-
+# django smart_selects for dept/location http://stackoverflow.com/questions/35242412/filter-choices-in-form-fields-based-on-selected-items-in-fields-of-the-same-form
 
 # *****************************
 

@@ -587,24 +587,36 @@ class Notification(models.Model):
 			self.is_unread = False
 			self.save()
 
+##########################################
+#####         PRICE ALERTS           ##### 
+########################################## 
+
+class Commodity(models.Model):
+	name = models.CharField(choices=settings.COMMODITIES, max_length=100, blank=False)
+	# The API KeyCode from Quandl https://www.quandl.com/collections/markets/commodities
+	api_key_code = models.CharField(max_length=20, )
+	unit = models.CharField(max_length=10, default='$/mt')
+
+	def __unicode__(self):
+		return u"{} ({})".format(self.name, self.unit)
+
+	@classmethod
+	def get_current_price(self):
+		url = "https://www.quandl.com/api/v3/datasets/{1}.json?api_key={2}".format(self.api_key_code, settings.QUANDL_API_KEY)
+		response_dict = requests.get(url).json()
+		return jsonify(response_dict)
+
+
 class PriceAlert(models.Model):
-	commodity = models.CharField(choices=settings.COMMODITIES, max_length=100, blank=False)
-	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
-	price = models.DecimalField(max_digits=10, decimal_places=2)
-	buyer_co = models.ForeignKey(BuyerCo, related_name="price_alerts")
+	commodity = models.ForeignKey(Commodity, related_name="price_alerts")
+	alert_price = models.DecimalField(max_digits=10, decimal_places=2)	
 	is_active = models.BooleanField(default=True)
+	buyer_co = models.ForeignKey(BuyerCo, related_name="price_alerts")	
 	author = models.ForeignKey(BuyerProfile, related_name="price_alerts")
 
 	def __unicode__(self):
-		return u"{}{} for {}".format(self.currency, self.price, self.commodity)
+		return u"{} for {}".format(self.alert_price, self.commodity)
 
-	def get_current_price(self):
-		return 25000000
-
-	def trigger_price_alert(self):
-		if self.price < self.get_current_price:
-			return True
-		return False
     
 
     

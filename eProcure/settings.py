@@ -146,7 +146,7 @@ MAX_UPLOAD_SIZE = "2621440" # 2.5MB - 2621440 / 5MB - 5242880 / 10MB - 10485760
 
 
 #######################################
-#       PAYMENTS / STRIPE            #
+#          PAYMENTS / STRIPE          #
 #######################################
 TRIAL_PERIOD_DAYS = 30
 
@@ -155,6 +155,20 @@ STRIPE_TEST_PUBLISHABLE_KEY = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
 
 STRIPE_LIVE_SECRET_KEY = ""
 STRIPE_LIVE_PUBLISHABLE_KEY = ""
+
+#######################################
+#           PRICE ALERTS              #
+#######################################
+
+# QUANDL: https://www.quandl.com/collections/markets/commodities
+QUANDL_API_KEY = "1_orR25etEqgytYsy3fZ"
+
+COMMODITIES = (('Steel', 'Steel'),
+               ('Iron Ore', 'Iron Ore'))
+
+                      # (Commodity,   Quandl key_code,    unit)
+COMMODITIES_DETAILS = ( ('Steel',    'LME/PR_FM',       '$/mt'), 
+                        ('Iron Ore', 'ODA/PIORECR_USD', '$/mt'))
 
 
 #######################################
@@ -180,7 +194,6 @@ LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
-COMMODITIES = (('Steel', 'Steel'), ('Cement', 'Cement'))
 
 # Statuses used by current_status property (OrderItem/DDItem models)
 CURRENT_STATUSES = (
