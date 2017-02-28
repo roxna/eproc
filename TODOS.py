@@ -1,6 +1,12 @@
 
-# 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
-	# update model to M2M field, new_po_confirm, current_status - partially ordered??
+# DONE:
+# price_alerts set up
+
+
+# PRICES: API - live commodities prices with alerts (https://www.quandl.com)
+# DEPTS (from view_loc): EDIT, Spend, contracts, people etc, PRICE_ALERTS
+# Change all choicefields to numbers
+# Format numbers with commas (add to currency_formatting)
 
 # Update charts to daily
 # Guidoism.objects \
@@ -10,6 +16,9 @@
 #     .values('created')
 #     # annotate each day by Count of Guidoism objects
 #     .annotate(created_count=Count('id'))
+
+# Stripe/own db?? - subscription about to expire - send email
+
 
 # *****************************
 
@@ -33,7 +42,6 @@
 # ****************************
 # DECK
 # Tests
-# Blogs/website
 # Caching (eg. css files)
 
 
@@ -44,8 +52,6 @@
 	# https://www.procurify.com/product/pay
 	# Buyer payment setup (http://kb.procurify.com/?st_kb=accounts-payable-financial-settings-set)
 	# Payment method for vendor (http://kb.procurify.com/?st_kb=accounts-payable-vendor-payment-methods-set)
-# PRICES:
-	# API - live commodities prices with alerts (https://www.quandl.com)
 # COST BENCHMARKS
 	# Supplier Markups
 	# Costs - % spend breakdown in same industry
@@ -81,12 +87,14 @@
 # Sort in datatables for dates isnt working
 # Handle empty querysets (eg. no next_approver in dept for new_req)
 # Email PDF
-# DEPTS (from view_loc): EDIT, Spend, contracts, people etc
 # Sub-categories?
 # Sub-GL codes?
-# AUDIT LOGGGG for each item/doc
 # Add Controller, Branch Manager: http://kb.procurify.com/?st_kb=new-procurify-add-new-users-need-update
 # addWhatFix
+# AUDIT LOGGGG for each item/doc
+# 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
+	# update model to M2M field, new_po_confirm, current_status - partially ordered??
+
 
 # LOW PRIO REFINEMENTS
 # ****************************
@@ -120,8 +128,4 @@
 # psql postgres then create database dbname; then \connect dbname
 # python manage.py migrate --run-syncdb
 
-
-# ON SETUP - need to create
-    # PLANS (stripe & DB)
-    # bulk discount items: name=ADMIN BUYERCO, CATEGORIES
 

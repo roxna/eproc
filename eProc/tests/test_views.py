@@ -53,9 +53,30 @@ class ViewTestCase(TestCase):
 ###         SETTINGS         ### 
 ####################################
 
+    def test_settings_page(self):
+        data = {
+            'name': 'test_name', 
+            'desc': 'test_desc', 
+            'currency': 'USD', 
+            'unit_price': 50, 
+            'unit_type': 'each',
+            'category': 'test_category',
+        }
+        response = self.client.post(reverse('settings'), data)
+
+        # Check this user was created in the database
+        self.assertTrue(CatalogItemRequest.objects.filter(username=self.username).exists())
+
+        # Check it's a redirect to the dashboard page
+        self.assertIsInstance(response, HttpResponseRedirect)
+        self.assertTrue(response.get('location').endswith(reverse('dashboard')))
+
+
+
+
+
     def test_get_departments(self):
         pass
-
 
 ####################################
 ###         REGISTRATION         ### 
@@ -179,6 +200,20 @@ class ViewTestCase(TestCase):
         # self.assertTemplateUsed(response, 'main/get_started.html')
 
 
+
+####################################
+###      TEST PAGES LOAD        ### 
+####################################
+
+def check_page_loads(self, url_name, template_name):
+        data = {}
+        response = self.client.get(reverse(url_name), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response, HttpResponse)
+        self.assertTemplateUsed(response, template_name)
+
+def test_thankyou_page_loads(self):
+    self.check_page_loads('thankyou', 'registration/thankyou.html')
 
 
 

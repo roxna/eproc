@@ -115,6 +115,8 @@ urlpatterns=[
         url(r'^industry-benchmarks/$', eProc_views.industry_benchmarks, name='industry_benchmarks'),
     ])),    
 
+    url(r'^price-alerts/$', eProc_views.price_alerts, name='price_alerts'),
+
     url(r'^settings/', include([
         url(r'^$', eProc_views.settings, name='settings'),
         url(r'^profile/$', eProc_views.user_profile, name='user_profile'),

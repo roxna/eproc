@@ -157,7 +157,6 @@ class AddUserForm(forms.Form):
 class BuyerProfileForm(ModelForm):  
     role = forms.ChoiceField(conf_settings.ROLES, required=True, label="<i class='fa fa-user'></i> Role")
     department = forms.ModelChoiceField(queryset=Department.objects.all(), label="<i class='fa fa-building'></i> Department")
-    # location = forms.ModelChoiceField(queryset=Location.objects.all(), label="<i class='fa fa-building'></i> Location")
 
     def __init__(self, *args, **kwargs):
         super(BuyerProfileForm, self).__init__(*args, **kwargs)
@@ -180,7 +179,7 @@ class BuyerProfileForm(ModelForm):
 class BuyerCoForm(forms.ModelForm):
     name = forms.CharField(required=True)
     industry = forms.ChoiceField(conf_settings.INDUSTRY_CHOICES, required=True, )
-    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, )
+    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
     logo = forms.ImageField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -919,6 +918,28 @@ class DrawdownForm(ModelForm):
 ####################################
 ###         OTHER FORMS          ### 
 ####################################
+
+class PriceAlertForm(ModelForm):
+    commodity = forms.ChoiceField(conf_settings.COMMODITIES, required=True)
+    price = forms.DecimalField(required=True, min_value=0, label='Trigger Price')
+    currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
+
+    def __init__(self, *args, **kwargs):
+        super(PriceAlertForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False   
+        self.helper.layout = Layout(            
+            Div(
+                Div('commodity', css_class='col-md-6'),
+                Div('currency', css_class='col-md-2'),
+                Div('price', css_class='col-md-4'),
+                css_class='row',
+            ),
+        )  
+
+    class Meta:
+        model = PriceAlert
+        fields = ("commodity", "currency", "price", )
 
 class FileForm(ModelForm):    
     file = forms.FileField(required=False)

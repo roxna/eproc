@@ -1,0 +1,56 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles eProc_filters %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block css %}
+{% endblock css %}
+
+{% block header %}
+  
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Alert</button>
+  {% include "_includes/modal_singleform.html" with target="Product" form=price_alert_form %}
+
+  <h1>Price Alerts</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+            <div class="box-body">
+              <table id="priceAlertTable" class="table table-striped">
+                {% include "_includes/table_header.html" with header_class="basic-grey" header=table_headers %}
+
+                <tbody class="products-list">  
+                    {% for alert in price_alerts %}
+                    <tr>
+                      <td>{{ alert.commodity }}</td>
+                      <td>{{ alert.price | currency_formatting:alert.currency }}</td>
+                      <td>{{ alert.get_current_price | currency_formatting:alert.currency }}</td>       
+                      <td>
+                        {% if alert.trigger_price_alert %}            
+                          <span class="label label-danger"> TING TING TING</span> 
+                        {% else %}          
+                          <em><small><p class="text-muted"> Tracking...</p></small></em>
+                        {% endif %}
+                      </td>
+                      <td>{{ alert.author }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table><br>
+          </div>
+
+        </div>
+       </div>
+    </div>
+  </section>
+
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/data_tables_notifications.html" with tableID="priceAlertTable" %}
+{% endblock js %}

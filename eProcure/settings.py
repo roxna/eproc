@@ -91,6 +91,7 @@ TEMPLATES = [
                 'eProc.processors.icons',
                 # 'eProc.processors.buyer',
                 'eProc.processors.notifications',
+                'eProc.processors.price_alerts',
             ],
         },
     },
@@ -179,7 +180,7 @@ LOCATION_TYPES = (('Billing', 'Billing'),('Shipping', 'Shipping'), ('HQ', 'HQ'))
 INDUSTRY_CHOICES = (('Real Estate', 'Real Estate'), ('Manufacturing', 'Manufacturing'), ('Hospitals', 'Hospitals'))
 COUNTRIES = (('India', 'India'),('USA', 'USA')) 
 EXPENSE_TYPES = (('Asset', 'Asset'),('Expense', 'Expense')) 
-
+COMMODITIES = (('Steel', 'Steel'), ('Cement', 'Cement'))
 
 # Statuses used by current_status property (OrderItem/DDItem models)
 CURRENT_STATUSES = (
@@ -197,7 +198,6 @@ CURRENT_STATUSES = (
     ('Drawndown Partial', 'Drawndown Partial'),
     ('Drawndown Complete', 'Drawndown Complete'),
 )
-
 DELIVERED_STATUSES = ['Delivered Partial', 'Delivered Complete']
 DRAWDOWN_STATUSES = ['Drawndown Partial', 'Drawndown Complete']
 

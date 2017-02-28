@@ -85,6 +85,10 @@ class VendorCo(Company):
 		avg_score = int(self.ratings.all().aggregate(Avg('score'))['score__avg'])
 		return settings.SCORES[avg_score][1]
 
+################################
+###     LOCATION / DEPT      ### 
+################################ 
+
 class Location(models.Model):
 	name = models.CharField(max_length=50, default='')
 	loc_type = models.CharField(choices=settings.LOCATION_TYPES, max_length=20, default='HQ')	
@@ -562,7 +566,6 @@ class Notification(models.Model):
     Haven't implemented "Action model describing the actor acting out a verb (on an optional target)"
     	<actor> <verb> <action_object> <target> <time> 
     Instead, simple text string notification for now
-
     """
 	text = models.CharField(max_length=100, blank=False)
 	CATEGORIES = (		
@@ -583,3 +586,27 @@ class Notification(models.Model):
 		if self.is_unread:
 			self.is_unread = False
 			self.save()
+
+class PriceAlert(models.Model):
+	commodity = models.CharField(choices=settings.COMMODITIES, max_length=100, blank=False)
+	currency = models.CharField(choices=settings.CURRENCIES, max_length=10, null=True, blank=True)
+	price = models.DecimalField(max_digits=10, decimal_places=2)
+	buyer_co = models.ForeignKey(BuyerCo, related_name="price_alerts")
+	is_active = models.BooleanField(default=True)
+	author = models.ForeignKey(BuyerProfile, related_name="price_alerts")
+
+	def __unicode__(self):
+		return u"{}{} for {}".format(self.currency, self.price, self.commodity)
+
+	def get_current_price(self):
+		return 25000000
+
+	def trigger_price_alert(self):
+		if self.price < self.get_current_price:
+			return True
+		return False
+    
+
+    
+
+

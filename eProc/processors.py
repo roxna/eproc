@@ -23,6 +23,7 @@ def icons(request):
 
 		# Other
 		"dashboard": "fa-dashboard",
+		"alert": "fa-warning",
 		"settings": "fa-gear",
 		"analysis": "fa-area-chart",
 		"industry": "fa-industry",
@@ -60,4 +61,12 @@ def notifications(request):
 		'list': unread_notifications.order_by('-id')[:5],
 	}
 	return {'unread_notifications': notifications}
+
+def price_alerts(request):
+	# Get the count of unread_notifications and the 5 most recent ones for the user
+	price_alerts = PriceAlert.objects.filter(buyer_co=request.user.buyer_profile.company, is_active=True)
+	price_alerts = {
+		'count': price_alerts.count(),
+	}
+	return {'price_alerts': price_alerts}	
 	

@@ -878,6 +878,39 @@ def call_drawdown(request, drawdown_id):
     }
     return render(request, "drawdowns/call_drawdown.html", data)
 
+
+####################################
+###        PRICE ALERTS          ### 
+####################################
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def price_alerts(request):
+    buyer = request.user.buyer_profile
+    users = get_users_for_notifications(['SuperUser', 'Purchaser'], buyer)
+
+    price_alerts = PriceAlert.objects.filter(buyer_co=buyer.company)
+    price_alert_form = PriceAlertForm(request.POST or None)
+
+    if request.method == "POST":
+        if price_alert_form.is_valid():
+            price_alert = price_alert_form.save(commit=False)
+            price_alert.author = buyer
+            price_alert.buyer_co = buyer.company
+            price_alert.save()
+            messages.success(request, "Price alert created")
+            save_notification('Price alert created for '+price_alert.commodity+' ('+price_alert.currency+price_alert+')', 'Success', users, target="price_alerts")
+            return redirect('price_alerts')
+
+    data = {
+        'price_alerts': price_alerts,
+        'price_alert_form': price_alert_form,
+        'table_headers': ['Commodity', 'Alert Price', 'Current Price', 'Status', 'Created by', ]
+    }
+    return render(request, "main/price_alerts.html", data)
+
+
+
 ####################################
 ###           SETTINGS           ### 
 ####################################
@@ -913,24 +946,23 @@ def settings(request):
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def users(request):    
     buyer = request.user.buyer_profile
+
     # user_form = AddUserForm(request.POST or None)
     # buyer_profile_form = BuyerProfileForm(request.POST or None)
     # buyer_profile_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
-    # buyer_profile_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
+
     if request.method == "POST":
-        # if 'add' in request.POST:
+        # if 'add_User' in request.POST:
         #     if user_form.is_valid() and buyer_profile_form.is_valid():                
-        #         user = user_form.save()
-        #         buyer_profile = buyer_profile_form.save(commit=False)
-        #         buyer_profile.user = user                
-        #         buyer_profile.company = buyer.company
-        #         buyer_profile.save()
+        #         location = xxxx  #TODO
+        #         user = save_user(user_form, buyer_profile_form, buyer.company, location)
         #         send_verific_email(user, user.id*conf_settings.SCALAR)
         #         messages.success(request, 'User successfully invited')
+        #         save_notification('User '+user.username+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='locations')
         #         return redirect('users')
         #     else:
         #         messages.info(request, 'Error adding user. Please try again.')
-        if 'delete' in request.POST:          
+        if 'delete' in request.POST:
             for key in request.POST:
                 if key == 'delete':
                     buyer_id = int(request.POST[key])
@@ -946,9 +978,8 @@ def users(request):
         else:
             messages.info(request, 'Error. Please try again.')
             return redirect('users')
-    buyers = BuyerProfile.objects.filter(company=buyer.company)
     data = {
-        'buyers': buyers,
+        'buyers': BuyerProfile.objects.filter(company=buyer.company),
         # 'user_form': user_form,
         # 'buyer_profile_form': buyer_profile_form,
         'table_headers': ['Username', 'Email Address', 'Role', 'Location', 'Dept', 'Status', ' ',]
@@ -983,7 +1014,6 @@ def view_location(request, location_id, location_name):
     location = get_object_or_404(Location, pk=location_id)
     location_form = LocationForm(request.POST or None, instance=location)
     
-    buyers = BuyerProfile.objects.filter(location=location)
     user_form = AddUserForm(request.POST or None)
     buyer_profile_form = BuyerProfileForm(request.POST or None)
     buyer_profile_form.fields['department'].queryset = Department.objects.filter(location=location)
@@ -1018,7 +1048,7 @@ def view_location(request, location_id, location_name):
         'location': location,
         'location_form': location_form,
         
-        'buyers': buyers,
+        'buyers': BuyerProfile.objects.filter(location=location),
         'user_form': user_form,
         'buyer_profile_form': buyer_profile_form,
         'user_table_headers': ['Username', 'Email', 'Department', 'Role', 'Status'],
