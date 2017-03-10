@@ -6,5 +6,8 @@
 	{% endwith %}
 </a> 
 {% if doc.is_paid %}
-	<i class="fa fa fa-dollar is_paid"></i>
+	<span class="fa-stack fa-sm">
+		<i class="fa fa-circle fa-stack-2x" style="color:green"></i>
+  		<i class="fa fa-dollar fa-stack-1x fa-inverse"></i>
+	</span>
 {% endif %}

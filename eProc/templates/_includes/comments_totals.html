@@ -1,4 +1,5 @@
-  {% load eProc_filters %}
+  {% load eProc_filters humanize %}
+
   <div class="row">
       <div class="col-xs-12 col-md-6">
         <p class="lead">Other</p>
@@ -14,7 +15,7 @@
             <tbody>
                 <tr>
                   <td>Subtotal:</td>                  
-                  <td id="subTotal">{{sub_total}}</td>
+                  <td id="subTotal">{{sub_total|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>
                 <tr>
@@ -39,7 +40,7 @@
                 </tr>    
                 <tr class="lead">
                   <td>Total Cost</td>
-                  <td id="grandTotal">{{grand_total}}</td>
+                  <td id="grandTotal">{{grand_total|intcomma}}</td>
                   <td>{{currency}}</td>
                 </tr>	
               </tbody>

@@ -375,7 +375,8 @@ class CategoryForm(ModelForm):
 class CatalogItemForm(ModelForm):
     name = forms.CharField(required=True)
     sku = forms.CharField(required=True)    
-    threshold = forms.IntegerField(label="Threshold quantity", help_text='Min. inventory level before alert is triggered.', required=False)
+    min_threshold = forms.IntegerField(min_value=0, help_text='Min. stock level before alert triggered', required=False)
+    max_threshold = forms.IntegerField(min_value=0, help_text='Max. stock level before alert triggered', required=False)
     unit_price = forms.DecimalField(required=True, min_value=0)
     unit_type = forms.CharField(required=True)
     # currency = forms.ChoiceField(conf_settings.CURRENCIES, required=True, initial='USD')
@@ -404,15 +405,24 @@ class CatalogItemForm(ModelForm):
             ),
             Div(
                 Div('vendor_co', css_class='col-md-4'),
-                Div('threshold', css_class='col-md-4'),                
+                Div('min_threshold', css_class='col-md-2'),
+                Div('max_threshold', css_class='col-md-2'),
                 Div('image', css_class='col-md-4'),
                 css_class='row',
             ),                        
         )
 
+    def clean(self):
+        cleaned_data = super(CatalogItemForm, self).clean()
+        min_threshold = self.cleaned_data['min_threshold']
+        max_threshold = self.cleaned_data['max_threshold']
+        if min_threshold > max_threshold and max_threshold is not None:
+            self.add_error('min_threshold', 'Min. threshold must be less than Max')
+        return cleaned_data
+
     class Meta:
         model = CatalogItem
-        fields = ('name', 'sku', 'desc', 'image', 'threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
+        fields = ('name', 'sku', 'desc', 'image', 'min_threshold', 'max_threshold', 'unit_price', 'unit_type', 'category', 'vendor_co')
 
 
 class CatalogItemRequestForm(ModelForm):
@@ -438,7 +448,7 @@ class CatalogItemRequestForm(ModelForm):
             Div(
                 Div('currency', css_class='col-md-4'),
                 Div('unit_price', css_class='col-md-4'),
-                Div('unit_type', css_class='col-md-6'),
+                Div('unit_type', css_class='col-md-4'),
                 css_class='row',
             ),
         )
@@ -773,8 +783,7 @@ class CallDrawdownItemForm(ModelForm):
 ###       DOCUMENT FORMS         ### 
 ####################################
 
-class RequisitionForm(ModelForm):    
-    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+class RequisitionForm(ModelForm):
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     # currency = forms.ChoiceField(settings.CURRENCIES, initial='USD')
     comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
@@ -818,8 +827,7 @@ class RequisitionForm(ModelForm):
         fields = ("number", "date_due", "comments", "department", "next_approver")
 
 
-class PurchaseOrderForm(ModelForm):    
-    number = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+class PurchaseOrderForm(ModelForm):
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'} ))
     comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
     cost_shipping = forms.DecimalField(max_digits=10, decimal_places=2, initial=0, min_value=0)
@@ -879,8 +887,7 @@ class InvoiceForm(ModelForm):
                  "tax_amount", "cost_shipping", "discount_amount", "cost_other",)
  
 
-class DrawdownForm(ModelForm):       
-    number = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
+class DrawdownForm(ModelForm): 
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
     comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)

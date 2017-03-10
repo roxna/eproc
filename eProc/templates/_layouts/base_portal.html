@@ -337,7 +337,9 @@
               <a href="{%url 'price_alerts' %}">
                 <i class="fa {{ICONS.alert}}"></i> 
                 <span>Price Alerts</span>
-                <span class="label label-danger pull-right">{{price_alerts.count}}</span>
+                {% if price_alerts.count > 0 %}
+                  <span class="label label-danger pull-right">{{price_alerts.count}}</span>
+                {% endif %}
               </a>
             </li> 
             {% endif %}

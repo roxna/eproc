@@ -80,8 +80,9 @@
     </div>
 
     <!-- CANCEL/DENY/APPROVE -->
-    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
     {% with requisition.get_latest_status as latest_status %} 
+    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">    
+      
       <!-- If req is PENDING -->
       {% if latest_status.value == 'Pending' %}
         <!-- Approve/Deny if user is APPROVER/SUPERUSER and APPROVAL_THRESHOLD > requistion.requested_sub_total -->
@@ -91,11 +92,14 @@
           <div class="label text-grey">
             Status: <em>{% include "_includes/formatting/doc_status_formatting.html" with doc=requisition value_to_display=latest_status href='view_requisition' %}</b> [By {{latest_status.author}} on {{latest_status.date|date:"D, M d Y"}}]</em>
           </div>
-      {% endif %}          
+      {% endif %}    
+
     </div>  
+    {% endwith %}
+
   </div>
 
-  {% endwith %}
+  
 
 
   </form>

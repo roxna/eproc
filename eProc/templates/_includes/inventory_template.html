@@ -22,11 +22,13 @@
           {{ item_details.0 }}
         </td>
 
-        <!-- Only flag when stock is running low for INVENTORY items -->
+        <!-- Flag when stock is LOW/HIGH for INVENTORY table -->
         {% if is_inventory == 'true' %}
         <td>          
           {% if item_details.0 < item_details.1 %}            
-            <span class="label label-pending"> Running low</span> 
+            <span class="label label-danger"> Running low</span> 
+          {% elif item_details.0 > item_details.2 %}            
+            <span class="label label-pending"> Overstocked</span> 
           {% else %}          
             <span> All good!</span>
           {% endif %}

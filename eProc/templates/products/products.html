@@ -44,7 +44,8 @@
                           <span class="label label-warning">Discounted</span>
                         {% endif %}
                       </td>
-                      <td>{{ product.threshold|default_if_none:"-" }}</td>
+                      <td>{{ product.min_threshold|default_if_none:"-" }}</td>
+                      <td>{{ product.max_threshold|default_if_none:"-" }}</td>
                       <td>{{ product.category }}</td>
                       <td>
                       {% if product.item_type == 'Bulk Discount' %}

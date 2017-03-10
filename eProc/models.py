@@ -3,8 +3,9 @@ from datetime import date, timedelta
 from django.db import models
 from django.db.models import Avg, Sum
 from django.conf import settings
-from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.validators import RegexValidator, MinValueValidator
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from collections import defaultdict
@@ -121,12 +122,14 @@ class Location(models.Model):
 			try:
 				items_list[item.product.name] = [
 					items_list[item.product.name][0] + item.qty_delivered, #quantity
-					item.product.threshold, #threshold
+					item.product.min_threshold, 
+					item.product.max_threshold, 
 				]
 			except KeyError:
 				items_list[item.product.name] = [
 					 item.qty_delivered,
-					 item.product.threshold,
+					 item.product.min_threshold,
+					 item.product.max_threshold,
 				]
 		return items_list
 
@@ -324,7 +327,7 @@ class PurchaseOrder(SalesOrder):
 		return self.get_subtotal('price_ordered', 'qty_ordered')
 
  	@property
- 	def get_ordered_grand_total(self):
+ 	def get_ordered_grandtotal(self):
  		return self.get_ordered_subtotal() + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
 class Invoice(SalesOrder):
@@ -394,6 +397,13 @@ class Product(models.Model):
 	class Meta:
  		abstract = True
 
+ 	@property
+	def image_url(self):
+	    if self.image and hasattr(self.image, 'url'):
+	        return self.image.url
+	    else:
+	    	return static('dist/img/product_bulk_icon.jpg')
+
 # An actual item in the catalog (either Buyer_Uploaded or Bulk_Discount)
 class CatalogItem(Product):	
 	sku = models.CharField(max_length=20, null=True, blank=True)
@@ -403,7 +413,8 @@ class CatalogItem(Product):
 		('Bulk Discount', 'Bulk Discount'), 
 	)
 	item_type = models.CharField(max_length=20, choices=ITEM_TYPES, default='Buyer Uploaded')	
-	threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below		
+	min_threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below		
+	max_threshold = models.IntegerField(null=True, blank=True) # Alert if inventory is higher than
 	vendor_co = models.ForeignKey(VendorCo, related_name="catalogitems")
 	
 

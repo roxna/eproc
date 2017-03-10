@@ -1,13 +1,7 @@
 
-# DONE:
-# price_alerts set up
-
-# Price_alert processors.py: # TODO: buyer_co=request.user.buyer_profile.company, 
-
-# PRICES: API - live commodities prices with alerts (https://www.quandl.com)
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc, PRICE_ALERTS
 # Change all choicefields to numbers
-# Format numbers with commas (add to currency_formatting)
+
 
 # Update charts to daily
 # Guidoism.objects \
@@ -78,6 +72,13 @@
 
 # REFINEMENTS:
 # ****************************
+
+# Reqs - marked as 'Executed'
+# Can receive items that are in an Open PO OR in an Approved Req that's not linked to a PO
+	# Small items bought by cash must have a Req but not necessarily a PO
+	# However, they must be added to stock/inventory 
+	# Have a DELIVERY CHALLAN, Req marked as 'Executed/Completed'
+
 # Dashboard for average user based on role (if AP, show invoices not requisitions)
 # Unbilled v2 --> allocate to specific account codes (http://kb.procurify.com/?st_kb=accounts-payable-unbilled-items)
 # Images - catalog items (csv upload)
@@ -117,8 +118,6 @@
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
-
-
 
 
 

@@ -2,6 +2,7 @@ from django import template
 from datetime import date
 import json
 from django.utils.safestring import mark_safe
+from django.contrib.humanize.templatetags.humanize import intcomma
 
 register = template.Library()
 
@@ -37,10 +38,12 @@ def currency_icon(currency_string):
 
 @register.filter(name='currency_formatting')
 def currency_formatting(amount, currency):
+	# Convert amount to string with commas where needed (humanize library's intcomma function)
+	amount_humanized = str(intcomma(amount))
 	if currency == 'USD':
-		return '$' + str(amount)
+		return '$' + amount_humanized
 	else:
-		return curreny + str(amount)
+		return curreny + amount_humanized
 
 @register.filter(name='unit_type_formatting')
 def unit_type_formatting(unit_type):

@@ -15,7 +15,7 @@
   Comments, Terms & Sub/Grand Total tables
   *************************************** -->
   
-  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=purchase_order.currency sub_total=purchase_order.get_ordered_subtotal grand_total=purchase_order.get_grand_total %}
+  {% include "_includes/comments_totals.html" with tableID="POTable" form=purchase_order currency=purchase_order.currency sub_total=purchase_order.get_ordered_subtotal grand_total=purchase_order.get_ordered_grandtotal %}
 
   <!-- *****************
        Footer
@@ -44,7 +44,7 @@
         </form>
 
         <div class="label text-grey">
-          Status: <em>{% include "_includes/formatting/doc_status_formatting.html" with doc=purchase_order value_to_display=latest_status href='view_po' %}
+          Status: <em>{% include "_includes/formatting/doc_status_formatting.html" with doc=purchase_order value_to_display=latest_status href='view_po' %} 
           [By {{latest_status.author}} on {{latest_status.date|date:"D, M d Y"}}]
           </em>
         </div>        

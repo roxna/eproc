@@ -373,7 +373,7 @@ def handle_vendor_upload(reader, buyer_co, currency):
 ###   REPORTS / ANALYSIS     ### 
 ################################ 
 # Get time blocks for spend over time - used by all report views
-time_delta = 10 # (in days)
+time_delta = 30 # (in days)
 
 def setup_analysis_data(buyer):
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department

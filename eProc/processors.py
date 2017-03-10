@@ -63,11 +63,17 @@ def notifications(request):
 	return {'unread_notifications': notifications}
 
 def price_alerts(request):
-	# Get the count of unread_notifications and the 5 most recent ones for the user	
-	price_alerts = PriceAlert.objects.filter(is_active=True)
+	# Get the count of price_alerts
+	alerts = PriceAlert.objects.filter(is_active=True)
+	try:		
+		# In Admin panel, request.user doesn't have a buyer_profile
+		 alerts = alerts.filter(buyer_co=request.user.buyer_profile.company)
+	except:
+		pass
+	
 	price_alerts = {
-		'count': price_alerts.count(),
-		'price_alert_user': request.user,
+		'count': alerts.count(), #Total alerts set
+		'user': request.user,
 	}
 	return {'price_alerts': price_alerts}	
 	

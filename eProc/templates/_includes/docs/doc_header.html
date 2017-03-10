@@ -5,8 +5,8 @@
         <i class="fa fa-globe"></i> {{docname}} #{{document.number}}
         <small class="pull-right">
           <b>
-            {{document.number}} 
-            {% include "_includes/formatting/doc_status_formatting.html" with doc=document value_to_display=document.get_latest_status href=href %}
+            {{document.number}}
+            {% include "_includes/formatting/doc_status_formatting.html" with doc=document value_to_display=document.current_status href=href %}
           </b>
         </small>
       </h2>

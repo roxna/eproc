@@ -12,7 +12,7 @@
   </thead>
   
   <tbody>
-  {% for po in purchaseorders %}           
+  {% for po in purchaseorders %}  
   <tr>
     <td> 
       {% include "_includes/formatting/doc_status_formatting.html" with doc=po value_to_display=po.number href=href %}
@@ -23,7 +23,7 @@
       <em><small><b>Created:</b> {{ po.date_created|date:"D, M d Y" }}</small></em>      
     </td>                      
     <td>{{ po.vendor_co }} <br></td>
-    <td> {{ po.get_grand_total|currency_formatting:po.currency }}<br></td>
+    <td> {{ po.get_ordered_grandtotal|currency_formatting:po.currency }}<br></td>
     <td> {{ po.comments }}<br></td>
     <td>
       <small>Prepared by: <b>{{ po.preparer.user.username }}</b></small><br>

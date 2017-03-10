@@ -19,7 +19,7 @@ class RequisitionAdmin(admin.ModelAdmin):
     list_filter = ['number',]
 
 class POAdmin(admin.ModelAdmin):
-    list_display = ['id', 'number', 'current_status', 'buyer_co', 'vendor_co', 'get_ordered_grand_total']
+    list_display = ['id', 'number', 'current_status', 'buyer_co', 'vendor_co', 'get_ordered_grandtotal']
     search_fields = ['number', 'department']
     list_filter = ['number', ]
 
@@ -30,7 +30,7 @@ class DrawdownAdmin(admin.ModelAdmin):
     list_display = ['id', 'number', 'current_status', 'buyer_co' ]
 
 class CatalogItemAdmin(admin.ModelAdmin):
-	list_display = ['id', 'name', 'item_type', 'unit_price', 'threshold', 'category', 'vendor_co']
+	list_display = ['id', 'name', 'item_type', 'unit_price', 'min_threshold', 'max_threshold', 'category', 'vendor_co']
 
 class CatalogItemRequestAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'unit_price', 'category']    

@@ -3,11 +3,8 @@
 *.zip
 .idea
 .sass-cache/
-/nbproject/
-/nbproject/private/
-/node_modules/
-ad.js
-TODO
-test.html
+TODOS.py
 *.pyc
-eProcure/settings.py
+venv
+staticfiles
+.env

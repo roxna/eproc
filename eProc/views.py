@@ -443,8 +443,9 @@ def view_po(request, po_id):
 def receive_pos(request):
     buyer = request.user.buyer_profile
     pos = get_documents_by_auth(buyer, PurchaseOrder)
+    open_pos = PurchaseOrder.objects.filter(current_status='Open', pk__in=pos)
     data = {
-        'open_pos': PurchaseOrder.objects.filter(current_status='Pending', pk__in=pos),
+        'open_pos': open_pos,
     }
     return render(request, "pos/receive_pos.html", data)
 
@@ -889,7 +890,7 @@ def price_alerts(request):
     buyer = request.user.buyer_profile
     users = get_users_for_notifications(['SuperUser', 'Purchaser'], buyer)
 
-    price_alerts = PriceAlert.objects.filter(buyer_co=buyer.company)
+    price_alerts = PriceAlert.objects.filter(is_active=True, buyer_co=buyer.company)
     price_alert_form = PriceAlertForm(request.POST or None)
 
     if request.method == "POST":
@@ -1138,7 +1139,7 @@ def products(request):
     data = {
         'products': products,
         'product_form': product_form,
-        'table_headers': ['', 'Product', 'SKU', 'Description', 'Price', 'Threshold', 'Category', 'Vendor'],
+        'table_headers': ['', 'Product', 'SKU', 'Description', 'Price', 'Min. Thresh.', 'Max. Thresh.', 'Category', 'Vendor'],
     }
     return render(request, "products/products.html", data)
 
@@ -1189,7 +1190,7 @@ def products_bulk(request):
     data = {
         'all_bulk_products': all_bulk_products,
         'recent_bulk_products': recent_bulk_products,
-        'table_headers': ['Category', 'Product', 'Name','Description', 'Price', 'Company Catalog'],
+        'table_headers': ['Category', 'Product', 'Name','Description', 'Price', 'In Co. Catalog?'],
 
     }
     return render(request, "products/products_bulk.html", data)
