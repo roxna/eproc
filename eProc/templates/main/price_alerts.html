@@ -1,10 +1,7 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles eProc_filters %}
 
-{% block title %}Dashboard{% endblock title %}
-
-{% block css %}
-{% endblock css %}
+{% block title %}Price Alerts{% endblock title %}
 
 {% block header %}
   
@@ -27,11 +24,22 @@
                 <tbody class="products-list">  
                     {% for alert in price_alerts %}
                     <tr id="{{alert.pk}}" data-commodity_id="{{alert.commodity.pk}}">
+
                       <td>{{ alert.commodity }}</td>
                       <td id="price_{{alert.pk}}">{{ alert.alert_price }}</td>
-                      <td id="current_price_{{alert.pk}}"><!-- Set in AJAX request below --></td> 
-                      <td id="trigger_price_alert_{{alert.pk}}"><!-- Set in AJAX request below --></td>
+                      
+                      <!-- Set in AJAX request below -->
+                      <td id="current_price_{{alert.pk}}"></td> 
+                      <td id="trigger_price_alert_{{alert.pk}}"></td>
+
                       <td>{{ alert.author }}</td>
+                      <td>
+                        <form method="POST">
+                          {% csrf_token %}
+                          <button type="submit" name="delete" value="{{alert.pk}}"><i class="fa fa-trash"></i></button>
+                        </form>
+                      </td>
+                    
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -68,10 +76,10 @@
                   $('#current_price_'+alert_id).html(current_price);
 
                   // Update the trigger_price_alert based on if current price has dropped below alert_price
-                  if (current_price < $('#price_'+alert_id).val()){
-                    $('#trigger_price_alert_'+alert_id).html('<span class="label label-danger"> TING TING TING</span> ');
+                  if (parseInt(current_price) < parseInt($('#price_'+alert_id).html())){
+                    $('#trigger_price_alert_'+alert_id).html('<span class="label label-danger"> PRICE ALERT!</span> ');
                   }else{
-                    $('#trigger_price_alert_'+alert_id).html('<em><small><p class="text-muted"> Tracking...</p></small></em>');
+                    $('#trigger_price_alert_'+alert_id).html('<em><small><p class="text-muted"> Tracking</p></small></em>');
                   }
 
                 },
