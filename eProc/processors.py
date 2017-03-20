@@ -38,6 +38,7 @@ def icons(request):
 		"products_bulk": "fa-money",
 		"vendors": "fa-credit-card",
 		"accounts": "fa-book",
+		"taxes": "fa-percent",
 		"approval": "fa-book",
 		"charge": "fa-credit-card",
 

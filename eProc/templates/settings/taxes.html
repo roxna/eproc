@@ -1,0 +1,49 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Taxes{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <p class="small">{% include '_includes/back_to.html' with destination='settings' %}</p>
+
+  <!-- ADD TAX MODAL -->
+  <button type="button" class="btn basic-teal pull-right" data-toggle="modal" data-target="#addModal"><i class='fa fa-plus'> </i> Add Tax</button>
+  {% include "_includes/modal_singleform.html" with target="Tax" form=tax_form %}
+
+  <h1>Taxes</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+
+      <div class="col-lg-12 col-md-12 col-xs-12">
+        <div class="box">
+          <div class="box-body">
+
+            <table id="taxTable" class="table table-striped">
+              {% include "_includes/table_header.html" with header_class="basic-grey" header=table_headers %}
+                <tbody>              
+                  {% for tax in taxes %}                        
+                    <tr>
+                      <td>{{tax.name}}</td> 
+                      <td>{{tax.percent}} %</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table><br> 
+
+          </div>
+        </div>
+     </div>
+
+  </div>
+</section>
+{% endblock content %}
+
+
+{% block js %}
+  {% include "_includes/data_tables_notifications.html" with tableID="taxTable" %}
+{% endblock js %}

@@ -230,7 +230,7 @@ ITEM_STATUSES = (
 )
 DOC_STATUSES = (
     # Reqs/Invoices:    Pending/Approved/Denied/Cancelled
-    # POs:              Open/Closed/Cancelled
+    # POs:              Open/Closed/Cancelled/(Hold??)
     # Drawdowns:        Pending/Approved/Denied/Cancelled/Closed (call_dd)
     ('Pending', 'Pending'),
     ('Approved', 'Approved'),

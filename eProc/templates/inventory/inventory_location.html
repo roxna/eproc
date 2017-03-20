@@ -17,29 +17,55 @@
     <div class="col-xs-12">
         <div class="box">
 
-          <div class="nav-tabs-custom">
+          <div class="box-body">
+            <table id="inventoryTable" class="table table-striped">      
+               <thead class="basic-grey">
+               <tr>
+                  <th>Product</th>                        
+                  <th>Quantity Delivered</th>
+                  <th>Quantity Drawndown</th>
+                  <th>Current Stock</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              
+              <tbody> 
+                {% for item_name, item_details in inventory_list.iteritems %}           
+                <tr>
+                    <td>{{ item_name }}</td>
+                    
+                    <td class="text-green">
+                      <i class="fa {{ICONS.incoming}}" aria-hidden="true"></i> 
+                      {{ item_details.0 }}
+                    </td>
 
-            <!-- TABS -->
-            <ul class="nav nav-tabs">
-              <li class="active"><a href="#inventory" data-toggle="tab">TOTAL CURRENT INVENTORY</a></li>
-              <li><a href="#received" data-toggle="tab"><i class="fa fa-arrow-down"></i> Delivery Received (By Line Item)</a></li>
-              <li><a href="#drawndown" data-toggle="tab"><i class="fa fa-arrow-up"></i> Items Drawndown (By Line Item) </a></li> </li> 
-            </ul>
+                    <td class="text-red">
+                      <i class="fa {{ICONS.outgoing}}" aria-hidden="true"></i> 
+                      {{ item_details.1 }}
+                    </td>
 
-            <!-- TABLES -->
-           <div class="tab-content">
-              <div class="tab-pane active" id="inventory">
-                 {% include '_includes/inventory_template.html' with tableID='inventoryTable' items=inventory_list  is_inventory='true' text_css='text-black' %}
-              </div>
-              <div class="tab-pane" id="received"> 
-                 {% include '_includes/inventory_template.html' with tableID='receivedTable' items=delivered_list is_inventory='false' text_css='text-green' i_class=ICONS.incoming %}
-              </div>
-              <div class="tab-pane" id="drawndown"> 
-                 {% include '_includes/inventory_template.html' with tableID='drawndownTable' items=drawndown_list is_inventory='false' text_css='text-red' i_class=ICONS.outgoing %}
-              </div>
+                    <td class="text-black">
+                      <i class="fa {{ICONS.inventory}}" aria-hidden="true"></i>
+                      {{ item_details.2 }}
+                    </td>
 
-            </div>
-          </div>
+                    <!-- Flag when stock is LOW/HIGH for INVENTORY table -->
+                    <td>          
+                      {% if item_details.2 < item_details.3 %}            
+                        <span class="label label-danger"> Running low</span> 
+                      {% elif item_details.2 > item_details.4 %}            
+                        <span class="label label-pending"> Overstocked</span> 
+                      {% else %}          
+                        <span> All good!</span>
+                      {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+              </tbody>            
+
+            </table>
+          </div>  
+
         </div>
       </div>
     </div>
@@ -47,15 +73,5 @@
 {% endblock content %}
 
 {% block js %}
-  	
-  	<!-- Data tables -->
-  	{% include "_includes/data_tables_notifications.html" %}
-	<script type="text/javascript">
-	  $(function () {
-	    $('#inventoryTable').DataTable();
-	    $("#receivedTable").DataTable();
-	    $("#drawndownTable").DataTable();
-	  });
-	</script>
-	
+    {% include "_includes/data_tables_notifications.html" with tableID="inventoryTable" %}
 {% endblock js %}

@@ -341,6 +341,25 @@ class DepartmentForm(ModelForm):
         model = Department
         fields = ("name", "budget")
 
+class TaxForm(ModelForm):
+    percent = forms.DecimalField(min_value=0, label="Percent (%)", help_text='Input the percent value only, without "%"s')
+
+    def __init__(self, *args, **kwargs):
+        super(TaxForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('name', css_class='col-md-6'),
+                Div('percent', css_class='col-md-6'),
+                css_class='row',
+            ),
+        )
+
+    class Meta:
+        model = Tax
+        fields = ("name", "percent")
+
 class AccountCodeForm(ModelForm):
     expense_type = forms.ChoiceField(conf_settings.EXPENSE_TYPES, required=True, )
     departments = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=True, widget=forms.CheckboxSelectMultiple)

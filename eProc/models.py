@@ -114,44 +114,51 @@ class Location(models.Model):
 		else:
 			return ""
 
-	def get_items(self, status_list):
-		items = OrderItem.objects.filter(requisition__department__location=self, current_status__in=status_list)
+	def get_inventory_items(self):		
+		items = OrderItem.objects.filter(requisition__department__location=self)
 		# DefaultDict is like a regular dictionary but works better if key doesn't exist
+		# items_list = { product_name: [qty_delivered, qty_drawndown, qty_inventory, min_thresh, max_thresh] }
 		items_list = {}
 		for item in items:
-			try:
-				items_list[item.product.name] = [
-					items_list[item.product.name][0] + item.qty_delivered, #quantity
-					item.product.min_threshold, 
-					item.product.max_threshold, 
-				]
-			except KeyError:
-				items_list[item.product.name] = [
-					 item.qty_delivered,
-					 item.product.min_threshold,
-					 item.product.max_threshold,
-				]
+			if item.current_status in settings.DELIVERED_STATUSES:
+				try:
+					items_list[item.product.name] = [
+						items_list[item.product.name][0] + item.qty_delivered,
+						items_list[item.product.name][1],
+						# inventory = current_inventory + qty_delivered
+						items_list[item.product.name][2] + item.qty_delivered,
+						item.product.min_threshold, 
+						item.product.max_threshold, 
+					]
+				except KeyError:
+					items_list[item.product.name] = [
+						 item.qty_delivered,
+						 0,
+						 item.qty_delivered,
+						 item.product.min_threshold,
+						 item.product.max_threshold,
+					]
+			elif item.current_status in settings.DRAWDOWN_STATUSES:
+				try:
+					items_list[item.product.name] = [
+						items_list[item.product.name][0],
+						items_list[item.product.name][1] + item.qty_drawndown,
+						# inventory = current_inventory - qty_drawndown
+						items_list[item.product.name][2] - item.qty_drawndown,
+						item.product.min_threshold, 
+						item.product.max_threshold, 
+					]
+				except KeyError:
+					items_list[item.product.name] = [
+						 0,
+						 item.qty_drawndown,
+						 item.qty_drawndown,
+						 item.product.min_threshold,
+						 item.product.max_threshold,
+					]
+
 		return items_list
-
-	def get_delivered_items(self):	    
-		return self.get_items(settings.DELIVERED_STATUSES)
 	
-	def get_drawndown_items(self):
-	    return self.get_items(settings.DRAWDOWN_STATUSES)
-
-	def get_inventory_items(self):
-	    delivered_items = self.get_items(settings.DELIVERED_STATUSES)
-	    drawndown_items = self.get_items(settings.DRAWDOWN_STATUSES)
-	    items_list = delivered_items
-	    for name, details in drawndown_items.iteritems():
-	    	try:
-	    		items_list[name][0] -= details[0]
-	    	except KeyError:
-	    		# Shouldn't have a key error because 
-	    		# items can be drawndown only if delivered
-	    		# OR items_list[name][0] = details[0] * -1  ???
-	    		pass
-	    return items_list
 
 class Department(models.Model):
 	name = models.CharField(max_length=50)
@@ -193,6 +200,7 @@ class AccountCode(models.Model):
 class Tax(models.Model):
 	name = models.CharField(max_length=15)
 	percent = models.DecimalField(max_digits=10, decimal_places=2)
+	company = models.ForeignKey(BuyerCo, related_name='taxes')
 
 	def __unicode__(self):
 		return "{} ({}%)".format(self.name, self.percent)

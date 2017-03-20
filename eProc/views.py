@@ -715,7 +715,7 @@ def receiving_summary(request):
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
-def inventory(request):    
+def inventory(request): 
     buyer = request.user.buyer_profile
     locations = Location.objects.filter(company=buyer.company)        
     data = {
@@ -732,8 +732,6 @@ def view_location_inventory(request, location_id, location_name):
     data = {
         'location': location,
         'inventory_list': location.get_inventory_items(),
-        'delivered_list': location.get_delivered_items(),
-        'drawndown_list': location.get_drawndown_items(),
     }
     return render(request, "inventory/inventory_location.html", data)
 
@@ -1067,6 +1065,28 @@ def view_location(request, location_id, location_name):
         'dept_table_headers': ['Name', 'Budget', 'Spend YTD', 'Spend % of budget'],        
     }
     return render(request, "settings/view_location.html", data)
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def taxes(request):
+    buyer = request.user.buyer_profile
+    taxes = Tax.objects.filter(company=buyer.company)    
+    tax_form = TaxForm(request.POST or None) 
+    if request.method == "POST":
+        if tax_form.is_valid():
+            tax = tax_form.save(commit=False)
+            tax.company = buyer.company
+            tax.save()
+            messages.success(request, 'Tax added successfully')
+            return redirect('taxes')
+        else:
+            messages.info(request, 'Error. Tax not added.')
+    data = {
+        'taxes': taxes,
+        'tax_form': tax_form,
+        'table_headers': ['Tax', 'Percent']
+    }
+    return render(request, "settings/taxes.html", data)
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')

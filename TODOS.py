@@ -1,6 +1,23 @@
 
+
+# Manually raise Indent if needed (not automated in Tally, SAP etc have pop up)
 # DEPTS (from view_loc): EDIT, Spend, contracts, people etc, PRICE_ALERTS
 # Change all choicefields to numbers
+# Taxes v2 - apply in PO etc
+
+# DEBIT NOTE (when goods returned, by purchaser) / CREDIT NOTE (attach from vendor)
+	# Apply debit note to an invoice/delivery challan --> should update the amount??
+	# Date, Serial number 
+	# Particulars or brief description of the transaction / material
+	# Amount, taxes 
+	# Signature of the concerned authorities for raising the debit notes.
+		# 	- No, Date, To
+		# Invoice No, Date, Details, Qty (optional), Rate (optional), Amount
+		# + applicable taxes (reversed)
+# Inventory - by week/month etc
+	# For that month:
+	# Opening balance/ received/consumed/closing balance
+	# Average consumption (12 mos, 3 mons, last 1 mo)
 
 
 # Update charts to daily
@@ -96,10 +113,29 @@
 # AUDIT LOGGGG for each item/doc
 # 1 item - multiple POs? Order Items with ordered_qty < approved_qty from the company, 
 	# update model to M2M field, new_po_confirm, current_status - partially ordered??
-
+# FILES LINKED TO PO (to confirm):
+	# ORDER ACCEPTANCE (PRO FORMA INVOICE PI)
+	# Invoice & Packing List,
+	# Proforma Invoice (shipment not been made yet)
+	# Bill of Landing (goods are shipped)
+	# Cert of Origin 
+	# Inspection Reports (supplier's for each material)
+	# Bill of Entry (customs/proof of paying duty)
+	# Annexure for ecah PO
+# OTHER ITEMS/DOCS/FILES
+	# - Quotations: Offer sheets by vendor (history)
+	# - Samples from vendors
+	# - LIST OF REJECTIONS by vendor
+	# - VISITS (Agenda, MoM etc)
+# PRICE COMPARISON FOR PRODUCT (& HISTORY)
+	# Payment Terms (60/90 days)
+	# Basic Price
+	# Insurance, Freigh, FX Rate, Customs, Bank Charges etc, Clearing charges...
+	# TOTAL
 
 # LOW PRIO REFINEMENTS
 # ****************************
+# EMAIL AS PDF?
 # SPEND by BU/Dept (in Locations)
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # Refactor - DD = Requisition (item_table)
@@ -118,7 +154,16 @@
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
 # keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
-
+# PO ADDITIONAL FIELDS:
+	# Quotation No + source (email/verbal etc) + date
+	# Enq. No + source(email) + date
+	# Price Basis:
+	# Taxes
+	# Dispatch mode
+	# Payment terms
+	# ECC No / Range / VAT/CST # etc
+# PO ITEM ADDITIONAL FIELDS:
+	# For each item : Delivery Dispatch date/est. arrival date
 
 
 # NOTES:
