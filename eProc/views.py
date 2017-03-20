@@ -1037,7 +1037,7 @@ def view_location(request, location_id, location_name):
                 messages.info(request, 'Error. Location not updated. Please try again.')
         elif 'add_User' in request.POST:
             if user_form.is_valid() and buyer_profile_form.is_valid():                
-                user = save_user(user_form, buyer_profile_form, buyer.company, location)                
+                user = save_user(user_form, buyer_profile_form, buyer.company, location)
                 send_verific_email(user, user.id*conf_settings.SCALAR)
                 messages.success(request, 'User successfully invited')         
                 save_notification('User '+user.username+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='locations')       
@@ -1065,6 +1065,81 @@ def view_location(request, location_id, location_name):
         'dept_table_headers': ['Name', 'Budget', 'Spend YTD', 'Spend % of budget'],        
     }
     return render(request, "settings/view_location.html", data)
+
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def view_department(request, location_id, location_name, department_name, department_id):
+    buyer = request.user.buyer_profile
+
+    location = get_object_or_404(Location, pk=location_id)
+    department = get_object_or_404(Department, pk=department_id)
+    department_form = DepartmentForm(request.POST or None, instance=department)
+
+    items, periods, items_by_period = setup_analysis_data(buyer, department=department)
+    dept_spend = items.values('requisition__department__name').annotate(total_spend=Sum(F('qty_delivered')*F('price_ordered'), output_field=models.DecimalField()))
+
+    # Declare all variables
+    dept_spend_labels, dept_spend_data = [], []
+    dept_period_spend_data = {}        
+    
+    dept_spend_labels, dept_spend_data, dept_period_spend_data = get_spend_by('requisition__department__name', dept_spend, dept_spend_labels, dept_spend_data, dept_period_spend_data)
+
+    dept_period_spend_data = get_period_spend_values('requisition__department__name', items_by_period, dept_period_spend_data)
+    
+    if request.method == "POST":
+        if department_form.is_valid():
+            department = save_department(department_form, buyer, location)                
+            messages.success(request, 'Department saved successfully')
+        else:
+            messages.info(request, 'Error. Department not saved. Please try again.')
+        return redirect('view_department', location.id, slugify(location.name), slugify(department.name), department.id)
+    data = {
+        'department': department,
+        'department_form': department_form, 
+
+        'periods': periods,
+        'dept_spend_labels': dept_spend_labels,
+        'dept_spend_data': dept_spend_data,
+        'dept_period_spend_data': dept_period_spend_data,   #dept_period_spend_labels = periods
+    }
+    return render(request, "settings/view_department.html", data)
+
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def view_user(request, location_id, location_name, username):
+    buyer = request.user.buyer_profile
+
+    location = get_object_or_404(Location, pk=location_id)
+
+    user = get_object_or_404(User, username=username)
+    user_form = ChangeUserForm(request.POST or None, instance=user)
+
+    buyer_profile = get_object_or_404(BuyerProfile, user=user)
+    buyer_profile_form = BuyerProfileForm(request.POST or None, instance=buyer_profile)
+    
+    doc_logs = DocumentStatus.objects.filter(author=buyer_profile)
+    order_logs = OrderItemStatus.objects.filter(author=buyer_profile)
+    drawdown_logs = DrawdownItemStatus.objects.filter(author=buyer_profile)
+    from itertools import chain
+    user_activity = chain(doc_logs, order_logs, drawdown_logs)
+    
+    if request.method == "POST":
+        if buyer_profile_form.is_valid():
+            user = save_user(user_form, buyer_profile_form, buyer.company, location)
+            messages.success(request, 'User saved successfully')
+        else:
+            messages.info(request, 'Error. User not saved. Please try again.')
+        return redirect('view_user', location.id, slugify(location.name), buyer_profile.user.username)
+    data = {
+        'user_form': user_form,
+        'buyer_profile': buyer_profile,
+        'buyer_profile_form': buyer_profile_form, 
+        'user_activity': user_activity,
+        'user_activity_headers': ['Item', 'Status', 'Date'],
+    }
+    return render(request, "settings/view_user.html", data)
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
@@ -1224,6 +1299,7 @@ def vendors(request):
     # Prefix so the name field (common to both forms) isn't confused
     vendor_form = VendorCoForm(request.POST or None, prefix="vendor")
     location_form = LocationForm(request.POST or None, prefix="location")
+    
     if request.method == "POST":
         if vendor_form.is_valid() and location_form.is_valid():
             save_vendor(vendor_form, buyer)

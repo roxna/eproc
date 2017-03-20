@@ -1,0 +1,111 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles crispy_forms_tags eProc_filters %}
+
+{% block title %}Department{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <p class="small">
+    <i class="fa fa-angle-left"> </i>
+    <a href="{% url 'view_location' department.location.id department.location.name|slugify %}"> Back to {{department.location.name}} </a>
+  </p>
+  <h1>Department Details</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+    <div class="row">
+
+    <!-- Department details -->
+    <div class="col-lg-6">
+     <div class="box box-widget widget-user">
+        <form method="POST" id="post-form">
+        {% csrf_token %}          
+          
+          <div class="widget-user-header bg-gray">
+            <h3 class="widget-user-username">{{department.name}}</h3>
+          </div>
+          <div class="widget-user-image">
+            <img class="img-circle" src="{% static 'dist/img/photo4.jpg' %}" alt="{{department.name}}">
+          </div>
+
+          <div class="box-footer">
+            {% crispy department_form department_form.helper %}  
+            <button type='submit' class='button btn basic-teal pull-right'>Update Department </button>                          
+           </div>
+          
+        </form>
+      </div>
+    </div> 
+
+    <!-- List of docs -->
+    <div class="col-lg-6">
+      <div class="box box-default">
+      
+          <div class="box-header with-border">
+            <h3 class="box-title">Department spend</h3>
+          </div>     
+
+          <div class="box-body">            
+            <div class="box-body">
+              <canvas id="deptChangeChart" height="200" width="450"></canvas>
+          </div>        
+          </div>
+
+      </div>      
+    </div>
+
+  </div>
+</section>
+{% endblock content %}
+
+{% block js %}  
+  <script src="{% static 'plugins/chartjs/Chart.js' %}"></script>  
+  <script src="{% static 'dist/js/charts.js' %}"></script>  
+
+  <script type="text/javascript">
+        
+        // GLOBAL Configurations
+        Chart.defaults.global.responsive = true;
+        Chart.defaults.global.maintainAspectRatio = true;
+        Chart.defaults.global.legend.position = 'right';
+
+  // SPEND BY DEPARTMENT CHANGE OVER TIME (BAR CHART)  
+      // ********************    
+      // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})
+      {% autoescape off %}  
+      var deptChangeData = {
+        labels: {{periods|as_json}},
+        datasets: [
+          // Each one of these represents a location
+          {% for key, value in dept_period_spend_data.items %}
+          {              
+              label: "{{key|safe}}",
+              data: {{value}},
+              backgroundColor: pastelColors(),
+          }, 
+          {% endfor %}
+        ]
+      };      
+      {% endautoescape %} 
+
+      // Pass in data/options and generate chart
+      var deptChangeCtx = $("#deptChangeChart").get(0).getContext("2d");
+      var deptChangeChart = new Chart(deptChangeCtx, {
+        type: 'bar',
+        data: deptChangeData,
+        options: {
+          scales: {
+             xAxes: [{
+                  stacked: true,
+             }],
+             yAxes: [{
+                  stacked: true
+             }]
+          }
+        },
+      });
+
+    </script>
+{% endblock js %}

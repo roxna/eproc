@@ -23,7 +23,7 @@
 
       <!-- Department charts -->
       {% include "_includes/analysis_chart.html" with chartID='deptChart' title='Spend by Department - Total' %}
-      {% include "_includes/analysis_chart.html" with chartID='deptChangeChart' title='Spend By Department - By Time Period' %}   
+      {% include "_includes/analysis_chart.html" with chartID='deptChangeChart' title='Spend By Department - By Time Period' %}
     </div> 
         
   {% endif %}
@@ -137,6 +137,7 @@
         options: {},
       });
 
+     
       // SPEND BY DEPARTMENT CHANGE OVER TIME (BAR CHART)  
       // ********************    
       // Autoescape: To escape special chars (here, it would have been &#39 in {{periods}})

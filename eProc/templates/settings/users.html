@@ -32,7 +32,9 @@
                 <tbody>
                     {% for buyer in buyers %}           
                     <tr>
-                      <td>{{ buyer.user.username }}</td>
+                      <td>
+                        <a href="{% url 'view_user' buyer.location.id buyer.location.name|slugify buyer.user.username %}">{{ buyer.user.username }}</a>
+                      </td>
                       <td>{{ buyer.user.email }}</td>                      
                       <td>{{ buyer.role }}</td> 
                       <td><a href="{% url 'view_location' buyer.location.id buyer.location.name|slugify %}">{{ buyer.location }}</a></td> 

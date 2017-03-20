@@ -375,9 +375,11 @@ def handle_vendor_upload(reader, buyer_co, currency):
 # Get time blocks for spend over time - used by all report views
 time_delta = 30 # (in days)
 
-def setup_analysis_data(buyer):
+def setup_analysis_data(buyer, department=None):
     # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.objects.filter(current_status__in=settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
+    if department is not None:
+        items = items.filter(department=department)
     period_today, period_mid, period_old, period_end, periods = setup_periods()
     items_by_period = setup_items_by_period(items, period_today, period_mid, period_old, period_end)
     return items, periods, items_by_period

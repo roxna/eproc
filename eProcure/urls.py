@@ -119,12 +119,16 @@ urlpatterns=[
         url(r'^$', eProc_views.price_alerts, name='price_alerts'),
         url(r'^current-price/(?P<commodity_id>\w+)/$', eProc_views.get_commodity_current_price, name='get_commodity_current_price'),  # AJAX request to populate the price_alerts table
     ])),
+    
     url(r'^settings/', include([
         url(r'^$', eProc_views.settings, name='settings'),
         url(r'^profile/$', eProc_views.user_profile, name='user_profile'),
         url(r'^company/$', eProc_views.company_profile, name='company_profile'),
         url(r'^users/$', eProc_views.users, name='users'),
         url(r'^locations/$', eProc_views.locations, name='locations'),
+        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
+        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/(?P<department_name>[\w-]+)/(?P<department_id>\w+)/$', eProc_views.view_department, name='view_department'),
+        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/(?P<username>[\w-]+)/$', eProc_views.view_user, name='view_user'),
         url(r'^vendors/', include([
             url(r'^$', eProc_views.vendors, name='vendors'),
             url(r'^(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
@@ -139,7 +143,7 @@ urlpatterns=[
             url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request        
         ])),
         url(r'^categories/$', eProc_views.categories, name='categories'),
-        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
+        
         url(r'^taxes/$', eProc_views.taxes, name='taxes'),
         url(r'^account-codes/$', eProc_views.account_codes, name='account_codes'),
         url(r'^approval-routing/$', eProc_views.approval_routing, name='approval_routing'),

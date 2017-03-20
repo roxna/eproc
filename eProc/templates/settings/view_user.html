@@ -1,0 +1,83 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles crispy_forms_tags %}
+
+{% block title %}User Details{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <p class="small">
+    <i class="fa fa-angle-left"> </i>
+    <a href="{% url 'view_location' buyer_profile.location.id buyer_profile.location.name|slugify %}"> Back to {{buyer_profile.location.name}} </a>
+  </p>
+  <h1>User Details</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+    <div class="row">
+
+    <!-- User details -->
+    <div class="col-lg-6">
+     <div class="box box-widget widget-user">
+        <form method="POST" id="post-form">
+        {% csrf_token %}          
+          
+          <div class="widget-user-header bg-gray">
+            <h3 class="widget-user-username">{{buyer_profile.user.username}}</h3>
+          </div>
+          <div class="widget-user-image">
+            <img class="img-circle" src="{% static 'dist/img/photo4.jpg' %}" alt="{{user.username}}">
+          </div>
+
+          <div class="box-footer">
+            {% with buyer_profile.user as user %}
+              {% crispy user_form user_form.helper %}
+              {% crispy buyer_profile_form buyer_profile_form.helper %}  
+              <button type='submit' class='button btn basic-teal pull-right'>Update User </button>
+            {% endwith %}
+           </div>
+          
+        </form>
+      </div>
+    </div> 
+
+    <!-- List of docs -->
+    <div class="col-lg-6">
+      <div class="box box-default">
+      
+          <div class="box-header with-border">
+            <h3 class="box-title">User Activity</h3>
+          </div>     
+
+          <div class="box-body">                         
+              <table id="activityTable" class="table">
+                {% include "_includes/table_header.html" with header_class="basic-grey" table_headers=user_activity_headers %}
+
+                <tbody>              
+                  {% for activity in user_activity %}                     
+                    <tr>
+                      <td>                        
+                        {% if activity.item %}
+                          {{activity.item}}
+                        {% else %}
+                          {{activity.document}}
+                        {% endif %}
+                      </td>
+                      <td>{{ activity.value }}</td>
+                      <td>{{ activity.date }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>    
+          </div>
+
+      </div>      
+    </div>
+
+  </div>
+</section>
+{% endblock content %}
+
+{% block js %}  
+{% endblock js %}

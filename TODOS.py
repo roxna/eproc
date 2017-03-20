@@ -1,36 +1,7 @@
 
-
-# Manually raise Indent if needed (not automated in Tally, SAP etc have pop up)
-# DEPTS (from view_loc): EDIT, Spend, contracts, people etc, PRICE_ALERTS
-# Change all choicefields to numbers
+# Edit PRICE_ALERTS
+# SPEND by BU/Dept (in Locations)
 # Taxes v2 - apply in PO etc
-
-# DEBIT NOTE (when goods returned, by purchaser) / CREDIT NOTE (attach from vendor)
-	# Apply debit note to an invoice/delivery challan --> should update the amount??
-	# Date, Serial number 
-	# Particulars or brief description of the transaction / material
-	# Amount, taxes 
-	# Signature of the concerned authorities for raising the debit notes.
-		# 	- No, Date, To
-		# Invoice No, Date, Details, Qty (optional), Rate (optional), Amount
-		# + applicable taxes (reversed)
-# Inventory - by week/month etc
-	# For that month:
-	# Opening balance/ received/consumed/closing balance
-	# Average consumption (12 mos, 3 mons, last 1 mo)
-
-
-# Update charts to daily
-# Guidoism.objects \
-#     # get specific dates (not hours for example) and store in "created" 
-#     .extra({'created':"date(created)"})
-#     # get a values list of only "created" defined earlier
-#     .values('created')
-#     # annotate each day by Count of Guidoism objects
-#     .annotate(created_count=Count('id'))
-
-# Stripe/own db?? - subscription about to expire - send email
-# django smart_selects for dept/location http://stackoverflow.com/questions/35242412/filter-choices-in-form-fields-based-on-selected-items-in-fields-of-the-same-form
 
 # *****************************
 
@@ -86,10 +57,41 @@
 
 
 
+# Stripe/own db?? - subscription about to expire - send email
+# DEBIT NOTE (when goods returned, by purchaser) / CREDIT NOTE (attach from vendor)
+	# Apply debit note to an invoice/delivery challan --> should update the amount??
+	# Date, Serial number 
+	# Particulars or brief description of the transaction / material
+	# Amount, taxes 
+	# Signature of the concerned authorities for raising the debit notes.
+		# 	- No, Date, To
+		# Invoice No, Date, Details, Qty (optional), Rate (optional), Amount
+		# + applicable taxes (reversed)
+# class DebitNote(Document):
+# 	number = models.CharField(max_length=20)
+# 	date_created = models.DateTimeField(default=timezone.now)
+	
+# 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
+# 	invoices = models.ForeignKey(Invoice, related_name="debit_notes")		
+# Inventory - by week/month etc
+	# For that month:
+	# Opening balance/ received/consumed/closing balance
+	# Average consumption (12 mos, 3 mons, last 1 mo)
+
+
+# Update charts to daily
+# Guidoism.objects \
+#     # get specific dates (not hours for example) and store in "created" 
+#     .extra({'created':"date(created)"})
+#     # get a values list of only "created" defined earlier
+#     .values('created')
+#     # annotate each day by Count of Guidoism objects
+#     .annotate(created_count=Count('id'))
+
 
 # REFINEMENTS:
 # ****************************
-
+# Automatically raise Indent if needed (not automated in Tally, SAP etc have pop up)
 # Reqs - marked as 'Executed'
 # Can receive items that are in an Open PO OR in an Approved Req that's not linked to a PO
 	# Small items bought by cash must have a Req but not necessarily a PO
@@ -133,10 +135,12 @@
 	# Insurance, Freigh, FX Rate, Customs, Bank Charges etc, Clearing charges...
 	# TOTAL
 
+
 # LOW PRIO REFINEMENTS
 # ****************************
 # EMAIL AS PDF?
-# SPEND by BU/Dept (in Locations)
+# django smart_selects for dept/location http://stackoverflow.com/questions/35242412/filter-choices-in-form-fields-based-on-selected-items-in-fields-of-the-same-form
+# Change all choicefields to numbers
 # Approval Routing - Select Approver by Location & Dept (http://kb.procurify.com/?st_kb=new-procurify-set-approval-routing-2)
 # Refactor - DD = Requisition (item_table)
 # ADD_USER functionality in USERS when able to filter dept based on location 

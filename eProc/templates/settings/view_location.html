@@ -58,7 +58,10 @@
                         {% for dept in departments %}
                           {% with dept.location.company.currency as currency %}
                           <tr>                            
-                            <td>{{ dept.name }}</td>   
+                            <td>
+                              <a href="{% url 'view_department' location.id location.name|slugify dept.name|slugify dept.id %}">
+                              {{ dept.name }}</a>
+                            </td>   
                             <td>{{ dept.budget|currency_formatting:currency }}</td>                            
                             <td>{{ dept.get_spend_approved_ytd|currency_formatting:currency }}</td>
                             <td>{{ dept.get_spend_percent_of_budget }}</td>
@@ -89,7 +92,10 @@
                       <tbody>              
                         {% for buyer in buyers %}                           
                           <tr>
-                            <td>{{ buyer.user.username }}</td>
+                            <td>
+                            <a href="{% url 'view_user' location.id location.name|slugify buyer.user.username %}">
+                              {{ buyer.user.username }}</a>
+                            </td>
                             <td>{{ buyer.user.email }}</td>
                             <td>{{ buyer.department }}</td>
                             <td>{{ buyer.role }}</td>
