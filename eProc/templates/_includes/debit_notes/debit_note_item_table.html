@@ -1,0 +1,32 @@
+{% load eProc_filters %}
+
+{% with debit_note.get_latest_status.value as latest_status %}
+  <div class="row">
+    <div class="col-xs-12">
+     <p class="lead">Line Items</p>
+    </div>
+    <div class="col-xs-12 table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody>        
+          {% for item in debit_note.items.all %}            
+            <tr id="debitNoteItemList">
+              <td>{{ item.desc }}</td>
+              <td>{% if item.quantity %}{{ item.quantity }}{% else %}-{% endif %}</td>
+              <td>{% if item.unit_price %}{{ item.unit_price|currency_formatting:debit_note.currency }}{% else %}-{% endif %}</td>              
+              <td>{{ item.get_subtotal|currency_formatting:debit_note.currency }}</td> 
+            </tr>
+          {% endfor %}          
+        </tbody>
+      </table>
+    </div>
+  </div><br>
+{% endwith %}

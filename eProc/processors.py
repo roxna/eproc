@@ -10,6 +10,7 @@ def icons(request):
 		"requisition": "fa-book",
 		"po": "fa-shopping-cart",
 		"invoice": "fa-shopping-cart",
+		"debit_note": "fa-money",
 		"receive": "fa-truck",
 		"drawdown": "fa-sign-out",
 		"payment": "fa-money",

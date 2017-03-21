@@ -48,6 +48,12 @@ class DrawdownItemAdmin(admin.ModelAdmin):
     search_fields = ['product',  ]
     list_filter = ['product', 'drawdown']
 
+class DebitNoteAdmin(admin.ModelAdmin):
+    list_display = ['id', 'number', 'vendor_co',]
+
+class DebitNoteItemAdmin(admin.ModelAdmin):
+    list_display = ['id', 'debit_note', 'desc', 'quantity', 'unit_price',]
+
 class CompanyAdmin(admin.ModelAdmin):
 	list_display = ['id', 'name']
     
@@ -95,6 +101,8 @@ admin.site.register(CatalogItem, CatalogItemAdmin)
 admin.site.register(CatalogItemRequest, CatalogItemRequestAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(DebitNote, DebitNoteAdmin)
+admin.site.register(DebitNoteItem, DebitNoteItemAdmin)
 admin.site.register(DrawdownItem, DrawdownItemAdmin)
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(BuyerCo, CompanyAdmin)

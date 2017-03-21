@@ -1,0 +1,38 @@
+{% load eProc_filters %}
+
+<div class="row invoice-info">
+    <div class="col-sm-5 invoice-col">
+        <p class="lead">Details</p>
+        <table class="table no-border">
+            <tbody>
+              <tr>
+                <td>Vendor </td>
+                <td><b>{{ debit_note.vendor_co }}</b></td>
+              </tr>
+              <tr>
+                <td>Invoice </td>
+                <td><b>{{ debit_note.invoices }}</b></td>
+              </tr>
+              </tbody>  
+        </table>       
+    </div>
+
+    <div class="col-sm-2 invoice-col"></div>
+    
+    <div class="col-sm-5 invoice-col">
+        <p class="lead"> -</p>
+
+        <table class="table no-border">
+            <tbody>
+              <tr>
+                <td>Debit Note Date </td>
+                <td><b>{{ debit_note.date_created|date:"D, M d Y" }}</b></td>
+              </tr>
+              <tr>
+                <td>Invoice Date </td>
+                <td><b>{{ debit_note.invoices.date_created|date:"D, M d Y" }}</b></td>
+              </tr>              
+            </tbody>
+          </table>
+      </div>  
+</div><br><br>

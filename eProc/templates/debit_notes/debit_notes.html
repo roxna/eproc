@@ -1,0 +1,81 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Debit Notes{% endblock title %}
+
+{% block css %}{% endblock css %}
+
+{% block header %}
+  <a href="{% url 'new_debit_note' %}">
+    <button type="button" class="btn basic-teal pull-right"> 
+      <i class='fa fa-plus'> </i> Add Debit Note
+    </button>
+  </a>
+  <h1>Debit Notes</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+    
+          {% if not debit_notes %}
+            <!-- If no Debit Notes have been created, CREATE NEW  button -->
+            {% include "_includes/docs/no_docs_add_now.html" with text="You haven't created any Debit Notes yet" href='new_debit_note' action='Create one now' %}
+            
+          {% else %}
+        
+          <div class="box">            
+            <div class="nav-tabs-custom">
+            
+              <!-- TABS -->
+              <ul class="nav nav-tabs">
+                <li class="active"><a href="#all" data-toggle="tab">All</a></li>
+              </ul>
+
+              <!-- TABLES -->
+              <div class="tab-content">
+                <div class="tab-pane active" id="all">
+                   <table id="allTable" class="table table-striped">
+                      {% include '_includes/table_header.html' with header_class='basic-teal' table_headers=table_headers %}
+
+                      <tbody>
+                      {% for note in debit_notes %}           
+                        <tr>
+                          <td>
+                            <a href="{% url 'view_debit_note' note.id %}">
+                            {{note.number}}
+                            </a>
+                          </td>
+                          <td>
+                            <a href="{% url 'view_invoice' note.invoices.id %}">
+                            {{note.invoices.number}}
+                            </a>
+                          </td>
+                          <td>{{note.vendor_co}}</td> 
+                          <td>{{note.date_created}}</td>
+                          <td>{{note.preparer}}</td>  
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+              </div>
+            </div>
+
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+{% block js %}
+  {% include "_includes/data_tables_notifications.html" %}
+<script type="text/javascript">
+  $(function () {
+    $('#allTable').DataTable();
+  });
+</script>
+{% endblock js %}

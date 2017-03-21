@@ -20,6 +20,7 @@
 # New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 # 13. Issue receipts for goods???
+# Apply debit note to an invoice/delivery challan? --> should update the amount??
 
 # BIG
 # ****************************
@@ -58,21 +59,7 @@
 
 
 # Stripe/own db?? - subscription about to expire - send email
-# DEBIT NOTE (when goods returned, by purchaser) / CREDIT NOTE (attach from vendor)
-	# Apply debit note to an invoice/delivery challan --> should update the amount??
-	# Date, Serial number 
-	# Particulars or brief description of the transaction / material
-	# Amount, taxes 
-	# Signature of the concerned authorities for raising the debit notes.
-		# 	- No, Date, To
-		# Invoice No, Date, Details, Qty (optional), Rate (optional), Amount
-		# + applicable taxes (reversed)
-# class DebitNote(Document):
-# 	number = models.CharField(max_length=20)
-# 	date_created = models.DateTimeField(default=timezone.now)
-	
-# 	vendor_co = models.ForeignKey(VendorCo, related_name="%(class)s")
-# 	invoices = models.ForeignKey(Invoice, related_name="debit_notes")		
+
 # Inventory - by week/month etc
 	# For that month:
 	# Opening balance/ received/consumed/closing balance

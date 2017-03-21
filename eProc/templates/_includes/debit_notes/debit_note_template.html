@@ -1,0 +1,47 @@
+{% load eProc_filters crispy_forms_tags %}
+
+  <form method="POST">
+  {% csrf_token %}
+
+    <!-- *****************
+      Request Header
+    ***************** -->
+    <!-- Used in view_ and print_ -->
+    {% include "_includes/docs/doc_header.html" with document=debit_note href='view_debit_note' %}
+
+    <!-- *****************
+      Request Details
+    ***************** -->
+    {% include "_includes/debit_notes/debit_note_details.html" with debit_note=debit_note %}
+
+    <!-- *****************
+      Order Items Table
+    ***************** --> 
+    {% include "_includes/debit_notes/debit_note_item_table.html" with debit_note=debit_note %}
+
+
+    <!-- *****************
+      Comments & Totals
+    ***************** -->
+    {% include "_includes/comments_totals.html" with tableID="DebitNoteTable" form=debit_note currency=debit_note.currency sub_total=debit_note.get_subtotal grand_total=debit_note.get_grandtotal %}
+    
+
+    <!-- *****************
+      Footer
+    ***************** -->
+    <div class="row no-print">  
+
+      {% with debit_note.get_latest_status as latest_status %} 
+      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">    
+        
+        <div class="label text-grey">
+          Status: <em>{% include "_includes/formatting/doc_status_formatting.html" with doc=debit_note value_to_display=latest_status href='view_debit_note' %}</b> [By {{latest_status.author}} on {{latest_status.date|date:"D, M d Y"}}]</em>
+        </div>
+           
+      </div>  
+      {% endwith %}
+
+    </div>
+
+  </form>
+

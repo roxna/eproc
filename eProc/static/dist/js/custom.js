@@ -6,8 +6,8 @@ $(document).ready(function(){
 	
 	// Set global variables
 	// Set prefix based on formset name: 
-	if (window.location.pathname.includes('requisitions') || window.location.pathname.includes('drawdown')){
-		var prefix = 'items';  // new_req or new_dd
+	if (window.location.pathname.includes('requisitions') || window.location.pathname.includes('drawdown') || window.location.pathname.includes('debit_notes')){
+		var prefix = 'items';  // new_req or new_dd or new_debit_note
 	} else{		
 		var prefix = 'form'; // unbilled_items
 	}	

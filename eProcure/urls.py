@@ -83,12 +83,18 @@ urlpatterns=[
 
     url(r'^accounts-payable/', include([
         url(r'^invoices/', include([
-            url(r'^$', eProc_views.invoices, name='invoices'),    
+            url(r'^$', eProc_views.invoices, name='invoices'),
             url(r'^new/select-items/$', eProc_views.new_invoice_items, name='new_invoice_items'),
             url(r'^new/confirm\w*/$', eProc_views.new_invoice_confirm, name='new_invoice_confirm'),
             url(r'^view/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
             url(r'^print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
             url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request (see custom.js)
+        ])),
+        url(r'^debit_notes/', include([
+            url(r'^$', eProc_views.debit_notes, name='debit_notes'),
+            url(r'^new/$', eProc_views.new_debit_note, name='new_debit_note'),
+            url(r'^view/(?P<debit_note_id>\w+)/$', eProc_views.view_debit_note, name='view_debit_note'),
+            url(r'^print/(?P<debit_note_id>\w+)$', eProc_views.print_debit_note, name='print_debit_note'),
         ])),
         url(r'^unbilled-items/$', eProc_views.unbilled_items, name='unbilled_items'),
         url(r'^receiving-summary/$', eProc_views.receiving_summary, name='receiving_summary'),

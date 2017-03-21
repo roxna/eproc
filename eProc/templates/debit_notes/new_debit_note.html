@@ -1,0 +1,100 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles crispy_forms_tags %}
+
+{% block title %}New Debit Note{% endblock title %}
+
+{% block header %}
+    <p class="small">{% include '_includes/back_to.html' with destination='debit_notes' %}</p>
+    <h1>Create a New Debit Note</h1>
+{% endblock header %}
+
+{% block content %}
+<section class="content">
+
+  <div class="row">
+    <div class="col-xs-12">
+        <div class="box">
+
+            <form method="POST" action="">
+            {% csrf_token %}
+            
+                <div class="pages">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Fill in Debit Note Details</h3>
+                    </div>          
+
+                    <div class="box-body"> 
+
+                      <div class="row">
+                        <div class="col-xs-12">
+                            <p class="lead">Debit Note Information</p>
+                        </div>
+                      </div>
+                      <div class="row invoice-info">                
+                        <div class="col-md-4 invoice-col">
+                            <div class="form-group">
+                            Number <br> {{debit_note_form.number}}
+                            </div>
+                        </div>
+                        <div class="col-sm-3 invoice-col">
+                          Vendor <br>{{debit_note_form.vendor_co}}
+                        </div>
+                        <div class="col-sm-3 invoice-col">               
+                          Invoice <br>{{debit_note_form.invoices}}
+                        </div>
+                      </div><br><br>
+
+                      <div class="row">
+                        <div class="col-xs-12">
+                            <p class="lead">Order Items</p>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-xs-12"> 
+                            <table id="itemsTable" class="table table-striped">
+                                <tbody>
+                                    {{ debit_note_formset.management_form | crispy }}
+
+                                    {% for form in debit_note_formset.forms %}                   
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                        <div class="item" id="{{form.prefix}}">
+                                            {% crispy form form.helper %}
+                                        </div>                            
+                                    {% endfor %}
+                                </tbody>                                
+                            </table>
+
+                        </div>
+                      </div><br><br><br>
+
+
+                        <!-- ***********************************
+                        Comments, Terms & Sub/Grand Total tables 
+                        ***********************************  -->
+                        {% include "_includes/comments_totals.html" with tableID="DebitNoteTable" form=debit_note_form currency=currency %}
+
+                        
+                        <!-- Buttons to go SUBMIT or CANCEL -->
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <button type="submit" name="createPO" class="button btn basic-teal pull-right"><i class="fa {{ICONS.debit_note}}"></i> Create Debit Note</button>
+                                <a href="{% url 'debit_notes' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>    
+
+            </form>
+
+         </div>
+      </div>
+  </div>
+
+</section>
+{% endblock content %}
+
+{% block js %}
+    <script src="{% static 'dist/js/comments_totals.js' %}"></script>
+{% endblock js %}

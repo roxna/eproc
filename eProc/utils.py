@@ -36,7 +36,7 @@ def send_verific_email(user,random_id):
     msg.send()
 
 # Returns Docs (Reqs/POs etc) where the user is either the preparer OR next_approver, unless user is SuperUser
-# User in requisitions, purchaseorders etc in views.py
+# Used in docs (reqs, POs etc) in views.py
 def get_documents_by_auth(buyer, document_type):
     if buyer.role == 'SuperUser':
         return document_type.objects.filter(buyer_co=buyer.company)
@@ -51,47 +51,52 @@ def get_users_for_notifications(roles, buyer_profile):
 ###    INITIALIZE FORMS    ### 
 ################################ 
 
-def initialize_req_form(buyer, requisition_form, orderitem_formset):
-    set_next_approver_not_required(buyer, requisition_form)
+def initialize_req_form(buyer, form, formset):
+    set_next_approver_not_required(buyer, form)
     if buyer.role == 'SuperUser':
         # If SuperUser, can select any department and approver, incl. self
-        requisition_form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
-        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
+        form.fields['department'].queryset = Department.objects.filter(location__in=buyer.company.get_all_locations())
+        form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Approver', 'SuperUser'])
     else:
         # Else, dept only of buyer's location and next_approver only in buyer's department
-        requisition_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-        requisition_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
+        form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+        form.fields['next_approver'].queryset = BuyerProfile.objects.filter(department=buyer.department, role__in=['Approver', 'SuperUser']).exclude(user=buyer.user)
     
-    for form in orderitem_formset: 
-        form.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)
-        form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
+    for f in formset: 
+        f.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)
+        f.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
-def initialize_po_form(buyer, po_form):
-    po_form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
-    po_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company) 
+def initialize_po_form(buyer, form):
+    form.fields['billing_add'].queryset = Location.objects.filter(company=buyer.company)
+    form.fields['shipping_add'].queryset = Location.objects.filter(company=buyer.company)
+    form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company) 
 
-def initialize_invoice_form(buyer, invoice_form):
-    invoice_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
-    set_next_approver_not_required(buyer, invoice_form)
+def initialize_invoice_form(buyer, form):
+    form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Payer', 'SuperUser'])
+    set_next_approver_not_required(buyer, form)
 
-def initialize_drawdown_form(buyer, drawdown_form, drawdownitem_formset):
-    drawdown_form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
+def initialize_debit_note_form(buyer, form):
+    form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company)
+    form.fields['invoices'].queryset = Invoice.objects.filter(buyer_co=buyer.company)
+    # set_next_approver_not_required(buyer, form)
+
+def initialize_drawdown_form(buyer, form, formset):
+    form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
     set_next_approver_not_required(buyer, drawdown_form)
     if buyer.role == 'SuperUser':
-        drawdown_form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
-        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)        
-    else:
-        drawdown_form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
-        drawdown_form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser']).exclude(user=buyer.user)
-    
-    for drawdownitem_form in drawdownitem_formset: 
-        drawdownitem_form.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)    
-
-def initialize_unbilled_form(buyer, unbilled_formset):
-    for form in unbilled_formset:
         form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
-        form.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
+        form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)        
+    else:
+        form.fields['department'].queryset = Department.objects.filter(location=buyer.location)
+        form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company, role__in=['Inventory Manager', 'Branch Manager', 'SuperUser']).exclude(user=buyer.user)
+    
+    for f in formset: 
+        f.fields['product'].queryset = CatalogItem.objects.filter(buyer_cos=buyer.company)    
+
+def initialize_unbilled_form(buyer, formset):
+    for f in formset:
+        f.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
+        f.fields['account_code'].queryset = AccountCode.objects.filter(company=buyer.company)
 
 ################################
 ###   SAVE METHODS - COMMON  ### 
@@ -110,7 +115,7 @@ def save_new_document(buyer, form):
     document.currency = buyer.company.currency
     document.date_created = timezone.now()
     document.buyer_co = buyer.company
-    # Don't save if Invoice - will violate the not-null constraint for invoice.vendor_co etc
+    # Don't save if Invoice - will violate the not-null constraint for invoice.vendor_co etc 
     if not isinstance(document, Invoice):
         document.save() 
     return document
@@ -150,7 +155,7 @@ def save_status(document, doc_status, item_status, author):
     save_item_status(document, item_status, author)
 
 def save_doc_status(document, doc_status, author):
-    document.current_status = status
+    document.current_status = doc_status
     document.save()
     DocumentStatus.objects.create(document=document, value=doc_status, author=author)
 
@@ -255,6 +260,15 @@ def save_received_po_items(buyer, formset):
                 item.current_status = 'Delivered Parial'
                 OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
             item.save()
+
+#######  DEBIT NOTE  ########
+
+def save_debit_note_items(buyer, debit_note, formset):
+    for form in formset.forms:
+        debit_item = form.save(commit=False)
+        debit_item.debit_note = debit_note
+        debit_item.save()
+
 
 #######  UNBILLED ITEMS / SPEND ALLOCATION  ########
 

@@ -493,7 +493,7 @@ def po_orderitems(request, po_id):
 
 
 ####################################
-###     INVOICES & A/PAYABLE     ### 
+###             INVOICES        ### 
 ####################################
 
 @login_required()
@@ -660,6 +660,88 @@ def vendor_invoices(request, vendor_id):
     except TypeError:
         pass
     return HttpResponse(data, content_type='application/json')
+
+####################################
+###         DEBIT NOTES         ### 
+####################################
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def debit_notes(request):
+    buyer = request.user.buyer_profile    
+    
+    # Returns DebitNotes where the user is either the preparer OR next_approver, unless user is SuperUser (see utils.py)
+    debit_notes = get_documents_by_auth(buyer, DebitNote)
+    
+    data = {
+        'debit_notes': debit_notes,
+        'table_headers': ['Debit Note', 'Invoice No.', 'Vendor', 'Date Created', 'Created by']
+    }
+    return render(request, "debit_notes/debit_notes.html", data)
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def new_debit_note(request):
+    buyer = request.user.buyer_profile
+    currency = buyer.company.currency
+
+    debit_note_form = DebitNoteForm(request.POST or None, initial= {'number': 'DBT'+str(DebitNote.objects.filter(buyer_co=buyer.company).count()+1)})    
+    initialize_debit_note_form(buyer, debit_note_form)
+    file_form = FileForm(request.POST or None, request.FILES or None)
+
+    DebitNoteFormset = inlineformset_factory(parent_model=DebitNote, model=DebitNoteItem, form=DebitNoteItemForm, extra=1)
+    debit_note_formset = DebitNoteFormset(request.POST or None)
+
+    if request.method == "POST":        
+        if debit_note_form.is_valid() and debit_note_formset.is_valid():
+            debit_note = save_new_document(buyer, debit_note_form)
+            save_debit_note_items(buyer, debit_note, debit_note_formset)            
+            
+            users = get_users_for_notifications(['SuperUser', 'Payer'], debit_note.preparer)
+            # if buyer.role == 'SuperUser':
+            # Change save_doc_status to save_status once we add model for DebitNoteItemStatus
+            save_doc_status(document=debit_note, doc_status='Approved', author=buyer)
+            save_notification('Debit Note '+debit_note.number+' has been created', 'Success', users, target='debit_notes')
+            # else:
+            #     save_status(document=debit_note, doc_status='Pending', item_status='Requested', author=buyer)
+            #     save_notification('Debit Note '+debit_note.number+' is pending your approval', 'Success', debit_note.next_approver.user, target='debit_notes')
+            messages.success(request, 'Debit Note submitted successfully')
+            return redirect('debit_notes')
+        else:
+            messages.info(request, 'Error. Debit Note not created')
+
+    data = {
+        'debit_note_form': debit_note_form,
+        'file_form': file_form,
+        'currency': currency,
+        'debit_note_formset': debit_note_formset,
+        'table_headers': ['Product Desc', 'Quantity', 'Price', 'Subtotal'],
+    }
+    return render(request, "debit_notes/new_debit_note.html", data)
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def view_debit_note(request, debit_note_id):
+    debit_note = get_object_or_404(DebitNote, pk=debit_note_id)
+
+    data = {
+        'debit_note': debit_note,
+    }
+    return render(request, "debit_notes/view_debit_note.html", data)
+
+@login_required()
+@user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
+def print_debit_note(request, debit_note_id):
+    debit_note = get_object_or_404(DebitNote, pk=debit_note_id)
+    data = {
+        'debit_note': debit_note,        
+    }
+    return render(request, "debit_notes/print_debit_note.html", data)  
+
+
+####################################
+###     ACCOUNTS PAYABLE        ### 
+####################################
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')

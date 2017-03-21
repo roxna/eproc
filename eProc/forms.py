@@ -646,7 +646,45 @@ class ReceivePOItemForm(ModelForm):
     class Meta:
         model = OrderItem
         fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivered')
-        
+    
+class DebitNoteItemForm(ModelForm):
+    desc = forms.CharField(required=True, label='Description')
+
+    def __init__(self, *args, **kwargs):
+        super(DebitNoteItemForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = False
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div('desc', css_class='item-product col-md-5'),
+                Div('quantity', css_class='item-quantity col-md-2'),
+                Div('unit_price', css_class='item-price col-md-2'),
+                Div('subtotal', css_class='item-subtotal col-md-2'),
+                HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
+                css_class='row',
+            ),
+        )
+
+    def clean(self):
+        cleaned_data = super(DebitNoteItemForm, self).clean()
+        quantity = self.cleaned_data['quantity']
+        unit_price = self.cleaned_data['unit_price']
+        subtotal = self.cleaned_data['subtotal']
+        # Check that either quantity & price OR subtotal are filled in
+        if not (subtotal or (quantity and unit_price)):
+            if not subtotal:
+                self.add_error('subtotal', 'Subtotal or price/quantity can not be left blank')
+            elif not quantity:
+                self.add_error('quantity', 'Quantity field must be filled in')
+            elif not unit_price:
+                self.add_error('unit_price', 'Price field must be filled in')
+        return cleaned_data 
+
+    class Meta:
+        model = DebitNoteItem
+        fields = ("desc", "quantity", "unit_price", "subtotal")
+
 # (unbilled_items)
 class SpendAllocationForm(ModelForm):
     department = forms.ModelChoiceField(queryset=Department.objects.all())
@@ -905,6 +943,41 @@ class InvoiceForm(ModelForm):
         fields = ("number", "date_issued", "date_due", "next_approver", "comments",
                  "tax_amount", "cost_shipping", "discount_amount", "cost_other",)
  
+
+class DebitNoteForm(ModelForm):
+    comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
+    vendor_co = forms.ModelChoiceField(label="Vendor", queryset=VendorCo.objects.none(), required=True)
+    invoices = forms.ModelChoiceField(label="Invoice", queryset=Invoice.objects.none(), required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(DebitNoteForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(            
+            Div(
+                Div('number', css_class='col-md-4'),
+                Div('vendor_co', css_class='col-md-4'),
+                Div('invoices', css_class='col-md-4'),
+                css_class='row',
+            ),
+            Div(
+                Div('comments', css_class='col-md-6'),
+                css_class='row',
+            )
+        )
+
+    def clean(self):
+        cleaned_data = super(DebitNoteForm, self).clean()
+        # If invoice's vendor != vendor_co selected
+        invoice = self.cleaned_data['invoices']
+        vendor_co = self.cleaned_data['vendor_co']
+        if invoice.vendor_co != vendor_co:
+            self.add_error('invoice', 'Please ensure the invoice vendor matches the vendor selected')
+
+    class Meta:
+        model = DebitNote
+        fields = ("number", "vendor_co", "invoices", "comments",
+            "tax_amount", "cost_shipping", "discount_amount", "cost_other")
 
 class DrawdownForm(ModelForm): 
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))

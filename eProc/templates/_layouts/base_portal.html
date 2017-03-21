@@ -222,17 +222,22 @@
                 </a>
                 <ul class="treeview-menu">
                   <li class="treeview {% if 'invoices' in request.path %} active {% endif %}">
-                    <a href="{%url 'invoices' %}">
+                    <a href="{% url 'invoices' %}">
                       <i class="fa {{ICONS.payment}}"></i> Invoices
                     </a>
-                  </li>                  
+                  </li>
+                  <li class="treeview {% if 'debit_notes' in request.path %} active {% endif %}">
+                    <a href="{% url 'debit_notes' %}">
+                      <i class="fa {{ICONS.debit_note}}"></i> Debit Notes
+                    </a>
+                  </li>             
                   <li class="treeview {% if request.resolver_match.url_name == 'unbilled_items' %} active {% endif %}">
-                    <a href="{%url 'unbilled_items' %}">
+                    <a href="{% url 'unbilled_items' %}">
                       <i class="fa fa-align-left"></i> Unbilled Items
                     </a>
                   </li>
                   <li class="treeview {% if request.resolver_match.url_name == 'receiving_summary' %} active {% endif %}">
-                    <a href="{%url 'receiving_summary' %}">
+                    <a href="{% url 'receiving_summary' %}">
                       <i class="fa {{ICONS.receive}}"></i> Receiving Summary
                     </a>
                   </li>                  

@@ -280,7 +280,7 @@ class Document(models.Model):
 		subtotal = 0
 		for item in self.items.all():
 			try:
-				#getattr allows you to access an attribute using a variable
+				#getattr allows you to access an attribute using a variable (i.e. item.price_req)
 				subtotal += getattr(item, price) * getattr(item, quantity)  
 			except TypeError: #If qty is not defined
 				pass
@@ -349,6 +349,23 @@ class Invoice(SalesOrder):
  	def get_grand_total(self):
  		return self.get_delivered_subtotal() + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
 
+# When goods returned, created by purchaser; credit note attached from vendor
+class DebitNote(SalesOrder):
+	invoices = models.ForeignKey(Invoice, related_name="debit_notes")
+
+	def get_subtotal(self):
+		subtotal = 0
+		for item in self.items.all():
+			try:
+				subtotal += item.get_subtotal()
+			except TypeError: #If qty is not defined
+				pass
+		return subtotal
+	 	
+ 	def get_grandtotal(self):
+ 		return self.get_subtotal() + self.cost_shipping + self.cost_other + self.tax_amount - self.discount_amount
+
+
 class Drawdown(Document):
 	location = models.ForeignKey(Location, related_name='drawdowns')
 	department = models.ForeignKey(Department, related_name='drawdowns')
@@ -413,7 +430,7 @@ class Product(models.Model):
 	    	return static('dist/img/product_bulk_icon.jpg')
 
 # An actual item in the catalog (either Buyer_Uploaded or Bulk_Discount)
-class CatalogItem(Product):	
+class CatalogItem(Product):
 	sku = models.CharField(max_length=20, null=True, blank=True)
 	image = models.ImageField(upload_to=img_directory_path, validators=[validate_file_extension], null=True, blank=True)
 	ITEM_TYPES = (
@@ -424,7 +441,6 @@ class CatalogItem(Product):
 	min_threshold = models.IntegerField(null=True, blank=True) # Alert if inventory drops below		
 	max_threshold = models.IntegerField(null=True, blank=True) # Alert if inventory is higher than
 	vendor_co = models.ForeignKey(VendorCo, related_name="catalogitems")
-	
 
 	def __unicode__(self):
 		return "{}".format(self.name)
@@ -435,6 +451,22 @@ class CatalogItemRequest(Product):
 
 	def __unicode__(self):
 		return "{}".format(self.name)
+
+class DebitNoteItem(models.Model):
+	desc = models.CharField(max_length=150)
+	quantity = models.IntegerField(validators=[MinValueValidator(0)], null=True, blank=True)
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	subtotal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	debit_note = models.ForeignKey(DebitNote, related_name="items")
+
+	def __unicode__(self):
+		return "{}".format(self.desc)
+
+	def get_subtotal(self):
+		try:
+			return self.unit_price * self.quantity
+		except TypeError: #If qty is not defined
+			return self.subtotal
 
 class Item(models.Model):
 	number = models.CharField(max_length=20)

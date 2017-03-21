@@ -1,0 +1,28 @@
+{% extends '_layouts/base_portal.html' %}
+{% load staticfiles %}
+
+{% block title %}Debit Note Details{% endblock title %}
+
+{% block header %}
+  <h1>Debit Note Details</h1> 
+{% endblock header %}
+
+
+{% block content %}
+
+  <section class="invoice">
+
+    <div class="row">
+      <div class="col-xs-12">
+                
+        {% include "_includes/docs/print_or_email.html" with href_back='debit_notes' href_print='print_debit_note' document=debit_note %}
+
+      </div>
+    </div>
+    
+    {% include "_includes/debit_notes/debit_note_template.html" with debit_note=debit_note %}    
+    
+    </section>       
+    <div class="clearfix"></div>
+
+{% endblock content %}
