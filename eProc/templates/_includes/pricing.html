@@ -1,7 +1,7 @@
   {% load staticfiles eProc_filters %}
 
   {% for plan in plans %}
-  <div class="col-md-4">
+  <div class="col-md-6">
 
     <!-- Plan Details -->
     <div class="box box-widget widget-user-2">
@@ -14,22 +14,17 @@
 
       <div class="box-footer no-padding">
         <ul class="nav nav-stacked">
-          {% if plan.identifier == 'basic_monthly' %}
+          {% if plan.identifier == 'core_monthly' %}
             <li><a>Unlimited users</a></li>
-            <li><a>Unlimited orders</a></li>
+            <li><a>Entire Procure-to-Pay process</a></li>
             <li><a>Notifications in real time</a></li>
 
-        {% elif plan.identifier == 'intermediate_monthly' %}
-            <li><a><em>Everything in Basic plan</em></a></li>
+          {% elif plan.identifier == 'advanced_monthly' %}
+            <li><a><em>Everything in Core plan</a></em></li>
             <li><a>Analytics on company spend</a></li>
-            <li><a>Spend vs. industry average</a></li>
+            <li><a>Bulk discounts on select products</a></li>        
 
-        {% elif plan.identifier == 'advanced_monthly' %}
-            <li><a><em>Everything in Intermediate plan</a></em></li>
-            <li><a>Access to alternate vendors</a></li>
-            <li><a>Discounts on select products</a></li>        
-
-        {% endif %}
+          {% endif %}
         
   
         <!-- Plan Pay Button -->
@@ -40,11 +35,11 @@
                   {% csrf_token %}
                   <input type="hidden" name="plan_id" value="{{plan.id}}">
                   <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                      data-key="{{STRIPE_KEY}}"
-                      data-name="{{COMPANY_NAME}}"
-                      data-description="Subscription for {{plan.name}}"
-                      data-image="{% static 'dist/img/subscription_icon.png' %}"
-                      data-amount="{{plan.price}}"
+                      data-key="{{STRIPE_KEY}}",
+                      data-name="{{COMPANY_NAME}}",
+                      data-description="Subscription for {{plan.name}}",
+                      data-image="{% static 'dist/img/subscription_icon.png' %}",
+                      data-amount="{{plan.price}}",
                       data-email="{{user.email}}",
                       data-locale="auto">
                   </script>

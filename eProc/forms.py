@@ -242,8 +242,8 @@ class VendorForm(forms.Form):
 
 # Used to rank a Vendor
 class VendorRatingForm(ModelForm):
-    category = forms.ChoiceField(conf_settings.CATEGORIES, required=True)
-    # category = forms.ChoiceField(conf_settings.CATEGORIES, required=True, widget=forms.Select(attrs={'readonly': 'true', 'disabled':'true'}))
+    # category = forms.ChoiceField(conf_settings.CATEGORIES, required=True)
+    category = forms.CharField(required=True, widget=forms.TextInput(attrs={'readonly': 'true'}))
     comments = forms.CharField(required=False,)
 
     def __init__(self, *args, **kwargs):
@@ -258,12 +258,6 @@ class VendorRatingForm(ModelForm):
                 css_class='row',
             ),
         )
-    # Ensure readonly/disabled 'category' field is not edited by users on submit
-    # def clean_category(self):        
-    #     if self.instance:
-    #         return self.instance.category
-    #     else: 
-    #         return self.cleaned_data['category']
 
     class Meta:
         model = Rating
@@ -413,19 +407,19 @@ class CatalogItemForm(ModelForm):
                 css_class='row',
             ),
             Div(
-                Div('desc', css_class='col-md-12'),                
+                Div('desc', css_class='col-md-8'), 
+                Div('category', css_class='col-md-4'),               
                 css_class='row',
             ),            
             Div(
                 Div('unit_price', css_class='col-md-4'),
                 Div('unit_type', css_class='col-md-4'),
-                Div('category', css_class='col-md-4'),
+                Div('vendor_co', css_class='col-md-4'),
                 css_class='row',
             ),
-            Div(
-                Div('vendor_co', css_class='col-md-4'),
-                Div('min_threshold', css_class='col-md-2'),
-                Div('max_threshold', css_class='col-md-2'),
+            Div(                
+                Div('min_threshold', css_class='col-md-4'),
+                Div('max_threshold', css_class='col-md-4'),
                 Div('image', css_class='col-md-4'),
                 css_class='row',
             ),                        
@@ -433,10 +427,13 @@ class CatalogItemForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(CatalogItemForm, self).clean()
-        min_threshold = self.cleaned_data['min_threshold']
-        max_threshold = self.cleaned_data['max_threshold']
-        if min_threshold > max_threshold and max_threshold is not None:
-            self.add_error('min_threshold', 'Min. threshold must be less than Max')
+        try:
+            min_threshold = self.cleaned_data['min_threshold']
+            max_threshold = self.cleaned_data['max_threshold']
+            if min_threshold > max_threshold and max_threshold is not None:
+                self.add_error('min_threshold', 'Min. threshold must be less than Max')
+        except:
+            pass
         return cleaned_data
 
     class Meta:
@@ -494,10 +491,10 @@ class NewReqItemForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('product', css_class='item-product col-md-2'),
-                Div('qty_requested', css_class='item-quantity col-md-2'),
-                Div('price_requested', css_class='item-price col-md-2'),
-                Div('account_code', css_class='item-account-code col-md-2'),
+                Div('product', css_class='product col-md-2'),
+                Div('qty_requested', css_class='quantity col-md-2'),
+                Div('price_requested', css_class='unit_price col-md-2'),
+                Div('account_code', css_class='account-code col-md-2'),
                 Div('comments_requested', css_class='item-comments col-md-3'),
                 HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
@@ -559,14 +556,14 @@ class ApproveReqItemForm(ModelForm):
 class NewPOItemForm(ModelForm):
     product = forms.ModelChoiceField(queryset=CatalogItem.objects.all(), widget=forms.Select(attrs={'readonly':'true'}))
     qty_approved = forms.IntegerField(label='Qty Approved', widget=forms.TextInput(attrs={'readonly':'true'}))
-    qty_ordered = forms.IntegerField(required=True, min_value=1, label='Qty To Order')
+    qty_ordered = forms.IntegerField(required=True, min_value=1, initial=1, label='Qty To Order')
     price_ordered = forms.DecimalField(required=True, label='Price')  
     comments_ordered = forms.CharField(required=False, label='Comments')
 
     def __init__(self, *args, **kwargs):
         super(NewPOItemForm, self).__init__(*args, **kwargs)
-        self.empty_permitted = False
         self.helper = FormHelper()
+        self.empty_permitted = False        
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
@@ -591,8 +588,12 @@ class NewPOItemForm(ModelForm):
         cleaned_data = super(NewPOItemForm, self).clean()
         qty_ordered = self.cleaned_data['qty_ordered']
         qty_approved = self.cleaned_data['qty_approved']
-        if qty_ordered > qty_approved:
-            self.add_error('qty_ordered', 'Only '+str(qty_approved)+' items have been approved')
+        if qty_ordered is None:
+            self.add_error('qty_ordered', 'You must enter a quantity')
+        elif qty_ordered < 0:
+            self.add_error('qty_ordered', 'Quantity ordered must be greater than 0')
+        elif qty_ordered > qty_approved:
+            self.add_error('qty_ordered', 'You can not order more items than have been approved')
         return cleaned_data
 
     class Meta:
@@ -636,18 +637,27 @@ class ReceivePOItemForm(ModelForm):
     def clean(self):
         cleaned_data = super(ReceivePOItemForm, self).clean()
         qty_ordered = self.cleaned_data['qty_ordered']
-        qty_delivered = self.cleaned_data['qty_delivered']
-        qty_returned = self.cleaned_data['qty_returned']
-        if qty_delivered + qty_returned > qty_ordered:
-            self.add_error('qty_delivered', 'Delivered+returned should be less than ordered')
-            self.add_error('qty_returned', 'Delivered+returned should be less than ordered')
+        try:
+            qty_delivered = self.cleaned_data['qty_delivered']
+            qty_returned = self.cleaned_data['qty_returned']
+            if qty_delivered < 0:
+                self.add_error('qty_delivered', 'Quantity delivered must be greater than 0')
+            elif qty_returned < 0:
+                self.add_error('qty_returned', 'Quantity returned must be greater than 0')
+            elif qty_delivered + qty_returned > qty_ordered:
+                self.add_error('qty_delivered', 'Delivered+returned should be less than ordered')
+                self.add_error('qty_returned', 'Delivered+returned should be less than ordered')
+        except:
+            pass
         return cleaned_data            
 
     class Meta:
         model = OrderItem
         fields = ('number', 'product', 'qty_ordered', 'qty_delivered', 'qty_returned', 'comments_delivered')
     
-class DebitNoteItemForm(ModelForm):
+class DebitNoteItemForm(ModelForm):    
+    quantity = forms.IntegerField(required=True)
+    unit_price = forms.DecimalField(required=True, label='Price')
     desc = forms.CharField(required=True, label='Description')
 
     def __init__(self, *args, **kwargs):
@@ -657,10 +667,9 @@ class DebitNoteItemForm(ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div('desc', css_class='item-product col-md-5'),
-                Div('quantity', css_class='item-quantity col-md-2'),
-                Div('unit_price', css_class='item-price col-md-2'),
-                Div('subtotal', css_class='item-subtotal col-md-2'),
+                Div('desc', css_class='product col-md-5'),
+                Div('quantity', css_class='quantity col-md-3'),
+                Div('unit_price', css_class='unit_price col-md-3'),
                 HTML('<a class="delete col-md-1" href="#"><i class="fa fa-trash"></i></a>'),
                 css_class='row',
             ),
@@ -668,22 +677,21 @@ class DebitNoteItemForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(DebitNoteItemForm, self).clean()
-        quantity = self.cleaned_data['quantity']
-        unit_price = self.cleaned_data['unit_price']
-        subtotal = self.cleaned_data['subtotal']
-        # Check that either quantity & price OR subtotal are filled in
-        if not (subtotal or (quantity and unit_price)):
-            if not subtotal:
-                self.add_error('subtotal', 'Subtotal or price/quantity can not be left blank')
-            elif not quantity:
-                self.add_error('quantity', 'Quantity field must be filled in')
-            elif not unit_price:
-                self.add_error('unit_price', 'Price field must be filled in')
+        try:
+            quantity = self.cleaned_data['quantity']
+            unit_price = self.cleaned_data['unit_price']
+            # Check that either quantity & price OR subtotal are filled in
+            if not quantity or quantity < 0:
+                self.add_error('quantity', 'Quantity field must be entered and be greater than 0')
+            elif not unit_price or unit_price < 0:
+                self.add_error('unit_price', 'Price field must be entered and be greater than 0')
+        except:
+            pass
         return cleaned_data 
 
     class Meta:
         model = DebitNoteItem
-        fields = ("desc", "quantity", "unit_price", "subtotal")
+        fields = ("desc", "quantity", "unit_price")
 
 # (unbilled_items)
 class SpendAllocationForm(ModelForm):
@@ -784,7 +792,7 @@ class ApproveDDItemForm(ModelForm):
         if qty_approved <= 0:
             self.add_error('qty_approved', 'Quantity must be greater than 0')
         elif qty_approved > qty_requested:
-            self.add_error('qty_approved', 'Only '+str(qty_requested)+' items have been requested')
+            self.add_error('qty_approved', 'Approved quantity must be less than requested quantity')
         return cleaned_data
 
     class Meta:
@@ -826,7 +834,9 @@ class CallDrawdownItemForm(ModelForm):
         cleaned_data = super(CallDrawdownItemForm, self).clean()
         qty_drawndown = self.cleaned_data['qty_drawndown']
         qty_approved = self.cleaned_data['qty_approved']
-        if qty_drawndown > qty_approved:
+        if qty_drawndown <= 0:
+            self.add_error('qty_drawndown', 'Quantity must be greater than 0')
+        elif qty_drawndown > qty_approved:
             self.add_error('qty_drawndown', 'Only '+str(qty_approved)+' items have been approved')
         return cleaned_data
 
@@ -867,9 +877,12 @@ class RequisitionForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(RequisitionForm, self).clean()
-        date_due = self.cleaned_data['date_due']
-        if date_due < timezone.now().date():
-            self.add_error('date_due', 'Date due must be in the future')
+        try:
+            date_due = self.cleaned_data['date_due']
+            if date_due < timezone.now().date():
+                self.add_error('date_due', 'Date due must be in the future')
+        except:
+            pass
         return cleaned_data
 
     def save(self, commit=True):
@@ -917,8 +930,8 @@ class PurchaseOrderForm(ModelForm):
 
 class InvoiceForm(ModelForm):
     number = forms.CharField(required=True, label="Invoice Number")
-    date_issued = forms.DateTimeField(initial=timezone.now, label="Date Issued", widget=forms.TextInput(attrs={'type': 'date'}))
-    date_due = forms.DateTimeField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_issued = forms.DateField(initial=timezone.now, label="Date Issued", widget=forms.TextInput(attrs={'type': 'date'}))
+    date_due = forms.DateField(initial=timezone.now, label="Date Due", widget=forms.TextInput(attrs={'type': 'date'}))
     next_approver = forms.ModelChoiceField(queryset=BuyerProfile.objects.all(), required=True)
     comments = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'rows':5, 'cols':50}))
 
@@ -929,13 +942,16 @@ class InvoiceForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(InvoiceForm, self).clean()
-        date_due = self.cleaned_data['date_due']
-        date_issued = self.cleaned_data['date_issued']
-        if date_due < timezone.now().date():
-            self.add_error('date_due', timezone.now().date())
-            # 'Date due must be in the future'
-        elif date_due < date_issued:
-            self.add_error('date_due', 'Date due must be after issue date')
+        try:
+            date_due = self.cleaned_data['date_due']
+            date_issued = self.cleaned_data['date_issued']
+            if date_due < timezone.now().date():
+                self.add_error('date_due', timezone.now().date())
+                # 'Date due must be in the future'
+            elif date_due < date_issued:
+                self.add_error('date_due', 'Date due must be after issue date')
+        except:
+            pass
         return cleaned_data
 
     class Meta:
@@ -948,36 +964,32 @@ class DebitNoteForm(ModelForm):
     comments = forms.CharField(required=False, max_length=500, widget=forms.Textarea(attrs={'rows':3, 'cols':60}))
     vendor_co = forms.ModelChoiceField(label="Vendor", queryset=VendorCo.objects.none(), required=True)
     invoices = forms.ModelChoiceField(label="Invoice", queryset=Invoice.objects.none(), required=True)
+    tax_amount = forms.DecimalField(required=False, min_value=0,)
+    cost_shipping = forms.DecimalField(required=False, min_value=0,)
+    discount_amount = forms.DecimalField(required=False, min_value=0,)
+    cost_other = forms.DecimalField(required=False, min_value=0,)
 
     def __init__(self, *args, **kwargs):
         super(DebitNoteForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.helper.layout = Layout(            
-            Div(
-                Div('number', css_class='col-md-4'),
-                Div('vendor_co', css_class='col-md-4'),
-                Div('invoices', css_class='col-md-4'),
-                css_class='row',
-            ),
-            Div(
-                Div('comments', css_class='col-md-6'),
-                css_class='row',
-            )
-        )
 
     def clean(self):
         cleaned_data = super(DebitNoteForm, self).clean()
         # If invoice's vendor != vendor_co selected
-        invoice = self.cleaned_data['invoices']
-        vendor_co = self.cleaned_data['vendor_co']
-        if invoice.vendor_co != vendor_co:
-            self.add_error('invoice', 'Please ensure the invoice vendor matches the vendor selected')
+        try:
+            invoice = self.cleaned_data['invoices']
+            vendor_co = self.cleaned_data['vendor_co']
+            if invoice.vendor_co != vendor_co:
+                self.add_error('vendor_co', 'Please ensure the invoice vendor matches the vendor selected')
+        except:
+            pass
+        return cleaned_data        
 
     class Meta:
         model = DebitNote
         fields = ("number", "vendor_co", "invoices", "comments",
-            "tax_amount", "cost_shipping", "discount_amount", "cost_other")
+                  "tax_amount", "cost_shipping", "discount_amount", "cost_other")
 
 class DrawdownForm(ModelForm): 
     date_due = forms.DateField(initial=timezone.now, required=True, widget=forms.TextInput(attrs={'type': 'date'}))
@@ -1097,9 +1109,11 @@ class ApprovalRoutingForm(forms.Form):
         )
 
     def save(self):
-        instance = super(ApprovalRoutingForm, self).save(commit=False)
         approver = self.cleaned_data['approver']
         approval_threshold = self.cleaned_data['approval_threshold']        
         approver.approval_threshold=approval_threshold
         approver.save()
         return approver
+
+    class Meta:
+        fields = ("approver", "approval_threshold", )

@@ -93,7 +93,7 @@
                         {% for buyer in buyers %}                           
                           <tr>
                             <td>
-                            <a href="{% url 'view_user' location.id location.name|slugify buyer.user.username %}">
+                            <a href="{% url 'view_user' buyer.user.username buyer.user.pk %}">
                               {{ buyer.user.username }}</a>
                             </td>
                             <td>{{ buyer.user.email }}</td>
@@ -102,7 +102,7 @@
                             <td>{% if buyer.user.is_active %} 
                                 <span class="label label-success"> Active </span>
                                 {% else %} 
-                                <span class="label label-warning"> Pending </span>
+                                <span class="label label-warning"> Invited </span>
                                 {% endif %}
                             </td> 
                           </tr>

@@ -1,12 +1,13 @@
 {% extends '_layouts/base_portal.html' %}
 {% load staticfiles %}
 
-{% block title %}Order Approvals{% endblock title %}
+{% block title %}Requests{% endblock title %}
 
 {% block css %}{% endblock css %}
 
 {% block header %}
-  <h1>Approve an Order</h1>
+  {% include "_includes/docs/add_new_button.html" with href='new_requisition' title="Create Request" %}
+  <h1>Requests</h1>
 {% endblock header %}
 
 {% block content %}

@@ -2,12 +2,15 @@
 {% load staticfiles %}
 {% load eProc_filters %}
 
-{% block title %}View POs{% endblock title %}
+{% block title %}POs{% endblock title %}
 
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>View POs</h1>{% endblock header %}
+{% block header %}
+  {% include "_includes/docs/add_new_button.html" with href='new_po_items' title="Create PO" %}
+  <h1>Purchase Orders</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">

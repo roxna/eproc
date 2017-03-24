@@ -31,7 +31,7 @@
                         </div>
                       </div>
                       <div class="row invoice-info">                
-                        <div class="col-md-4 invoice-col">
+                        <div class="col-md-5 invoice-col">
                             <div class="form-group">
                             Number <br> {{debit_note_form.number}}
                             </div>
@@ -55,7 +55,7 @@
                                 <tbody>
                                     {{ debit_note_formset.management_form | crispy }}
 
-                                    {% for form in debit_note_formset.forms %}                   
+                                    {% for form in debit_note_formset.forms %}
                                         {% for hidden in form.hidden_fields %}
                                             {{ hidden }}
                                         {% endfor %}
@@ -63,6 +63,7 @@
                                             {% crispy form form.helper %}
                                         </div>                            
                                     {% endfor %}
+                                    <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>
                                 </tbody>                                
                             </table>
 
@@ -79,7 +80,8 @@
                         <!-- Buttons to go SUBMIT or CANCEL -->
                         <div class="row">
                             <div class="col-xs-12">
-                                <button type="submit" name="createPO" class="button btn basic-teal pull-right"><i class="fa {{ICONS.debit_note}}"></i> Create Debit Note</button>
+                                <button type="submit" id="create" name="createPO" class="button btn basic-teal pull-right"><i class="fa {{ICONS.debit_note}}"></i> Create Debit Note</button>
+                                
                                 <a href="{% url 'debit_notes' %}" name="cancel" class="button btn basic-grey pull-right">Cancel</a>
                             </div>
                         </div>

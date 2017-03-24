@@ -23,7 +23,7 @@ urlpatterns=[
     url(r'^pricing/$', home_views.pricing, name='pricing'),
     url(r'^features/$', home_views.features, name='features'),
     url(r'^blog/$', home_views.blog, name='blog'),
-    url(r'^blog/(?P<blog_id>\w+)/(?P<blog_slug>[\w-]+)/$', home_views.view_blog, name='view_blog'), 
+    url(r'^blog/(?P<blog_id>\d+)/(?P<blog_slug>[\w-]+)/$', home_views.view_blog, name='view_blog'), 
     url(r'^faqs/$', home_views.faqs, name='faqs'),
     url(r'^contact/$', home_views.contact, name='contact'),
     url(r'^success/$', home_views.success, name='success'),
@@ -62,22 +62,22 @@ urlpatterns=[
     url(r'^requisitions/', include([
         url(r'^new/$', eProc_views.new_requisition, name='new_requisition'),
         url(r'^$', eProc_views.requisitions, name='requisitions'),
-        url(r'^view/(?P<requisition_id>\w+)/$', eProc_views.view_requisition, name='view_requisition'),
-        url(r'^print/(?P<requisition_id>\w+)$', eProc_views.print_requisition, name='print_requisition'),
+        url(r'^view/(?P<requisition_id>\d+)/$', eProc_views.view_requisition, name='view_requisition'),
+        url(r'^print/(?P<requisition_id>\d+)$', eProc_views.print_requisition, name='print_requisition'),
     ])),
     
     url(r'^purchase-orders/', include([
         url(r'^new/select-items/$', eProc_views.new_po_items, name='new_po_items'),
         url(ur'^new/confirm\w*/$', eProc_views.new_po_confirm, name='new_po_confirm'),
         url(r'^$', eProc_views.purchaseorders, name='purchaseorders'),
-        url(r'^view/(?P<po_id>\w+)/$', eProc_views.view_po, name='view_po'),
-        url(r'^print/(?P<po_id>\w+)$', eProc_views.print_po, name='print_po'),            
-        url(r'^items/(?P<po_id>\w+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request on new_invoice (see custom.js)
+        url(r'^view/(?P<po_id>\d+)/$', eProc_views.view_po, name='view_po'),
+        url(r'^print/(?P<po_id>\d+)$', eProc_views.print_po, name='print_po'),            
+        url(r'^items/(?P<po_id>\d+)/$', eProc_views.po_orderitems, name='po_orderitems'), #AJAX request on new_invoice (see custom.js)
     ])),
 
     url(r'^receive/', include([
         url(r'^$', eProc_views.receive_pos, name='receive_pos'),
-        url(r'^(?P<po_id>\w+)/$', eProc_views.receive_po, name='receive_po'),
+        url(r'^(?P<po_id>\d+)/$', eProc_views.receive_po, name='receive_po'),
         
     ])),
 
@@ -86,15 +86,15 @@ urlpatterns=[
             url(r'^$', eProc_views.invoices, name='invoices'),
             url(r'^new/select-items/$', eProc_views.new_invoice_items, name='new_invoice_items'),
             url(r'^new/confirm\w*/$', eProc_views.new_invoice_confirm, name='new_invoice_confirm'),
-            url(r'^view/(?P<invoice_id>\w+)/$', eProc_views.view_invoice, name='view_invoice'),
-            url(r'^print/(?P<invoice_id>\w+)$', eProc_views.print_invoice, name='print_invoice'),
-            url(r'^(?P<vendor_id>\w+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request (see custom.js)
+            url(r'^view/(?P<invoice_id>\d+)/$', eProc_views.view_invoice, name='view_invoice'),
+            url(r'^print/(?P<invoice_id>\d+)$', eProc_views.print_invoice, name='print_invoice'),
+            url(r'^(?P<vendor_id>\d+)/$', eProc_views.vendor_invoices, name='vendor_invoices'), #AJAX request (see custom.js)
         ])),
         url(r'^debit_notes/', include([
             url(r'^$', eProc_views.debit_notes, name='debit_notes'),
             url(r'^new/$', eProc_views.new_debit_note, name='new_debit_note'),
-            url(r'^view/(?P<debit_note_id>\w+)/$', eProc_views.view_debit_note, name='view_debit_note'),
-            url(r'^print/(?P<debit_note_id>\w+)$', eProc_views.print_debit_note, name='print_debit_note'),
+            url(r'^view/(?P<debit_note_id>\d+)/$', eProc_views.view_debit_note, name='view_debit_note'),
+            url(r'^print/(?P<debit_note_id>\d+)$', eProc_views.print_debit_note, name='print_debit_note'),
         ])),
         url(r'^unbilled-items/$', eProc_views.unbilled_items, name='unbilled_items'),
         url(r'^receiving-summary/$', eProc_views.receiving_summary, name='receiving_summary'),
@@ -102,16 +102,16 @@ urlpatterns=[
 
     url(r'^inventory/', include([
         url(r'^$', eProc_views.inventory, name='inventory'),
-        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),
+        url(r'^(?P<location_id>\d+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location_inventory, name='view_location_inventory'),
     ])),
 
     url(r'^drawdowns/', include([
         url(r'^new/$', eProc_views.new_drawdown, name='new_drawdown'),
         url(r'^$', eProc_views.drawdowns, name='drawdowns'),            
-        url(r'^view/(?P<drawdown_id>\w+)/$', eProc_views.view_drawdown, name='view_drawdown'),
-        url(r'^print/(?P<drawdown_id>\w+)/$', eProc_views.print_drawdown, name='print_drawdown'),
+        url(r'^view/(?P<drawdown_id>\d+)/$', eProc_views.view_drawdown, name='view_drawdown'),
+        url(r'^print/(?P<drawdown_id>\d+)/$', eProc_views.print_drawdown, name='print_drawdown'),
         url(r'^call/$', eProc_views.call_drawdowns, name='call_drawdowns'),
-        url(r'^call/(?P<drawdown_id>\w+)/$', eProc_views.call_drawdown, name='call_drawdown'),
+        url(r'^call/(?P<drawdown_id>\d+)/$', eProc_views.call_drawdown, name='call_drawdown'),
     ])),
 
     url(r'^reports/', include([
@@ -132,21 +132,21 @@ urlpatterns=[
         url(r'^company/$', eProc_views.company_profile, name='company_profile'),
         url(r'^users/$', eProc_views.users, name='users'),
         url(r'^locations/$', eProc_views.locations, name='locations'),
-        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
-        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/(?P<department_name>[\w-]+)/(?P<department_id>\w+)/$', eProc_views.view_department, name='view_department'),
-        url(r'^(?P<location_id>\w+)/(?P<location_name>[\w-]+)/(?P<username>[\w-]+)/$', eProc_views.view_user, name='view_user'),
+        url(r'^(?P<location_id>\d+)/(?P<location_name>[\w-]+)/$', eProc_views.view_location, name='view_location'),
+        url(r'^(?P<location_id>\d+)/(?P<location_name>[\w-]+)/(?P<department_name>[\w-]+)/(?P<department_id>\w+)/$', eProc_views.view_department, name='view_department'),
+        url(r'^users/(?P<username>[\w-]+)/(?P<user_id>\d+)/$', eProc_views.view_user, name='view_user'),
         url(r'^vendors/', include([
             url(r'^$', eProc_views.vendors, name='vendors'),
-            url(r'^(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
+            url(r'^(?P<vendor_id>\d+)/(?P<vendor_name>[\w-]+)/$', eProc_views.view_vendor, name='view_vendor'),
             url(r'^import-csv$', eProc_views.upload_vendor_csv, name='upload_vendor_csv'),
-            url(r'^rating/(?P<vendor_id>\w+)/(?P<vendor_name>[\w-]+)/$', eProc_views.rate_vendor, name='rate_vendor'), 
-            url(r'^unbilled-items/(?P<vendor_id>\w+)/$', eProc_views.unbilled_items_by_vendor, name='unbilled_items_by_vendor'), #AJAX REQUEST in new_invoice_items to get unbilled_items for specific vendor
+            url(r'^rating/(?P<vendor_id>\d+)/(?P<vendor_name>[\w-]+)/$', eProc_views.rate_vendor, name='rate_vendor'), 
+            url(r'^unbilled-items/(?P<vendor_id>\d+)/$', eProc_views.unbilled_items_by_vendor, name='unbilled_items_by_vendor'), #AJAX REQUEST in new_invoice_items to get unbilled_items for specific vendor
         ])),
         url(r'^products/', include([
             url(r'^$', eProc_views.products, name='products'),
             url(r'^import-csv/$', eProc_views.upload_product_csv, name='upload_product_csv'),
             url(r'^bulk/$', eProc_views.products_bulk, name='products_bulk'),
-            url(r'^(?P<product_id>\w+)/$', eProc_views.product_details, name='product_details'), #AJAX request        
+            url(r'^(?P<product_id>\d+)/$', eProc_views.product_details, name='product_details'), #AJAX request        
         ])),
         url(r'^categories/$', eProc_views.categories, name='categories'),
         

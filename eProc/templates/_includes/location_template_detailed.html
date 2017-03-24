@@ -13,7 +13,7 @@
             <span class="text-muted">No users yet</span><br>
             <span class="description-header"><a href="{% url 'view_location' location.id location.name|slugify %}">ADD A USER</a></span>
           {% else %}
-            <h5 class="description-header">{{location.num_users}}</h5>
+            <h5 class="description-header">{{location.get_num_users}}</h5>
             <span class="description-text">USERS</span>
           {% endif %}
         </div>
@@ -25,8 +25,8 @@
             <span class="text-muted">No depts yet</span><br>
             <span class="description-header"><a href="{% url 'view_location' location.id location.name|slugify %}">ADD A DEPT</a></span>
           {% else %}
-            <h5 class="description-header">{{location.num_depts}}</h5>
-            <span class="description-text">USERS</span>
+            <h5 class="description-header">{{location.get_num_depts}}</h5>
+            <span class="description-text">DEPTS</span>
           {% endif %}
         </div>
       </div>

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from datetime import date, timedelta
+from decimal import DecimalException
 from django.db import models
 from django.db.models import Avg, Sum
 from django.conf import settings
@@ -18,7 +19,7 @@ from .validators import validate_file_extension
 
 class Subscription(models.Model):
     charge_id = models.CharField(max_length=32)  #Stripe charge_id
-    plan = models.ForeignKey('home.Plan', related_name='subscriptions') #FK to Plan Model in home app
+    plan = models.ForeignKey('home.Plan', related_name='subscriptions') #FK to Plan Model in home app    
 
 ################################
 ###     COMPANY DETAILS     ### 
@@ -39,13 +40,14 @@ class Company (models.Model):
 		return "{}".format(self.name)
 
 	def get_primary_location(self):
-	    return self.locations.order_by('-id')[0]
+	    return self.locations.latest('id')
 
 	def get_all_locations(self):
 		return [location for location in self.locations.all()]
 
 class BuyerCo(Company):
 	is_subscribed = models.BooleanField(default=False)  #Is on trial_period or has subscribed
+	subscription = models.OneToOneField(Subscription, related_name='buyer_co', null=True, blank=True)
 
 	def is_trial_over(self):
 		return timezone.now() > (self.users.first().user.date_joined + timedelta(days=settings.TRIAL_PERIOD_DAYS))
@@ -83,8 +85,10 @@ class VendorCo(Company):
 
 	# Returns the value of the average rating (eg. Good/Bad..)
 	def get_average_rating(self):
+		# avg_score returns a tuple (#, rating) eg. (2, Average)		
 		avg_score = int(self.ratings.all().aggregate(Avg('score'))['score__avg'])
-		return settings.SCORES[avg_score][1]
+		return dict(settings.SCORES)[avg_score]
+		# return settings.SCORES[avg_score][1]
 
 ################################
 ###     LOCATION / DEPT      ### 
@@ -114,19 +118,26 @@ class Location(models.Model):
 		else:
 			return ""
 
-	def get_inventory_items(self):		
-		items = OrderItem.objects.filter(requisition__department__location=self)
+	def get_num_users(self):
+		return len(self.users.all())
+
+	def get_num_depts(self):
+		return len(self.departments.all())		
+
+	def get_inventory_items(self):				
 		# DefaultDict is like a regular dictionary but works better if key doesn't exist
 		# items_list = { product_name: [qty_delivered, qty_drawndown, qty_inventory, min_thresh, max_thresh] }
 		items_list = {}
-		for item in items:
+
+		# INBOUND ORDER ITEMS
+		order_items = OrderItem.objects.filter(requisition__department__location=self)
+		for item in order_items:
 			if item.current_status in settings.DELIVERED_STATUSES:
 				try:
 					items_list[item.product.name] = [
 						items_list[item.product.name][0] + item.qty_delivered,
-						items_list[item.product.name][1],
-						# inventory = current_inventory + qty_delivered
-						items_list[item.product.name][2] + item.qty_delivered,
+						items_list[item.product.name][1],						
+						items_list[item.product.name][2] + item.qty_delivered, # inventory = current_inventory + qty_delivered
 						item.product.min_threshold, 
 						item.product.max_threshold, 
 					]
@@ -138,13 +149,16 @@ class Location(models.Model):
 						 item.product.min_threshold,
 						 item.product.max_threshold,
 					]
-			elif item.current_status in settings.DRAWDOWN_STATUSES:
+		
+		# OUTBOUND DRAWNDOWN ITEMS
+		drawdown_items = DrawdownItem.objects.filter(drawdown__location=self)
+		for item in drawdown_items:
+			if item.current_status in settings.DRAWDOWN_STATUSES:
 				try:
 					items_list[item.product.name] = [
 						items_list[item.product.name][0],
-						items_list[item.product.name][1] + item.qty_drawndown,
-						# inventory = current_inventory - qty_drawndown
-						items_list[item.product.name][2] - item.qty_drawndown,
+						items_list[item.product.name][1] - item.qty_drawndown,						
+						items_list[item.product.name][2] - item.qty_drawndown, # inventory = current_inventory - qty_drawndown
 						item.product.min_threshold, 
 						item.product.max_threshold, 
 					]
@@ -180,7 +194,7 @@ class Department(models.Model):
 		try:
 			percent = self.get_spend_approved_ytd()/self.budget*100
 			return str(round(percent, 2)) + '%'
-		except ZeroDivisionError:
+		except (ZeroDivisionError, DecimalException) as e:
 			return "No budget defined"
 
 ################################
@@ -324,6 +338,12 @@ class Requisition(Document):
 class PurchaseOrder(SalesOrder):	
 	pass
 
+	def has_received_delivery(self):
+		for item in self.items.all():
+			if item.current_status in ['Delivered Complete', 'Delivered Partial']:
+				return True
+		return False
+
 	def is_ready_to_close(self):
 		for item in self.items.all():
 			if item.current_status != 'Delivered Complete':
@@ -466,7 +486,7 @@ class DebitNoteItem(models.Model):
 		try:
 			return self.unit_price * self.quantity
 		except TypeError: #If qty is not defined
-			return self.subtotal
+			return 0
 
 class Item(models.Model):
 	number = models.CharField(max_length=20)
@@ -608,7 +628,7 @@ class Rating(models.Model):
 	comments = models.CharField(max_length=100)
 
 	def __unicode__(self):
-		return u"{} - {}".format(self.receiver, self.value)
+		return u"{} - {}".format(self.vendor_co, self.score)
 
 class Notification(models.Model):
 	"""

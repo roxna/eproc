@@ -89,16 +89,15 @@ TEMPLATES = [
                 
                 # Custom template processors in processors.py
                 'eProc.processors.icons',
-                # 'eProc.processors.buyer',
+                # 'eProc.processors.buyer',                
                 'eProc.processors.notifications',
                 'eProc.processors.price_alerts',
+
+                'home.processors.contact',
             ],
         },
     },
 ]
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.6/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -128,14 +127,15 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'xx@gmail.com'
-EMAIL_HOST_PASSWORD = 'xxx'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
-DEFAULT_FROM_EMAIL = 'xx@gmail.com'
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
 
-COMPANY_NAME = 'xxxx'
+COMPANY_NAME = 'eProc'
 CONTACT_EMAIL = 'hello@eproc.com'
+CONTACT_PHONE = ''
 
 #######################################
 #       FILE UPLOAD OPTIONS           #
@@ -150,8 +150,8 @@ MAX_UPLOAD_SIZE = "2621440" # 2.5MB - 2621440 / 5MB - 5242880 / 10MB - 10485760
 #######################################
 TRIAL_PERIOD_DAYS = 30
 
-STRIPE_TEST_SECRET_KEY = os.environ.get('STRIPE_TEST_SECRET_KEY')
-STRIPE_TEST_PUBLISHABLE_KEY = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
+STRIPE_TEST_SECRET_KEY = os.environ['STRIPE_TEST_SECRET_KEY']
+STRIPE_TEST_PUBLISHABLE_KEY = os.environ['STRIPE_TEST_PUBLISHABLE_KEY']
 
 STRIPE_LIVE_SECRET_KEY = ""
 STRIPE_LIVE_PUBLISHABLE_KEY = ""
@@ -161,7 +161,7 @@ STRIPE_LIVE_PUBLISHABLE_KEY = ""
 #######################################
 
 # QUANDL: https://www.quandl.com/collections/markets/commodities
-QUANDL_API_KEY = "1_orR25etEqgytYsy3fZ"
+QUANDL_API_KEY = os.environ.get('QUANDL_API_KEY')
 
 COMMODITIES = (('Steel', 'Steel'),
                ('Iron Ore', 'Iron Ore'))
@@ -213,6 +213,7 @@ CURRENT_STATUSES = (
 )
 DELIVERED_STATUSES = ['Delivered Partial', 'Delivered Complete']
 DRAWDOWN_STATUSES = ['Drawndown Partial', 'Drawndown Complete']
+
 
 # Statuses used by get_latest_status (StatusLog models)
 ITEM_STATUSES = (

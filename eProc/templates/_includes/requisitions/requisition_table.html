@@ -2,8 +2,9 @@
 
   <thead class="basic-teal">
     <tr>
-      <th>Request Order</th>                        
-      <th>Details</th>                        
+      <th>Request Order</th>
+      <th>Requested By</th>
+      <th>Date Due</th>                        
       <th>Department</th>
       <th>Comments</th>
       <th>Total</th>
@@ -14,14 +15,16 @@
   {% for requisition in requisitions %}    
     <tr>
       <td>
-        {% include "_includes/formatting/doc_status_formatting.html" with doc=requisition value_to_display=requisition.number href='view_requisition' %}</b> <br>      
-        <small><b>Requested by:</b> {{ requisition.preparer.user.username }}</small>       
+        {% include "_includes/formatting/doc_status_formatting.html" with doc=requisition value_to_display=requisition.number href='view_requisition' %}</b> <br>              
       </td>
       <td>
-        DATE DUE: <b> {{ requisition.date_due|date:"D, M d Y" }} </b>
-           {% include '_includes/formatting/is_past_due.html' with obj=requisition %}
-           <br>
-        <p class="text-muted">Requested:{{ requisition.date_created | date }}</p>
+        {{ requisition.preparer.user.username }} 
+        <small class="text-muted"> on</small><br>
+        {{ requisition.date_created|date:"D, M d Y" }}
+      </td>
+      <td>
+        {{ requisition.date_due|date:"D, M d Y" }}
+        {% include '_includes/formatting/is_past_due.html' with obj=requisition %}
       </td>                      
       <td> 
         {{ requisition.department }} [{{ requisition.department.location }}]

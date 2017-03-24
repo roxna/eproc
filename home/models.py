@@ -6,7 +6,7 @@ from django.conf import settings
 
 class Author(models.Model):
 	name = models.CharField(max_length=40, null=True, blank=True)
-	SOURCES = (('Blog Author', 'Blog Author'), ('Contact Form', 'Contact Form'), ('Newsletter', 'Newsletter'))
+	SOURCES = (('Blog', 'Blog'), ('Testimonial', 'Testimonial'), ('Contact Form', 'Contact Form'), ('Newsletter', 'Newsletter'))
 	source = models.CharField(choices=SOURCES, max_length=40)
 	title = models.CharField(max_length=40, null=True, blank=True)
 	company = models.CharField(max_length=50, null=True, blank=True)

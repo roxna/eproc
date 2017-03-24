@@ -9,16 +9,22 @@
         <tr>
           <td> {% include "_includes/formatting/doc_status_formatting.html" with doc=po value_to_display=po.number href='view_po' %}</td>
           <td> {{item.number}}</td>  
-          <td> {{item.product.vendor_co.name}}</td>
+          <td> 
+            {% with item.product.vendor_co as vendor_co %}
+              <a href="{% url 'view_vendor' vendor_co.id vendor_co.name|slugify %}">
+              {{vendor_co.name}}
+              </a>
+            {% endwith %}
+          </td>
           <td> {{item.product.name}}</td>        
           <td> {% for status in item.get_delivered_statuses %}
-                    {{ status.date|date:"M d" }}, 
+                    {{ status.date|date:"M d" }} ({{status.author}}), 
                 {% endfor %}
           </td>
-          <td> {{item.qty_delivered}}</td>
-          <td> {{item.get_delivered_subtotal|currency_formatting:currency }}</td>
-          <td> {{item.qty_ordered}}</td>
-          <td> {{item.get_ordered_subtotal|currency_formatting:currency }}</td>
+          <td> {{item.qty_delivered}} units 
+           ({{item.get_delivered_subtotal|currency_formatting:currency }})</td>
+          <td> {{item.qty_ordered}} units 
+          ({{item.get_ordered_subtotal|currency_formatting:currency }})</td>
           <td> {{ item.get_delivered_subtotal|as_percentage_of:item.get_ordered_subtotal }}</td>
           {% endwith %}
       </tr>

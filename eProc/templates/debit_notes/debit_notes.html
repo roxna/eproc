@@ -6,11 +6,9 @@
 {% block css %}{% endblock css %}
 
 {% block header %}
-  <a href="{% url 'new_debit_note' %}">
-    <button type="button" class="btn basic-teal pull-right"> 
-      <i class='fa fa-plus'> </i> Add Debit Note
-    </button>
-  </a>
+  {% if invoices_exists %}
+    {% include "_includes/docs/add_new_button.html" with href='new_debit_note' title="Create Debit Note" %}
+  {% endif %}
   <h1>Debit Notes</h1>
 {% endblock header %}
 
@@ -19,7 +17,10 @@
   <div class="row">
     <div class="col-xs-12">
     
-          {% if not debit_notes %}
+          {% if not invoices_exists %}
+            {% include "_includes/docs/no_docs_add_now.html" with text="You haven't created any Invoices yet. Got to do that before you create a Debit Note!" href='new_invoice_items' action='Create one now' %}
+
+          {% elif not debit_notes %}
             <!-- If no Debit Notes have been created, CREATE NEW  button -->
             {% include "_includes/docs/no_docs_add_now.html" with text="You haven't created any Debit Notes yet" href='new_debit_note' action='Create one now' %}
             

@@ -9,7 +9,7 @@
 <div class="row charts">
 {% for plan in plans %}
 
-	<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+	<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
 		<div class="chart featured">
 			
 			<!-- <div class="popular">Most popular</div> -->
@@ -23,44 +23,33 @@
 
 			<div class="specs">
 				
-				{% if plan.identifier == 'basic_monthly' %}
+				{% if plan.identifier == 'core_monthly' %}
 				<div class="spec">
 					<span class="variable">Unlimited</span> users
 				</div>				
 				<div class="spec">
-					<span class="variable">Unlimited</span> orders
+					Entire <span class="variable">procure-to-pay</span> process
 				</div>
 				<div class="spec">
 					<span class="variable">Notifications</span> in real time
 				</div>
 
-				{% elif plan.identifier == 'intermediate_monthly' %}
+				{% elif plan.identifier == 'advanced_monthly' %}
 				<div class="spec">
-					<em>Everything in Basic plan</em>
+					<em>Everything in Core plan</em>
 				</div>
 				<div class="spec">
 					Analytics on <span class="variable">company spend</span> 
 				</div>
 				<div class="spec">
-					Spend vs. <span class="variable">industry average</span>
-				</div>
-
-				{% elif plan.identifier == 'advanced_monthly' %}
-				<div class="spec">
-					<em>Everything in Intermediate plan</em>
-				</div>
-				<div class="spec">
-					Access to <span class="variable">alternate vendors</span> 
-				</div>
-				<div class="spec">
-					<span class="variable">Discounts</span> on select products
+					<span class="variable">Bulk discounts</span> on select products
 				</div>
 				{% endif %}
 
 			</div>
 			<br>
 			<a href="{% url 'register' %}">
-				<button class="button basic-teal">Sign up now</button>
+				<button class="button">Sign up now</button>
 			</a>
 		</div>
 	</div>

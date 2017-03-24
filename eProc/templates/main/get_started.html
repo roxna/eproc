@@ -6,7 +6,7 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Get Started</h1>{% endblock header %}
+{% block header %}<h1>Welcome! Let's get started</h1>{% endblock header %}
 
 {% block content %}
 <section class="content">
@@ -15,11 +15,11 @@
    
     {% include "_includes/get_started_widget.html" with color="bg-yellow" title="1. SETTINGS" icon="fa-gear" list=settings_list %}
 
-    {% include "_includes/get_started_widget.html" with color="bg-blue" title="2. REQUEST" icon="fa-book" list=request_list %}
-
-    {% include "_includes/get_started_widget.html" with color="bg-green" title="3. PROCURE" icon="fa-shopping-cart" list=procure_list %}
+    {% include "_includes/get_started_widget.html" with color="bg-blue" title="2. PROCURE" icon="fa-shopping-cart" list=procure_list %}    
     
-    {% include "_includes/get_started_widget.html" with color="bg-red" title="4. RECEIVE & PAY" icon="fa-truck" list=pay_list %}
+    {% include "_includes/get_started_widget.html" with color="bg-green" title="3. RECEIVE & PAY" icon="fa-truck" list=pay_list %}
+
+    {% include "_includes/get_started_widget.html" with color="bg-red" title="4. TRACK INVENTORY" icon="fa-list-alt" list=drawdown_list %}
     
   </div>
 

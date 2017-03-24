@@ -149,51 +149,22 @@
             **************************-->
             <!-- everyone has access to create req / view status-->          
             <li class="treeview {% if 'requisitions' in request.path %} active {% endif %}">
-              <a href="#">
+              <a href="{% url 'requisitions' %}">
                 <i class="fa {{ICONS.requisition}}"></i> 
                 <span>Requests</span>
-                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
               </a>
-              <ul class="treeview-menu">
-                <li class="{% if request.resolver_match.url_name == 'new_requisition' %} active {% endif %}">
-                  <a href="{% url 'new_requisition' %}">
-                    <i class="fa {{ICONS.new}}"></i> New Order
-                  </a>
-                </li>
-                <li class="{% if request.resolver_match.url_name == 'requisitions' or request.resolver_match.url_name == 'view_requisition' %} active {% endif %}">
-                  <a href="{% url 'requisitions' %}">
-                  <!-- only superuser & approver have access to approve (managed in view_req) -->
-                  <i class="fa {{ICONS.requisition}}"></i> 
-                  {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Approver' %}
-                    View/Approve Orders
-                  {% else %}
-                    View Order Status
-                  {% endif %}
-                  </a>
-                </li>
-              </ul>
-            </li> 
+            </li>            
 
             <!--***************************
             ******  PURCHASE ORDERS  ******   
             *****************************-->
             {% if user.buyer_profile.role == 'SuperUser' or user.buyer_profile.role == 'Purchaser' %}
-              <li class="treeview {% if 'purchase-orders' in request.path %} active {% endif %}">
-                <a href="#">
-                  <i class="fa {{ICONS.po}}"></i> <span>Purchase Orders</span>
-                  <span class="pull-right-container">
-                    <i class="fa fa-angle-left pull-right"></i>
-                  </span>
-                </a>
-                <ul class="treeview-menu">
-                  <li class="{% if request.resolver_match.url_name == 'new_po_items' %} active {% endif %}">
-                    <a href="{%url 'new_po_items' %}"><i class="fa {{ICONS.new}}"></i> New PO</a>
-                  </li>
-                  <li class="{% if request.resolver_match.url_name == 'purchaseorders' %} active {% endif %}">
-                    <a href="{%url 'purchaseorders' %}"><i class="fa {{ICONS.po}}"></i> Purchase Orders</a>
-                  </li>
-                </ul>
-              </li>   
+            <li class="treeview {% if 'purchase-orders' in request.path %} active {% endif %}">
+              <a href="{% url 'purchaseorders' %}">
+                <i class="fa {{ICONS.po}}"></i> 
+                <span>POs</span>
+              </a>
+            </li> 
             {% endif %}
 
             <!--****************************

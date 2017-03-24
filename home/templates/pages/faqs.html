@@ -5,20 +5,29 @@
 <div id="support">
 	<div id="browse">
 		<div class="container">
+			
 			<div class="row">
 				<div class="col-md-12">
-					<h4>Browse by topic</h4>
+					<h4>FAQs</h4>
 				</div>
 			</div>
+
 			<div class="row">
-				{% include '_includes/faqs_snippet.html' with title='Tasks & Projects' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-clipboard' %}
+				{% include '_includes/faqs_snippet.html' with title='Updating Settings' desc='Under settings, the SuperUser has control over all users, locations, products, vendors, accounts payable settings and other company details. But remember, with great power comes great responsibility...' icon='fa-user' %}
 
-				{% include '_includes/faqs_snippet.html' with title='Account Settings' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-gear' %}
+				{% include '_includes/faqs_snippet.html' with title='Creating a New Order' desc='After logging into your account, on the left hand menu panel, select REQUISITION or PURCHASE ORDER and fill in the necessary details to create the order. Remember, you must have set up basic information (users, vendors, products etc) in Settings before being able to do so.' icon='fa-clipboard' %}
 
-				{% include '_includes/faqs_snippet.html' with title='Billing Information' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-credit-card' %}
+				{% include '_includes/faqs_snippet.html' with title='What are Invoice Records?' desc='Create an Invoice by clicking on Accounts Payable and then Invoices. These are just Invoice records that include attachments of invoices/bills that your vendors have sent you.' icon='fa-gear' %}				
+			</div>
 
-				{% include '_includes/faqs_snippet.html' with title='Users & Roles' desc='Learn how to change tasks and assign projects to all your teammates.' icon='fa-user' %}
-				
+			<div class="row">
+				{% include '_includes/faqs_snippet.html' with title='Managing Unbilled Items' desc='Manage all items that have been received but have not been invoiced or paid for under the Accounts Payable tab.'  icon='fa-credit-card' %}
+
+				{% include '_includes/faqs_snippet.html' with title='Drawdowns and Inventory' desc='Drawdown requests, like Requisitions, go through a formal approval process. Inventory stock, once a drawdown has been completed, will be updated to reflect the new inventory available for each individual location.' icon='fa-list-alt' %}
+
+				{% include '_includes/faqs_snippet.html' with title='Reports and Analysis' desc='Reports provided are high level spend management reports that should drive clear decision-making for any company based on their procurement spend. If you want custom reports, please reach out.' icon='fa-area-chart' %}
+			</div>
+					
 		</div>
 	</div>
 </div>	

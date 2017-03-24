@@ -7,14 +7,23 @@
 
 {% block header %}
 	<p class="small">{% include '_includes/back_to.html' with destination='vendors' %}</p>
-	<a href="{% url 'rate_vendor' vendor_co.pk vendor_co.name|slugify %}">
-		<button type="button" class="btn basic-teal pull-right">
-		<i class="fa {{ICONS.rating}}"></i>
+	<a href="{% url 'rate_vendor' vendor_co.pk vendor_co.name|slugify %}">	
+		
+		<button type="button" 
 		{% if vendor_co.ratings.exists %}
-          	Rating: {{vendor_co.get_average_rating}}
-        {% else %}
-			Rate {{vendor_co.name}}
-		{% endif %}
+			{% if vendor_co.get_average_rating == 'Great' %}
+				class="btn basic-teal pull-right">
+			{% elif vendor_co.get_average_rating == 'Average' %}
+				class="btn basic-grey pull-right">
+			{% elif vendor_co.get_average_rating == 'Poor' %}
+				class="btn basic-red pull-right">
+			{% endif %}
+			Rating: {{vendor_co.get_average_rating}}          	
+        {% else %}		
+				class="btn basic-warning pull-right">
+				<i class="fa {{ICONS.rating}}"></i>
+				Rate {{vendor_co.name}}
+		{% endif %}			
 		</button>
 	</a>
 	<h1>Vendor Details</h1>

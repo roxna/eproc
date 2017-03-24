@@ -33,7 +33,7 @@
                     {% for buyer in buyers %}           
                     <tr>
                       <td>
-                        <a href="{% url 'view_user' buyer.location.id buyer.location.name|slugify buyer.user.username %}">{{ buyer.user.username }}</a>
+                        <a href="{% url 'view_user' buyer.user.username buyer.user.pk %}">{{ buyer.user.username }}</a>
                       </td>
                       <td>{{ buyer.user.email }}</td>                      
                       <td>{{ buyer.role }}</td> 

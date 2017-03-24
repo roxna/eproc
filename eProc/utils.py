@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from eProc.forms import *
 from eProc.models import *
+from itertools import chain
 import stripe
 
 
@@ -29,8 +30,8 @@ def update_stripe_subscription(user, plan):
 ################################ 
 
 def send_verific_email(user,random_id):
-    text_content = 'Hi {}, \n\n Please click on the following link to activate your account:\nhttp://127.0.0.1:8000/activate/?id={}". \n\n If you have any questions, please reach out at support@eproc.com. \n\n Team at eProc'.format(user.first_name, random_id)
-    html_content = '<div>Hi {},</div><br><div>Please click on the following link to activate your account: http://127.0.0.1:8000/activate/?id={}" </div><br><div> If you have any questions, please reach out at support@eproc.com.</div><br><div> Team at eProc</div>'.format(user.first_name, random_id)
+    text_content = 'Hi {}, \n\n Welcome to eProc! \n\n Please click on the following link to activate your account:\nhttp://127.0.0.1:8000/activate/?id={}". \n\n If you have any questions, please reach out at support@eproc.com. \n\n Team at eProc'.format(user.first_name, random_id)
+    html_content = '<div>Hi {},</div><br><div>Welcome to eProc!</div><br><div>Please click on the following link to activate your account: http://127.0.0.1:8000/activate/?id={}" </div><br><div> If you have any questions, please reach out at support@eproc.com.</div><br><div> Team at eProc</div>'.format(user.first_name, random_id)
     msg = EmailMultiAlternatives("Activate your account", text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
@@ -45,6 +46,12 @@ def get_documents_by_auth(buyer, document_type):
 
 def get_users_for_notifications(roles, buyer_profile):
     return list(User.objects.filter(Q(buyer_profile__role__in=roles) | Q(buyer_profile=buyer_profile)))
+
+def get_user_activity(user):
+    doc_logs = DocumentStatus.objects.filter(author=user)
+    order_logs = OrderItemStatus.objects.filter(author=user)
+    drawdown_logs = DrawdownItemStatus.objects.filter(author=user)
+    return chain(doc_logs, order_logs, drawdown_logs)
 
 
 ################################
@@ -82,7 +89,7 @@ def initialize_debit_note_form(buyer, form):
 
 def initialize_drawdown_form(buyer, form, formset):
     form.fields['location'].queryset = Location.objects.filter(company=buyer.company)
-    set_next_approver_not_required(buyer, drawdown_form)
+    set_next_approver_not_required(buyer, form)
     if buyer.role == 'SuperUser':
         form.fields['department'].queryset = Department.objects.filter(location__company=buyer.company)
         form.fields['next_approver'].queryset = BuyerProfile.objects.filter(company=buyer.company)        
@@ -125,11 +132,12 @@ def save_vendor(vendor_form, buyer):
     vendor.currency = buyer.company.currency
     vendor.buyer_cos.add(buyer.company)
     vendor.save()
+    return vendor
 
 # Used by locations and view_location
-def save_location(location_form, buyer):
+def save_location(location_form, buyer, company):
     location = location_form.save(commit=False)
-    location.company = buyer.company
+    location.company = company
     location.save()
 
 # User by view_location (eventually in 'users' too)
@@ -251,13 +259,13 @@ def save_received_po_items(buyer, formset):
         if form.has_changed():
             item = form.save()            
             if item.qty_ordered == item.qty_returned:
-                item.current_status = 'Returned Completed'
+                item.current_status = 'Returned Complete'
                 OrderItemStatus.objects.create(value='Returned', author=buyer, item=item)
             elif item.qty_delivered + item.qty_returned == item.qty_ordered:
-                item.current_status = 'Delivered Completed'
+                item.current_status = 'Delivered Complete'
                 OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
             elif item.qty_delivered + item.qty_returned < item.qty_ordered:
-                item.current_status = 'Delivered Parial'
+                item.current_status = 'Delivered Partial'
                 OrderItemStatus.objects.create(value='Delivered', author=buyer, item=item)
             item.save()
 
@@ -330,12 +338,12 @@ def save_denied_cancelled_dd_items(buyer, drawdown, formset, status):
 def save_called_dd_items(buyer, formset):
     for form in formset.forms:
         if form.has_changed():
-            item = form.save()            
+            item = form.save()
             if item.qty_drawndown == item.qty_approved:
                 item.current_status = 'Drawndown Complete'
                 DrawdownItemStatus.objects.create(value='Drawndown', author=buyer, item=item)
             elif item.qty_drawndown < item.qty_approved:
-                item.current_status = 'Drawndown Parial'
+                item.current_status = 'Drawndown Partial'
                 DrawdownItemStatus.objects.create(value='Drawndown', author=buyer, item=item)
             item.save()
   
@@ -346,33 +354,41 @@ def save_called_dd_items(buyer, formset):
 
 def handle_product_upload(reader, buyer_co):
     for row in reader:
-        name = row['PRODUCT_NAME']
+        name = row['PRODUCT_NAME*']
         desc = row['DESCRIPTION']
-        sku = row['SKU']
-        threshold = row['MIN_THRESHOLD']
-        unit_price = float(row['UNIT_PRICE'])
-        unit_type = row['UNIT_TYPE']
-        category, categ_created = Category.objects.get_or_create(name=row['CATEGORY'], buyer_co=buyer_co)
-        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR'], currency=buyer_co.currency)
+        sku = row['SKU']        
+        unit_price = float(row['UNIT_PRICE*'])
+        unit_type = row['UNIT_TYPE*']
+        min_threshold = int(row['MIN_THRESHOLD'])
+        max_threshold = int(row['MAX_THRESHOLD'])
+        if min_threshold > max_threshold:
+            error = 'Error. Min threshold must be less than max'
+            return error
+        elif min_threshold < 0 or max_threshold < 0:
+            error = 'Error. Thresholds must be greater than 0'
+            return error
+        category, categ_created = Category.objects.get_or_create(name=row['CATEGORY*'], buyer_co=buyer_co)
+        vendor_co, vendor_created = VendorCo.objects.get_or_create(name=row['VENDOR*'], currency=buyer_co.currency)
         vendor_co.buyer_cos.add(buyer_co)
         vendor_co.save()
-        product, product_created = CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, category=category, item_type='Buyer Uploaded', vendor_co=vendor_co)
+        product, product_created = CatalogItem.objects.get_or_create(name=name, desc=desc, sku=sku, unit_price=unit_price, unit_type=unit_type, currency=vendor_co.currency, min_threshold=min_threshold, max_threshold=max_threshold, category=category, item_type='Buyer Uploaded', vendor_co=vendor_co)
         product.buyer_cos.add(buyer_co)
         product.save()
+    return 'Success'
 
 def handle_vendor_upload(reader, buyer_co, currency):
     for row in reader:
-        name = row['VENDOR_NAME']
+        name = row['VENDOR_NAME*']
         vendorID = row['VENDOR_ID']
         contact_rep = row['CONTACT_PERSON']
         website = row['WEBSITE']
         comments = row['NOTES']
-        address1 = row['ADDRESS_LINE1']
+        address1 = row['ADDRESS_LINE1*']
         address2 = row['ADDRESS_LINE2']
-        city = row['CITY']
-        state = row['STATE']
-        zipcode = row['ZIP']
-        country = row['COUNTRY']
+        city = row['CITY*']
+        state = row['STATE*']
+        zipcode = row['ZIP*']
+        country = row['COUNTRY*']
         email = row['EMAIL']
         phone = row['PHONE']     
         vendor_co, vendor_created = VendorCo.objects.get_or_create(name=name, currency=currency, website=website, vendorID=vendorID,

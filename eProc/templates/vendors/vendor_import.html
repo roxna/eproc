@@ -6,7 +6,10 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Upload Vendor List</h1>{% endblock header %}
+{% block header %}
+	<p class="small">{% include '_includes/back_to.html' with destination='vendors' %}</p>
+	<h1>Upload Vendor List</h1>
+{% endblock header %}
 
 
 {% block content %}

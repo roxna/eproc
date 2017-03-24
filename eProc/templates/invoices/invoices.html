@@ -6,13 +6,8 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}
-  <!-- Add Invoice Button -->
-   <a href="{%url 'new_invoice_items' %}">
-    <button type="button" class="btn basic-teal pull-right">
-    <i class="fa {{ICONS.new}}"></i> Create Invoice
-    </button>
-  </a>
+{% block header %}  
+  {% include "_includes/docs/add_new_button.html" with href='new_invoice_items' title="Create Invoice" %}
   <h1>Invoices</h1>
 {% endblock header %}
 

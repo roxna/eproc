@@ -83,10 +83,15 @@
               <div class="label text-grey">
                   <form method="post">
                   {% csrf_token %}    
-                    <!-- If the PO is closed, don't show the button -->
-                    {% if latest_status.value != 'Closed' %}
-                      <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                    
+                    {% if purchase_order.current_status == 'Open' and purchase_order.is_ready_to_close %}
+                      <button type="submit" name="close" value="close" class="btn basic-teal pull-right">Close PO</button>
                     {% endif %}
+
+                    <!-- If the PO is closed, don't show the button -->
+                    {% if purchase_order.current_status != 'Closed' %}
+                      <button type="submit" name="save" value="save" id="save" class="btn basic-teal-outline pull-right">Save Changes</button>
+                    {% endif %}                    
                   </form>
               </div>
 

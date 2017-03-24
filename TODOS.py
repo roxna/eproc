@@ -1,7 +1,10 @@
 
-
 # SPEND by BU/Dept (in Locations)
 # Taxes v2 - apply in PO etc
+# Approval threshold doesn't do anything
+# Bulk discounts, price alerts - based on industry?
+# comments_totals 
+
 
 # *****************************
 
@@ -16,7 +19,6 @@
 # 8. Mark PO as paid or Invoice as Paid? Correspondingly mark OrderItems as paid too?
 # 10. DDs, Reqs (and PO/Invoices) - link to Dept? Location? or none?
 # 11. Restrictions on who can add vendors/products/categories? If product not in the list and user wants to request it?
-# 12. customize dashboard based on auth permissions?
 # New_req - currently Next_approver is only approvers in the same dept as requester - should this change?
 # view_loc_inventory - how do you filter the orderItems? Right now by invoice__shippin_add but should an order Item have a shipping and billing add?
 # 13. Issue receipts for goods???
@@ -58,7 +60,9 @@
 
 
 
-# Stripe/own db?? - subscription about to expire - send email
+# Stripe/own db??
+	# subscription about to expire - send email
+	# Charge_id in Subscription model not assigned (see view with subscribe.html)
 
 # Inventory - by week/month etc
 	# For that month:
@@ -121,6 +125,7 @@
 	# Basic Price
 	# Insurance, Freigh, FX Rate, Customs, Bank Charges etc, Clearing charges...
 	# TOTAL
+# BLOGS - https://github.com/Fantomas42/django-blog-zinnia
 
 
 # LOW PRIO REFINEMENTS
@@ -144,7 +149,6 @@
 # VENDOR RANKINGS / SCORE CARDS
 	# Vendor list with rankings (Premium feature?) (QUES: HOW TALLY THE VENDORS BETWEEN COMPANIES?)
 	# Supplier Perf (Score Cards) - only for top 5% of suppliers
-# keep modal up on error - https://www.reddit.com/r/django/comments/4souit/how_to_keep_a_modal_window_open_if_a_validation/
 # PO ADDITIONAL FIELDS:
 	# Quotation No + source (email/verbal etc) + date
 	# Enq. No + source(email) + date
@@ -164,4 +168,5 @@
 # psql postgres then create database dbname; then \connect dbname
 # python manage.py migrate --run-syncdb
 
+# https://tranquil-retreat-35954.herokuapp.com/ | https://git.heroku.com/tranquil-retreat-35954.git
 

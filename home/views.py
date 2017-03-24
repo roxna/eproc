@@ -68,13 +68,15 @@ def faqs(request):
 	return render(request, "pages/faqs.html")
 
 def view_blog(request, blog_id, blog_slug):
-    blog = Blog.objects.get(pk=blog_id)    
+    blog = Blog.objects.get(pk=blog_id)
+    blog_id = int(blog_id)
     try:
-    	prevBlog = Blog.objects.get(pk=blog_id-1)
+    	prevBlog = Blog.objects.get(pk=blog_id-1)    	
+    except:
+    	prevBlog = Blog.objects.get(pk=blog_id)    	
+    try:
     	nextBlog = Blog.objects.get(pk=blog_id+1)
     except:
-    	# TODO: Make this a random blog?
-    	prevBlog = Blog.objects.get(pk=blog_id)
     	nextBlog = Blog.objects.get(pk=blog_id)
     data = {
     	'blog': blog,

@@ -7,7 +7,10 @@
 {% block css %}
 {% endblock css %}
 
-{% block header %}<h1>Create a Purchase Order (Step 1 of 2)</h1>{% endblock header %}
+{% block header %}
+	<p class="small">{% include '_includes/back_to.html' with destination='purchaseorders' %}</p>
+	<h1>Create a Purchase Order (Step 1 of 2)</h1>
+{% endblock header %}
 
 {% block content %}
 <section class="content">

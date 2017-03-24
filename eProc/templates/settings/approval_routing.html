@@ -31,7 +31,9 @@
               <tbody>
                   {% for approver in approvers %}
                   <tr>
-                    <td>{{ approver.user.username }}</td>
+                    <td>
+                      <a href="{% url 'view_user' approver.user.username approver.user.pk %}">{{ approver.user.username }}</a>
+                    </td>
                     <td>{{ approver.location }} ({{ approver.department }})</td>
                     <td>{{ approver.approval_threshold }}</td>
                   </tr>
@@ -47,5 +49,5 @@
 {% endblock content %}
 
 {% block js %}
-{% include "_includes/data_tables_notifications.html" with tableID="approverTable" %}
+  {% include "_includes/data_tables_notifications.html" with tableID="approverTable" %}
 {% endblock js %}

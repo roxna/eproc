@@ -26,8 +26,8 @@
                 {% include "_includes/table_header.html" with header_class="basic-grey" header=table_headers %}
 
                 <tbody class="products-list">  
-                    {% for product in products %}                           
-                    <tr>
+                    {% for product in products %}
+                    <tr id="{{product.pk}}">
                       <td class="product-img">
                       {% if product.image %}
                         <img src="{{product.image.url}}" alt="{{product.name}}"/>
@@ -37,9 +37,8 @@
                       <td>{{ product.sku|default_if_none:"-" }}</td>
                       <td>{{ product.desc|truncatechars:35 }}</td>
                       <td>
-                        {{product.unit_price|currency_formatting:product.currency}}
-                        <span class="text-muted">{{product.unit_type|unit_type_formatting}}</span>
-                        
+                        {{ product.unit_price|currency_formatting:product.currency }}
+                        <span class="text-muted">{{ product.unit_type|unit_type_formatting }}</span>
                         {% if product.item_type == 'Bulk Discount' %}
                           <span class="label label-warning">Discounted</span>
                         {% endif %}
@@ -51,7 +50,15 @@
                       {% if product.item_type == 'Bulk Discount' %}
                         eProc
                       {% else %}
-                        {{ product.vendor_co }}
+                        <a href="{% url 'view_vendor' product.vendor_co.id product.vendor_co.name|slugify %}"> {{ product.vendor_co }}</a>
+                      {% endif %}
+                      </td>
+                      <td>
+                      {% if product.item_type != 'Bulk Discount' %}
+                        <form method="POST">
+                          {% csrf_token %}
+                          <button type="submit" name="delete" value="{{product.pk}}"><i class="fa fa-trash"></i></button>
+                        </form>
                       {% endif %}
                       </td>
                     </tr>

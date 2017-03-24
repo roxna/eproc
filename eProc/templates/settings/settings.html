@@ -47,13 +47,14 @@
             <p class="text-muted">Manage vendors incl. ratings and bulk CSV upload</p>
                         
             <h4><a href="{%url 'categories' %}"><i class="fa {{ICONS.products}}"></i> Product Categories</a></h4>
-            <h5>Create categories for your products</h5>
+            <p class="text-muted">Create categories for your products</p>
 
             <h4><a href="{%url 'products' %}"><i class="fa {{ICONS.products}}"></i> Products</a></h4>
             <p class="text-muted">Manage own product list incl. CSV upload</p>
 
-            <!-- Only show if there are discounted products available -->
-            {% if all_bulk_products %} 
+            <!-- Only show if there are discounted products available 
+                 and user is advanced_monthly subscriber  -->
+            {% if all_bulk_products and user.buyer_profile.company.subscription.plan.identifier == 'advanced_monthly' %} 
               <h4><a href="{%url 'products_bulk' %}"><i class="fa {{ICONS.products_bulk}}"></i> Products - Bulk Discounts</a></h4>            
               <p class="text-muted">Add discounted products (we've negotiated amazing rates for you!) to your catalog</p> <br>
 
@@ -82,7 +83,7 @@
             <h4><a href="{%url 'taxes' %}"><i class="fa {{ICONS.taxes}}"></i> Taxes</a></h4>
             <p class="text-muted">Manage relevant taxes</p>
 
-            <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Chart of Accounts</a></h4>
+            <h4><a href="{%url 'account_codes' %}"><i class="fa {{ICONS.accounts}}"></i> Account Codes</a></h4>
             <p class="text-muted">Manage Chart of Accounts</p>
 
             <h4><a href="{%url 'approval_routing' %}"><i class="fa {{ICONS.approval}}"></i> Approval Routing</a></h4>

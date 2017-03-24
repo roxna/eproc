@@ -7,7 +7,8 @@
 {% endblock css %}
 
 {% block header %}
-<h1>Create a New Request</h1>
+    <p class="small">{% include '_includes/back_to.html' with destination='requisitions' %}</p>
+    <h1>Create a New Request</h1>
 {% endblock header %}
 
 {% block content %}
@@ -17,7 +18,7 @@
 
         <!-- If set up (Vendors, Products, Categories, Account Codes etc) hasn't been completed -->
         {% if not company.vendor_cos.all %}        
-            {% include "_includes/docs/no_docs_add_now.html" with text="You haven't added any Vendors yet" href='vendors' action='Add one now' %}
+            {% include "_includes/docs/no_docs_add_now.html" with text="You need to add Vendors to get started" href='vendors' action='Add one now' %}
         {% elif not company.categories.all %}
             {% include "_includes/docs/no_docs_add_now.html" with text="You haven't added any Categories yet" href='categories' action='Add one now' %} 
         {% elif not company.catalogitems.all %}
@@ -30,51 +31,53 @@
         <!-- If set up completed, only then show the New Requisition form -->
         {% else %}        
 
-        <form method="POST">
-        {% csrf_token %}
-        {{ orderitem_formset.management_form | crispy }}
-        
-            <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
-            <div class="box box-default">	    
-                <div class="box-header with-border">
-                  <h3 class="box-title">Order Details</h3>
-                </div>       
-                 <div class="box-body">
-                  <div class="row">
-                	<div class="col-xs-12">
-        				<div class="box-body no-padding">
-                            {% crispy requisition_form requisition_form.helper %}
-        	            </div>
-        	        </div>
-        		</div> 
+            <form method="POST">
+            {% csrf_token %}            
+            
+                <!-- DEPARTMENT & NEXT APPROVER DROPDOWNS -->
+                <div class="box box-default">	    
+                    <div class="box-header with-border">
+                      <h3 class="box-title">Order Details</h3>
+                    </div>       
+                     <div class="box-body">
+                      <div class="row">
+                    	<div class="col-xs-12">
+            				<div class="box-body no-padding">
+                                {% crispy requisition_form requisition_form.helper %}
+            	            </div>
+            	        </div>
+            		</div> 
+                    </div>
                 </div>
-            </div>
 
-            <!-- ORDER DETAILS -->
-            <div class="box box-default">        
-                <div class="box-header with-border">
-                  <h3 class="box-title">Order Items List</h3>
-                </div>
-                <div class="box-body">
-                  <div class="row">
-                	<div class="col-xs-12">                
-        				<div class="box-body">
-                            {% for form in orderitem_formset.forms %}                   
-                                {% for hidden in form.hidden_fields %}
-                                    {{ hidden }}
+                <!-- ORDER DETAILS -->
+                <div class="box box-default">        
+                    <div class="box-header with-border">
+                      <h3 class="box-title">Order Items List</h3>
+                    </div>
+                    <div class="box-body">
+                      <div class="row">
+                    	<div class="col-xs-12">                
+            				<div class="box-body">
+                                {{ orderitem_formset.management_form | crispy }}
+                                {% for form in orderitem_formset.forms %}
+                                    {% for hidden in form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                    <div class="item" id="{{form.prefix}}">
+                                        {% crispy form form.helper %}
+                                    </div>     
                                 {% endfor %}
-                                <div class="item" id="{{form.prefix}}">
-                                    {% crispy form form.helper %}                                
-                                </div>     
-                            {% endfor %}
-                            <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>
-        	           </div>
-        	        </div>
-        		  </div>
-                  <button type="submit" class="button btn basic-teal pull-right"><i class="fa {{ICONS.requisition}}"></i> Create Requisition </button>
-                </div>
-            </div>        
-        {% endif %}
+                                <a id="add" href="#"><i class="fa fa-plus"></i> Add Item</a>
+            	           </div>
+            	        </div>
+            		  </div>
+                      <button type="submit" class="button btn basic-teal pull-right">
+                        <i class="fa {{ICONS.requisition}}"></i> Create Requisition 
+                      </button>
+                    </div>
+                </div>        
+            {% endif %}
 
         {% endwith %}
     </form>
@@ -84,20 +87,19 @@
 
 
 {% block js %}    
-    
     <script>
         /******* 
         Dynamically updated the UNIT_PRICE of Product 
         in Order Item Formset based on Product Unit_Price
         *******/
-        $(document).on('change','.item-product', function(){
+        $(document).on('change','.product', function(){
             
             // Get the product_id of the element selected
             var product_id = $('option:selected', this).val();             
 
             // Get the DOM element for that row's unit-price field
             // and remove the first 4 chars ('div_')
-            var price_dom_element = $(this).closest('.row').children('.item-price').children().attr('id');
+            var price_dom_element = $(this).closest('.row').children('.unit_price').children().attr('id');
 
             var formCount = $('.item').length;
             price_dom_element = price_dom_element.substring(4, price_dom_element.length);

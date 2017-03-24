@@ -45,6 +45,10 @@ $(document).ready(function(){
         $(".errorlist", row).remove();
         $(row).children().removeClass("error");
 
+        // Add csrf_token to the individual form of the formset
+        var token = $('input[name="csrfmiddlewaretoken"]').val();
+        $(row).append('<input type="hidden" name="csrfmiddlewaretoken" value="' + token +'" />');
+
         // Relabel or rename all the relevant bits of the new row
         $(row).children().children().each(function () {
             updateElementIndex(this, prefix, formCount);

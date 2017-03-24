@@ -13,7 +13,6 @@ from django.shortcuts import render, redirect, resolve_url, get_object_or_404
 from django.template.response import TemplateResponse
 from django.views import generic
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.urls import reverse
 from django.utils import timezone
@@ -52,14 +51,14 @@ def register(request):
             location = Location.objects.create(loc_type='HQ', name=company.name+' - HQ', company=company)
             department = Department.objects.create(name='Admin', location=location)
             buyer_profile = BuyerProfile.objects.create(role='SuperUser', user=user, department=department, location=location, company=company)            
-            
+
             # Create Stripe Customer and Subscription objects (subscribed to 'free' plan)
             customer = stripe.Customer.create(
                 email=user.email,
-                source=request.POST['stripeToken'],
+                source=request.POST.get('stripeToken'),
             )            
             subscription = stripe.Subscription.create(
-              customer=user.id,
+              customer=customer.id,
               plan="free",
             )
             # Update DB to hold user's stripe_customer_id
@@ -68,7 +67,7 @@ def register(request):
 
             authenticate(username=user.username,password=user_form.cleaned_data['password1'])
             send_verific_email(user, user.id*conf_settings.SCALAR)
-            save_notification('Welcome! Super pumped to have you join the family!', 'Success', [request.user])
+            save_notification('Welcome! Super pumped to have you join the family!', 'Success', [request.user], 'get_started')
             return redirect('thankyou')
         else:
             messages.info(request, 'Error. Registration unsuccessful')
@@ -85,14 +84,16 @@ def subscribe(request):
         plan_id = int(request.POST.get('plan_id'))
         plan = Plan.objects.get(id=plan_id)
 
+        Subscription.objects.create(charge_id="", plan=plan, buyer_co=buyer.company)
+
         update_stripe_subscription(request.user, plan)
         
         # Update BuyerCo is_subscribed' status
         buyer.company.is_subscribed = True
         buyer.company.save()
         
-        messages.success(request, 'Nice! Registration successful! As a bonus, your first week is free!')
-        save_notification('Welcome! First week on us!', 'Success', [request.user])
+        messages.success(request, 'Nice! Registration successful! As a bonus, your first week is on us!')
+        save_notification('Welcome! First week on us!', 'Success', [request.user], 'get_started')
         return redirect('dashboard')
     data = {
         'plans': Plan.objects.filter(is_active=True),
@@ -153,32 +154,35 @@ def get_started(request):
     req_exists = Requisition.objects.filter(buyer_co=buyer.company).exists()
     po_exists = PurchaseOrder.objects.filter(buyer_co=buyer.company).exists()
     invoice_exists = Invoice.objects.filter(buyer_co=buyer.company).exists()
+    debit_note_exists = DebitNote.objects.filter(buyer_co=buyer.company).exists()
     dd_exists = Drawdown.objects.filter(buyer_co=buyer.company).exists()
     data = {        
         'settings_list': [
             # url (name), text_to_display, action_completed?
-            ['locations','1. Add locations & departments', Department.objects.filter(location__company=buyer.company).exists()],
+            ['locations','1. Add locations & departments', Department.objects.filter(location__company=buyer.company).exclude(name='Admin').exists()],
             ['vendors','2. Add vendors', VendorCo.objects.filter(buyer_cos=buyer.company).exists()],
             ['categories','3. Create product categories', Category.objects.filter(buyer_co=buyer.company).exists()],
             ['products','4. Add items to catalog', CatalogItem.objects.filter(buyer_cos=buyer.company).exists()],
-            ['account_codes','4. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
-            ['approval_routing','5. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gt=100).exists()],
-            ['users','6. Add / view users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],      
-        ],
-        'request_list': [
-            ['new_requisition','1. Create a new request', req_exists],
-            ['requisitions','2. Approve/decline requests', req_exists],
+            ['account_codes','5. Create account codes', AccountCode.objects.filter(company=buyer.company).exists()],
+            ['approval_routing','6. Set up approval routing', BuyerProfile.objects.filter(company=buyer.company, approval_threshold__gt=100).exists()],
+            ['users','7. Add users', BuyerProfile.objects.filter(company=buyer.company).exclude(user=request.user).exists()],      
         ],
         'procure_list': [
-            ['new_po_items','1. Create a purchase order', po_exists],
-            ['purchaseorders','2. View open/pending POs', po_exists],
+            ['new_requisition','1. Create a new request', req_exists],
+            ['requisitions','2. Approve/decline requests', req_exists],
+            ['new_po_items','3. Create PO', po_exists],
+            ['purchaseorders','4. Approve/decline POs', po_exists],
         ],
         'pay_list': [
             ['new_invoice_items','1. Track invoices', invoice_exists],
             ['receive_pos','2. Receive items', dd_exists],
-            ['new_drawdown','3. Create drawdowns', dd_exists],
-            ['inventory','4. Track inventory', dd_exists],
-        ],               
+            ['new_debit_note','3. Create debit notes', debit_note_exists],
+        ],
+        'drawdown_list': [
+            ['new_drawdown','1. Create drawdowns', dd_exists],
+            ['inventory','2. Track inventory', dd_exists],
+            ['spend_by_location_dept','3. Analyze spend', po_exists],
+        ],          
     }
     return render(request, "main/get_started.html", data)
 
@@ -192,13 +196,23 @@ def dashboard(request):
     pos = get_documents_by_auth(buyer, PurchaseOrder)    
     
     # Order Items with current_status = 'Delivered PARTIAL/COMLPETE', in the past 7 days
-    items_received = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES)
+    items_received = OrderItem.objects.filter(department__location__company=buyer.department.location.company, current_status__in=conf_settings.DELIVERED_STATUSES)
     items_received_this_week = items_received.annotate(latest_update=Max('status_updates__date')).filter(latest_update__gte=datetime.now()-timedelta(days=7))
 
+    # Chains together StatusLogs of Docs/Items updated by buyer
+    user_activity = get_user_activity(buyer)
+
     data = {        
+        # If user is SuperUser
         'pending_requisitions': Requisition.objects.filter(current_status='Pending', pk__in=requisitions),
-        'pending_pos': PurchaseOrder.objects.filter(current_status='Pending', pk__in=pos),
+        'pending_pos': PurchaseOrder.objects.filter(current_status='Open', pk__in=pos),
         'items_received': items_received,
+
+        # If user is not SuperUser
+        'user_docs': Document.objects.filter(current_status__in=['Pending','Open'], next_approver=buyer),
+        'user_activity': user_activity,
+        'len_user_activity': len(list(user_activity)),
+        'user_activity_headers': ['Item', 'Status', 'Date'],
     }
     return render(request, "main/dashboard.html", data)
 
@@ -218,7 +232,7 @@ def new_requisition(request):
     initialize_req_form(buyer, requisition_form, orderitem_formset)
     
     if request.method == "POST":
-        users = get_users_for_notifications(['SuperUser', 'Approver'], requisition.preparer)
+        users = get_users_for_notifications(['SuperUser', 'Approver'], buyer)
         if requisition_form.is_valid() and orderitem_formset.is_valid():            
             # Save order_items and statuses (Req & Order Item status) --> see utils.py
             requisition = save_new_document(buyer, requisition_form)
@@ -236,7 +250,6 @@ def new_requisition(request):
     data = {
         'requisition_form': requisition_form,
         'orderitem_formset': orderitem_formset,
-        'table_headers': ['Product', 'Quantity', 'Account Code', 'Comments'],
     }
     return render(request, "requests/new_requisition.html", data)
 
@@ -357,6 +370,7 @@ def new_po_confirm(request):
     initialize_po_form(buyer, po_form)
     
     if request.method == 'POST':
+        # pdb.set_trace()
         if po_form.is_valid() and po_items_formset.is_valid():
             purchase_order = save_new_document(buyer, po_form)
             users = get_users_for_notifications(['SuperUser', 'Purchaser'], purchase_order.preparer)            
@@ -458,8 +472,18 @@ def receive_po(request, po_id):
     receive_po_formset = ReceivePOItemFormSet(request.POST or None, instance=purchase_order)
     receipt_file_form = FileForm(request.POST or None, request.FILES or None)
 
-    if request.method == 'POST':        
-        if receipt_file_form.is_valid() and receive_po_formset.is_valid():
+    if request.method == 'POST':     
+        users = get_users_for_notifications(['SuperUser', 'Purchaser'], purchase_order.preparer)   
+        if 'close' in request.POST:
+            purchase_order.current_status = 'Closed'
+            purchase_order.save()
+            DocumentStatus.objects.create(value='Closed', author=buyer, document=purchase_order)
+            # No Order Item status updates needed because 'Close' only shows if purchase_order.is_ready_to_close
+            # which is all items of purchase_order have current_status 'Delivered Complete'
+            messages.success(request, 'Purchase Order closed')  
+            save_notification('PO '+purchase_order.number+' has been closed', 'Success', users, target='purchaseorders')
+            return redirect('purchaseorders')
+        elif receipt_file_form.is_valid() and receive_po_formset.is_valid():
             users = get_users_for_notifications(['SuperUser', 'Purchaser'], purchase_order.preparer)
             
             # If a file was uploaded, save it to PO
@@ -579,8 +603,8 @@ def unbilled_items_by_vendor(request, vendor_id):
     buyer = request.user.buyer_profile        
     vendor_co = get_object_or_404(VendorCo, pk=vendor_id)
     try:
-        # Order Items with current_status = Ordered/Delivered, isn't linked to an invoice, and whose PO is with the specific vendor_id
-        unbilled_items = OrderItem.objects.filter(current_status__in=conf_settings.UNBILLED_STATUSES, invoice__isnull=True, requisition__buyer_co=buyer.company, purchase_order__vendor_co=vendor_co)
+        # Order Items with current_status = Ordered/Delivered, isn't linked to an invoice, and whose PO is with the specific vendor_id        
+        unbilled_items = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES, invoice__isnull=True, requisition__buyer_co=buyer.company, purchase_order__vendor_co=vendor_co)
         data = UnbilledItemSerializer(unbilled_items, many=True).data
     except TypeError:
         data = []
@@ -674,6 +698,7 @@ def debit_notes(request):
     debit_notes = get_documents_by_auth(buyer, DebitNote)
     
     data = {
+        'invoices_exists': Invoice.objects.filter(buyer_co=buyer.company).exists(),
         'debit_notes': debit_notes,
         'table_headers': ['Debit Note', 'Invoice No.', 'Vendor', 'Date Created', 'Created by']
     }
@@ -770,7 +795,7 @@ def unbilled_items(request):
     data = {
         'unbilled_items':unbilled_items,
         # 'unbilled_formset': unbilled_formset,
-        'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Unbilled', 'Unit Price', 'Vendor']
+        'table_headers': ['PO No.', 'Product', 'Delivered Date', 'Dept.', 'Qty Delivered', 'Unit Price', 'Vendor']
     }
     return render(request, "acpayable/unbilled_items.html", data)
 
@@ -787,7 +812,7 @@ def receiving_summary(request):
         'items_received_all': items_received_all,
         'items_received_this_week': items_received_this_week,
         'items_received_this_month': items_received_this_month,
-        'table_headers': ['PO', 'Item', 'Vendor', 'Product', 'Delivery Dates', 'Recd. - Qty', 'Recd. - Amount', 'Ordered - Qty', 'Ordered - Amount', 'Recd. %']
+        'table_headers': ['PO', 'Item', 'Vendor', 'Product', 'Delivery Dates', 'Received', 'Ordered', 'Recd. %']
     }
     return render(request, "acpayable/receiving_summary.html", data)
 
@@ -1085,11 +1110,11 @@ def users(request):
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
 def locations(request):
     buyer = request.user.buyer_profile
-    locations = Location.objects.filter(company=buyer.company).annotate(num_users=Count('users'), num_depts=Count('departments'))
+    locations = Location.objects.filter(company=buyer.company)
     location_form = LocationForm(request.POST or None)
     if request.method == "POST":
         if location_form.is_valid():
-            save_location(location_form, buyer)
+            save_location(location_form, buyer, buyer.company)
             messages.success(request, 'Location added successfully')
             return redirect('locations')
         else:
@@ -1119,7 +1144,7 @@ def view_location(request, location_id, location_name):
     if request.method == "POST":
         if 'add_Location' in request.POST:
             if location_form.is_valid():
-                save_location(location_form, buyer)
+                save_location(location_form, buyer, buyer.company)
                 messages.success(request, 'Location updated successfully')
             else:
                 messages.info(request, 'Error. Location not updated. Please try again.')
@@ -1128,7 +1153,7 @@ def view_location(request, location_id, location_name):
                 user = save_user(user_form, buyer_profile_form, buyer.company, location)
                 send_verific_email(user, user.id*conf_settings.SCALAR)
                 messages.success(request, 'User successfully invited')         
-                save_notification('User '+user.username+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='locations')       
+                save_notification('User '+user.username+' has been added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='users')       
             else:
                 messages.info(request, 'Error. User not added. Please try again.')
         elif 'add_Department' in request.POST:
@@ -1196,35 +1221,31 @@ def view_department(request, location_id, location_name, department_name, depart
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
-def view_user(request, location_id, location_name, username):
+def view_user(request, username, user_id):
     buyer = request.user.buyer_profile
 
-    location = get_object_or_404(Location, pk=location_id)
-
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(User, pk=user_id)
     user_form = ChangeUserForm(request.POST or None, instance=user)
 
     buyer_profile = get_object_or_404(BuyerProfile, user=user)
     buyer_profile_form = BuyerProfileForm(request.POST or None, instance=buyer_profile)
     
-    doc_logs = DocumentStatus.objects.filter(author=buyer_profile)
-    order_logs = OrderItemStatus.objects.filter(author=buyer_profile)
-    drawdown_logs = DrawdownItemStatus.objects.filter(author=buyer_profile)
-
-    user_activity = chain(doc_logs, order_logs, drawdown_logs)
+    user_activity = get_user_activity(buyer_profile)
     
     if request.method == "POST":
         if buyer_profile_form.is_valid():
-            user = save_user(user_form, buyer_profile_form, buyer.company, location)
+            user_form.save()
+            buyer_profile_form.save()
             messages.success(request, 'User saved successfully')
         else:
             messages.info(request, 'Error. User not saved. Please try again.')
-        return redirect('view_user', location.id, slugify(location.name), buyer_profile.user.username)
+        return redirect('view_user', buyer_profile.user.username)
     data = {
-        'user_form': user_form,
+        'user_form': user_form,        
         'buyer_profile': buyer_profile,
         'buyer_profile_form': buyer_profile_form, 
         'user_activity': user_activity,
+        'len_user_activity': len(list(user_activity)),
         'user_activity_headers': ['Item', 'Status', 'Date'],
     }
     return render(request, "settings/view_user.html", data)
@@ -1307,7 +1328,13 @@ def products(request):
     product_form.fields['category'].queryset = Category.objects.filter(buyer_co=buyer.company)
     product_form.fields['vendor_co'].queryset = VendorCo.objects.filter(buyer_cos=buyer.company)
     if request.method == "POST":
-        if product_form.is_valid():
+        if 'delete' in request.POST:
+            product_id = int(request.POST['delete'])
+            product = CatalogItem.objects.get(pk=product_id)
+            product.delete()
+            messages.success(request, 'Product successfully deleted')
+            return redirect('products') 
+        elif product_form.is_valid():
             product = product_form.save(commit=False)
             product.currency = product.vendor_co.currency
             product.save()
@@ -1322,7 +1349,7 @@ def products(request):
     data = {
         'products': products,
         'product_form': product_form,
-        'table_headers': ['', 'Product', 'SKU', 'Description', 'Price', 'Min. Thresh.', 'Max. Thresh.', 'Category', 'Vendor'],
+        'table_headers': ['', 'Product', 'SKU', 'Description', 'Price', 'Min. Thresh.', 'Max. Thresh.', 'Category', 'Vendor', ''],
     }
     return render(request, "products/products.html", data)
 
@@ -1334,17 +1361,18 @@ def upload_product_csv(request):
     if request.method == "POST":
         if csv_form.is_valid():       
             reader = csv.DictReader(request.FILES['file'])
-            try:                
-                handle_product_upload(reader, buyer.company)                
+            # try:                
+            error_or_success = handle_product_upload(reader, buyer.company)
+            if error_or_success == 'Success':
                 messages.success(request, 'Products successfully uploaded.')
                 save_notification('New products have been added to the catalog', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
                 return redirect('products')
-            except:
-                messages.info(request, 'Error. Not all products uploaded. Please ensure all fields are correctly filled in and try again.')
+            else:
+                messages.info(request, error_or_success)
     data = {
         'csv_form': csv_form,
     }
-    return render(request, "products/catalog_import.html", data)
+    return render(request, "products/products_import.html", data)
 
 @login_required()
 @user_passes_test(is_subscribed_or_trial_not_over, login_url='trial_over_not_subscribed')
@@ -1390,10 +1418,10 @@ def vendors(request):
     
     if request.method == "POST":
         if vendor_form.is_valid() and location_form.is_valid():
-            save_vendor(vendor_form, buyer)
-            save_location(location_form, buyer)
+            vendor = save_vendor(vendor_form, buyer)
+            save_location(location_form, buyer, vendor)
             messages.success(request, "Vendor added successfully")
-            save_notification('New vendor ' + vendor.name + 'added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='products')
+            save_notification('New vendor ' + vendor.name + 'added', 'Success', list(User.objects.filter(buyer_profile__company=buyer.company)), target='vendors')
             return redirect('vendors')
         else:
             messages.info(request, 'Error. Vendor list not updated.')
