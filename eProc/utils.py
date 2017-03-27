@@ -406,7 +406,6 @@ def handle_vendor_upload(reader, buyer_co, currency):
 time_delta = 30 # (in days)
 
 def setup_analysis_data(buyer, department=None):
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.objects.filter(current_status__in=settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
     if department is not None:
         items = items.filter(department=department)
@@ -426,7 +425,6 @@ def setup_periods():
 # Filter items based on date of status update
 # To change this to based on 'Order' or 'Delivery' date??
 def setup_items_by_period(items, period_today, period_mid, period_old, period_end):
-    # Order Items with latest_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department    
     items_today = items.filter(Q(status_updates__date__gte=period_mid), Q(status_updates__date__lte=period_today))
     items_mid = items.filter(Q(status_updates__date__gte=period_old), Q(status_updates__date__lte=period_mid))
     items_old = items.filter(Q(status_updates__date__gte=period_end), Q(status_updates__date__lte=period_old))

@@ -5,6 +5,7 @@ django-crispy-forms==1.6.1
 django-model-utils==2.6.1
 djangorestframework==3.5.3
 enum34==1.1.6
+gunicorn==19.7.1
 idna==2.2
 ipaddress==1.0.18
 jsonfield==1.0.3

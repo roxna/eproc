@@ -1714,7 +1714,6 @@ def industry_benchmarks(request):
 
     ##### CHART 1: SUPPLIER SPEND TOP 5% #####
     benchmark_spend_percent = 90
-    # Order Items with current_status = 'Delivered PARTIAL/COMLPETE' (see managers.py) in the requester's department
     items = OrderItem.objects.filter(current_status__in=conf_settings.DELIVERED_STATUSES, requisition__buyer_co=buyer.company)
     
     items_by_vendor = items.values('product__vendor_co__name').annotate(total_spend=Sum(F('qty_delivered')*F('price_ordered'), output_field=models.DecimalField()))

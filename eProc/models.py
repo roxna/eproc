@@ -10,7 +10,6 @@ from django.core.validators import RegexValidator, MinValueValidator
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from collections import defaultdict
-from .managers import *
 from .validators import validate_file_extension
 
 ################################
