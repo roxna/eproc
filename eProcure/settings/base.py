@@ -25,15 +25,13 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'rr33#sp1u0@ni+%la+eciph+fjrmb#tvn)ddkykuva8z19up*h'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+# SECRET_KEY='rr33#sp1u0@ni+%la+eciph+fjrmb#tvn)ddkykuva8z19up*h'
 
-# FOR TEST; SECURITY WARNING: don't run with debug turned on in production!
+
+# dev_settings.py
 DEBUG = True
 ALLOWED_HOSTS = []
-
-# FOR PRODUCTION
-# DEBUG = False
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0.5000']
 
 # Application definition
 
@@ -72,9 +70,9 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-        'NAME': 'eprocure',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': os.environ.get('POSTGRES_NAME'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': '',
         'PORT': '',
     }
@@ -127,6 +125,7 @@ AUTH_USER_MODEL = 'eProc.User'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 
+# See .env file for environment variables
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')

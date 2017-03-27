@@ -1,0 +1,1 @@
+from eProcure.settings.base import *
