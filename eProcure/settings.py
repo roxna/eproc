@@ -7,8 +7,19 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  #where manage.py lies
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)) #BASE_DIR + project_name (where settings.py is)
 
+STATIC_URL = '/static/'
+# folder where every static files will be stored after a manage.py collectstatic
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+# list of folder where Django will search for additional static files, in addition to each static folder of each app installed
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static/'),
+)
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -110,15 +121,6 @@ USE_L10N = True
 USE_TZ = True
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
-
-STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
 
 AUTH_USER_MODEL = 'eProc.User'
 
