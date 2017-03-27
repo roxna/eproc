@@ -26,10 +26,8 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
-# SECRET_KEY='rr33#sp1u0@ni+%la+eciph+fjrmb#tvn)ddkykuva8z19up*h'
 
-
-# dev_settings.py
+# local_settings.py - Overridden in settings/production.py
 DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -63,12 +61,8 @@ ROOT_URLCONF = 'eProcure.urls'
 WSGI_APPLICATION = 'eProcure.wsgi.application'
 
 
-# Database
-
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.postgresql_psycopg2', 
         'NAME': os.environ.get('POSTGRES_NAME'),
         'USER': os.environ.get('POSTGRES_USER'),
@@ -121,7 +115,6 @@ USE_TZ = True
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 AUTH_USER_MODEL = 'eProc.User'
-
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 
