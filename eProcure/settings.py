@@ -22,7 +22,7 @@ ALLOWED_HOSTS = []
 
 # FOR PRODUCTION
 # DEBUG = False
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0.5000']
 
 # Application definition
 
@@ -150,11 +150,11 @@ MAX_UPLOAD_SIZE = "2621440" # 2.5MB - 2621440 / 5MB - 5242880 / 10MB - 10485760
 #######################################
 TRIAL_PERIOD_DAYS = 30
 
-STRIPE_TEST_SECRET_KEY = os.environ['STRIPE_TEST_SECRET_KEY']
-STRIPE_TEST_PUBLISHABLE_KEY = os.environ['STRIPE_TEST_PUBLISHABLE_KEY']
+STRIPE_TEST_SECRET_KEY = os.environ.get('STRIPE_TEST_SECRET_KEY')
+STRIPE_TEST_PUBLISHABLE_KEY = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
 
-STRIPE_LIVE_SECRET_KEY = ""
-STRIPE_LIVE_PUBLISHABLE_KEY = ""
+STRIPE_LIVE_SECRET_KEY = os.environ.get('STRIPE_LIVE_SECRET_KEY')
+STRIPE_LIVE_PUBLISHABLE_KEY = os.environ.get('STRIPE_LIVE_PUBLISHABLE_KEY')
 
 #######################################
 #           PRICE ALERTS              #
