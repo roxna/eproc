@@ -7,16 +7,12 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  #where manage.py lies
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)) #BASE_DIR + project_name (where settings.py is)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)) #where manage.py lies, previously called BASE_DIR
 
 STATIC_URL = '/static/'
-# folder where every static files will be stored after a manage.py collectstatic
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
-# list of folder where Django will search for additional static files, in addition to each static folder of each app installed
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static/'),
-)
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')  #where manage.py collectstatic collects static files
+
+# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, *MEDIA_URL.strip("/").split("/"))
@@ -77,7 +73,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'eProc/templates/'),
+            os.path.join(PROJECT_ROOT, 'eProc/templates/'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

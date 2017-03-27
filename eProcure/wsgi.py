@@ -13,7 +13,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "eProcure.settings.production")
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
-
 # Whitenoise - to serve staticfiles on Heroku
 # Read more: https://devcenter.heroku.com/articles/django-assets
 from whitenoise.django import DjangoWhiteNoise
