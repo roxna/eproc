@@ -1,1 +1,1 @@
-web: gunicorn eProcure.wsgi --log-file -;
+web: gunicorn eProcure.wsgi:application --log-file -

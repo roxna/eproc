@@ -27,6 +27,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 ALLOWED_HOSTS = []
 
+# Change this to False when in production
+# DEBUG = False
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0.5000']
+
 # Application definition
 from whitenoise import WhiteNoise
 INSTALLED_APPS = (
